@@ -482,17 +482,98 @@ const App: React.FC = () => {
 
   if (screen === 'dashboard') {
     return (
-      <AppDashboard
-        profile={profile}
-        clients={clients}
-        onAddClient={() => {
-          setSelectedClient(null);
-          navigateTo('client-intake');
-        }}
-        onViewClient={handleViewClient}
-        onBack={goBack}
-        onExitDemo={() => setShowWaitlist(true)}
-      />
+      <>
+        <AppDashboard
+          profile={profile}
+          clients={clients}
+          onAddClient={() => {
+            setSelectedClient(null);
+            navigateTo('client-intake');
+          }}
+          onViewClient={handleViewClient}
+          onBack={goBack}
+          onExitDemo={() => setShowWaitlist(true)}
+        />
+
+        {/* Waitlist Modal for Dashboard */}
+        {showWaitlist && (
+          <div
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+            onClick={() => {
+              setShowWaitlist(false);
+              setWaitlistSubmitted(false);
+            }}
+          >
+            <div
+              className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {!waitlistSubmitted ? (
+                <>
+                  <div className="px-6 py-5 bg-maroon text-white text-center">
+                    <h3 className="text-xl sm:text-2xl font-serif mb-2">Join the Waitlist</h3>
+                    <p className="text-white/70 text-sm">Be the first to know when Recur launches.</p>
+                  </div>
+                  <form onSubmit={handleWaitlistSubmit} className="p-6">
+                    <div className="mb-4">
+                      <label className="block text-sm font-bold text-maroon mb-2">Email Address</label>
+                      <input
+                        type="email"
+                        value={waitlistEmail}
+                        onChange={(e) => setWaitlistEmail(e.target.value)}
+                        placeholder="you@example.com"
+                        required
+                        disabled={waitlistLoading}
+                        className="w-full px-4 py-3 border border-slate-200 rounded-xl text-maroon focus:outline-none focus:ring-2 focus:ring-maroon/20 focus:border-maroon disabled:opacity-50"
+                      />
+                    </div>
+                    {waitlistError && (
+                      <p className="text-red-600 text-sm mb-4 text-center">{waitlistError}</p>
+                    )}
+                    <button
+                      type="submit"
+                      disabled={waitlistLoading}
+                      className="btn-primary w-full py-3.5 bg-maroon text-white rounded-xl font-bold text-base disabled:opacity-70"
+                    >
+                      {waitlistLoading ? 'Joining...' : 'Get Early Access'}
+                    </button>
+                  </form>
+                </>
+              ) : (
+                <div className="p-8 text-center">
+                  <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-serif text-maroon mb-2">You're on the list!</h3>
+                  <p className="text-maroon/60 mb-6">We'll send you an email when Recur is ready.</p>
+                  <button
+                    onClick={() => {
+                      setShowWaitlist(false);
+                      setWaitlistSubmitted(false);
+                    }}
+                    className="btn-primary px-6 py-3 bg-maroon text-white rounded-xl font-bold"
+                  >
+                    Back to Demo
+                  </button>
+                </div>
+              )}
+              <button
+                onClick={() => {
+                  setShowWaitlist(false);
+                  setWaitlistSubmitted(false);
+                }}
+                className="absolute top-4 right-4 p-2 text-white/60 hover:text-white transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
+      </>
     );
   }
 

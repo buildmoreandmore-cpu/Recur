@@ -504,14 +504,6 @@ const App: React.FC = () => {
       <main>
         {/* SECTION 1: Hero */}
         <section className="relative pt-12 sm:pt-24 pb-16 sm:pb-32 text-center px-4 sm:px-6 overflow-hidden">
-          {/* Decorative Chevrons */}
-          <svg className="hero-chevron hero-chevron-left hidden lg:block" viewBox="0 0 300 600" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M250 50 L50 300 L250 550" stroke="#2d1212" strokeWidth="40" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-          </svg>
-          <svg className="hero-chevron hero-chevron-right hidden lg:block" viewBox="0 0 300 600" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M50 50 L250 300 L50 550" stroke="#2d1212" strokeWidth="40" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-          </svg>
-
           <div className="max-w-4xl mx-auto relative z-10">
             <h1 className="text-3xl sm:text-5xl lg:text-[72px] font-serif leading-[1.15] sm:leading-[1.1] text-maroon mb-6 sm:mb-8">
               <span className="hero-animate hero-animate-delay-1 inline-block">Know your </span>

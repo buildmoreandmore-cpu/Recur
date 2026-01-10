@@ -53,6 +53,49 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
   const [addonServices, setAddonServices] = useState(DEFAULT_ADDON_SERVICES);
   const [eventServices, setEventServices] = useState(DEFAULT_EVENT_SERVICES);
 
+  // Custom service input state
+  const [newBaseName, setNewBaseName] = useState('');
+  const [newBasePrice, setNewBasePrice] = useState('');
+  const [newAddonName, setNewAddonName] = useState('');
+  const [newAddonPrice, setNewAddonPrice] = useState('');
+  const [newEventName, setNewEventName] = useState('');
+  const [newEventPrice, setNewEventPrice] = useState('');
+
+  const addCustomService = (
+    type: 'base' | 'addon' | 'event',
+    name: string,
+    price: string,
+    setName: (v: string) => void,
+    setPrice: (v: string) => void
+  ) => {
+    if (!name.trim()) return;
+    const priceNum = parseInt(price) || 0;
+    const newService = { name: name.trim(), price: priceNum };
+
+    if (type === 'base') {
+      setBaseServices([...baseServices, newService]);
+    } else if (type === 'addon') {
+      setAddonServices([...addonServices, newService]);
+    } else {
+      setEventServices([...eventServices, newService]);
+    }
+    setName('');
+    setPrice('');
+  };
+
+  const removeService = (
+    type: 'base' | 'addon' | 'event',
+    index: number
+  ) => {
+    if (type === 'base') {
+      setBaseServices(baseServices.filter((_, i) => i !== index));
+    } else if (type === 'addon') {
+      setAddonServices(addonServices.filter((_, i) => i !== index));
+    } else {
+      setEventServices(eventServices.filter((_, i) => i !== index));
+    }
+  };
+
   const handleNext = () => {
     if (step < 4) {
       setStep(step + 1);
@@ -200,20 +243,56 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
                 <h3 className="text-lg font-bold text-maroon mb-6">Base Services</h3>
                 <div className="space-y-4">
                   {baseServices.map((service, index) => (
-                    <div key={service.name} className="flex items-center justify-between gap-4">
-                      <span className="text-maroon flex-1">{service.name}</span>
+                    <div key={`base-${index}`} className="flex items-center justify-between gap-2 sm:gap-4">
+                      <span className="text-maroon flex-1 text-sm sm:text-base">{service.name}</span>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
                         <input
                           type="number"
                           value={service.price || ''}
                           onChange={(e) => updateServicePrice(baseServices, setBaseServices, index, parseInt(e.target.value) || 0)}
-                          className="w-28 pl-8 pr-4 py-2 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all text-right"
+                          className="w-24 sm:w-28 pl-8 pr-2 sm:pr-4 py-2 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all text-right text-sm"
                           placeholder="0"
                         />
                       </div>
+                      {index >= DEFAULT_BASE_SERVICES.length && (
+                        <button
+                          onClick={() => removeService('base', index)}
+                          className="text-red-400 hover:text-red-600 p-1"
+                        >
+                          ×
+                        </button>
+                      )}
                     </div>
                   ))}
+                  {/* Add Custom Base Service */}
+                  <div className="pt-4 border-t border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={newBaseName}
+                        onChange={(e) => setNewBaseName(e.target.value)}
+                        placeholder="Custom service name"
+                        className="flex-1 px-3 py-2 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all text-sm"
+                      />
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                        <input
+                          type="number"
+                          value={newBasePrice}
+                          onChange={(e) => setNewBasePrice(e.target.value)}
+                          placeholder="0"
+                          className="w-20 sm:w-24 pl-8 pr-2 py-2 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all text-right text-sm"
+                        />
+                      </div>
+                      <button
+                        onClick={() => addCustomService('base', newBaseName, newBasePrice, setNewBaseName, setNewBasePrice)}
+                        className="px-3 py-2 bg-maroon text-white rounded-xl font-bold text-sm hover:bg-maroon/90 transition-all"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -222,20 +301,56 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
                 <h3 className="text-lg font-bold text-maroon mb-6">Add-On Services</h3>
                 <div className="space-y-4">
                   {addonServices.map((service, index) => (
-                    <div key={service.name} className="flex items-center justify-between gap-4">
-                      <span className="text-maroon flex-1">{service.name}</span>
+                    <div key={`addon-${index}`} className="flex items-center justify-between gap-2 sm:gap-4">
+                      <span className="text-maroon flex-1 text-sm sm:text-base">{service.name}</span>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
                         <input
                           type="number"
                           value={service.price || ''}
                           onChange={(e) => updateServicePrice(addonServices, setAddonServices, index, parseInt(e.target.value) || 0)}
-                          className="w-28 pl-8 pr-4 py-2 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all text-right"
+                          className="w-24 sm:w-28 pl-8 pr-2 sm:pr-4 py-2 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all text-right text-sm"
                           placeholder="0"
                         />
                       </div>
+                      {index >= DEFAULT_ADDON_SERVICES.length && (
+                        <button
+                          onClick={() => removeService('addon', index)}
+                          className="text-red-400 hover:text-red-600 p-1"
+                        >
+                          ×
+                        </button>
+                      )}
                     </div>
                   ))}
+                  {/* Add Custom Add-on Service */}
+                  <div className="pt-4 border-t border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={newAddonName}
+                        onChange={(e) => setNewAddonName(e.target.value)}
+                        placeholder="Custom add-on name"
+                        className="flex-1 px-3 py-2 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all text-sm"
+                      />
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                        <input
+                          type="number"
+                          value={newAddonPrice}
+                          onChange={(e) => setNewAddonPrice(e.target.value)}
+                          placeholder="0"
+                          className="w-20 sm:w-24 pl-8 pr-2 py-2 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all text-right text-sm"
+                        />
+                      </div>
+                      <button
+                        onClick={() => addCustomService('addon', newAddonName, newAddonPrice, setNewAddonName, setNewAddonPrice)}
+                        className="px-3 py-2 bg-maroon text-white rounded-xl font-bold text-sm hover:bg-maroon/90 transition-all"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -244,20 +359,56 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
                 <h3 className="text-lg font-bold text-maroon mb-6">Event Services</h3>
                 <div className="space-y-4">
                   {eventServices.map((service, index) => (
-                    <div key={service.name} className="flex items-center justify-between gap-4">
-                      <span className="text-maroon flex-1">{service.name}</span>
+                    <div key={`event-${index}`} className="flex items-center justify-between gap-2 sm:gap-4">
+                      <span className="text-maroon flex-1 text-sm sm:text-base">{service.name}</span>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
                         <input
                           type="number"
                           value={service.price || ''}
                           onChange={(e) => updateServicePrice(eventServices, setEventServices, index, parseInt(e.target.value) || 0)}
-                          className="w-28 pl-8 pr-4 py-2 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all text-right"
+                          className="w-24 sm:w-28 pl-8 pr-2 sm:pr-4 py-2 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all text-right text-sm"
                           placeholder="0"
                         />
                       </div>
+                      {index >= DEFAULT_EVENT_SERVICES.length && (
+                        <button
+                          onClick={() => removeService('event', index)}
+                          className="text-red-400 hover:text-red-600 p-1"
+                        >
+                          ×
+                        </button>
+                      )}
                     </div>
                   ))}
+                  {/* Add Custom Event Service */}
+                  <div className="pt-4 border-t border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={newEventName}
+                        onChange={(e) => setNewEventName(e.target.value)}
+                        placeholder="Custom event name"
+                        className="flex-1 px-3 py-2 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all text-sm"
+                      />
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                        <input
+                          type="number"
+                          value={newEventPrice}
+                          onChange={(e) => setNewEventPrice(e.target.value)}
+                          placeholder="0"
+                          className="w-20 sm:w-24 pl-8 pr-2 py-2 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all text-right text-sm"
+                        />
+                      </div>
+                      <button
+                        onClick={() => addCustomService('event', newEventName, newEventPrice, setNewEventName, setNewEventPrice)}
+                        className="px-3 py-2 bg-maroon text-white rounded-xl font-bold text-sm hover:bg-maroon/90 transition-all"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

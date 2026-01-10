@@ -34,15 +34,6 @@ const DEFAULT_EVENT_SERVICES = [
   { name: 'Other event', price: 0 },
 ];
 
-const SPECIALTIES = [
-  'Color specialist',
-  'Cut specialist',
-  'Natural hair',
-  'Extensions',
-  'Textured hair',
-  'Bridal/Events',
-];
-
 export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) => {
   const [step, setStep] = useState(1);
   const [profile, setProfile] = useState<Partial<StylistProfile>>({
@@ -52,7 +43,6 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
     email: '',
     location: '',
     yearsInBusiness: 0,
-    specialties: [],
     services: [],
     defaultRotation: 10,
     annualGoal: 0,
@@ -74,15 +64,6 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
         ...eventServices.filter(s => s.price > 0).map((s, i) => ({ id: `event-${i}`, name: s.name, price: s.price, category: 'event' as const })),
       ];
       onComplete({ ...profile, services: allServices } as StylistProfile);
-    }
-  };
-
-  const toggleSpecialty = (specialty: string) => {
-    const current = profile.specialties || [];
-    if (current.includes(specialty)) {
-      setProfile({ ...profile, specialties: current.filter(s => s !== specialty) });
-    } else {
-      setProfile({ ...profile, specialties: [...current, specialty] });
     }
   };
 
@@ -196,25 +177,6 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
                     placeholder="0"
                     min="0"
                   />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-maroon mb-3">Your Specialties</label>
-                <div className="flex flex-wrap gap-3">
-                  {SPECIALTIES.map((specialty) => (
-                    <button
-                      key={specialty}
-                      onClick={() => toggleSpecialty(specialty)}
-                      className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                        profile.specialties?.includes(specialty)
-                          ? 'bg-maroon text-white'
-                          : 'bg-slate-100 text-maroon hover:bg-slate-200'
-                      }`}
-                    >
-                      {specialty}
-                    </button>
-                  ))}
                 </div>
               </div>
             </div>

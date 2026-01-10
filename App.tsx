@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DashboardView } from './components/DashboardView';
 import { ICONS, LOGOS } from './constants';
 
@@ -9,6 +9,26 @@ const App: React.FC = () => {
     const element = document.getElementById(id);
     if (element) element.scrollIntoView({ behavior: 'smooth' });
   };
+
+  // Scroll reveal animation
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+    );
+
+    document.querySelectorAll('.scroll-reveal').forEach((el) => {
+      observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, [activeView]);
 
   return (
     <div className="min-h-screen relative overflow-x-hidden">
@@ -28,7 +48,7 @@ const App: React.FC = () => {
           <button className="hidden md:block px-5 py-2.5 text-[15px] font-medium text-maroon hover:opacity-70">Log in</button>
           <button
             onClick={() => setActiveView('demo')}
-            className="px-5 py-2.5 bg-maroon text-white rounded-xl text-[15px] font-bold shadow-sm hover:opacity-90 transition-all"
+            className="btn-primary px-5 py-2.5 bg-maroon text-white rounded-xl text-[15px] font-bold shadow-sm"
           >
             Get Started
           </button>
@@ -42,33 +62,37 @@ const App: React.FC = () => {
             <section className="relative pt-24 pb-32 text-center px-6">
               <div className="max-w-4xl mx-auto relative z-10">
                 <h1 className="text-5xl lg:text-[72px] font-serif leading-[1.1] text-maroon mb-8">
-                  Know your <span className="italic">income</span><br />
-                  before the year starts.
+                  <span className="hero-animate hero-animate-delay-1 inline-block">Know your </span>
+                  <span className="hero-animate hero-animate-delay-2 inline-block italic">income</span>
+                  <br />
+                  <span className="hero-animate hero-animate-delay-3 inline-block">before the year starts.</span>
                 </h1>
 
-                <p className="text-lg lg:text-xl text-maroon/70 mb-10 max-w-2xl mx-auto leading-relaxed">
+                <p className="hero-animate hero-animate-delay-3 text-lg lg:text-xl text-maroon/70 mb-10 max-w-2xl mx-auto leading-relaxed">
                   The client management system that maps every rotation, forecasts your revenue, and keeps you ahead of your book.
                 </p>
 
-                <button
-                  onClick={() => setActiveView('demo')}
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-maroon text-white rounded-full text-lg font-bold hover:opacity-90 transition-all shadow-xl"
-                >
-                  <ICONS.Sparkle />
-                  Start Free Trial
-                </button>
+                <div className="hero-animate hero-animate-delay-4">
+                  <button
+                    onClick={() => setActiveView('demo')}
+                    className="btn-primary inline-flex items-center gap-2 px-8 py-4 bg-maroon text-white rounded-full text-lg font-bold shadow-xl"
+                  >
+                    <ICONS.Sparkle />
+                    Start Free Trial
+                  </button>
 
-                <p className="mt-4 text-sm text-slate-400">Free for 14 days. No credit card required.</p>
+                  <p className="mt-4 text-sm text-slate-400">Free for 14 days. No credit card required.</p>
+                </div>
               </div>
             </section>
 
             {/* SECTION 2: The Problem */}
             <section className="py-20 px-6 bg-cream">
               <div className="max-w-3xl mx-auto text-center">
-                <p className="text-xl lg:text-2xl text-maroon/80 leading-relaxed font-medium">
+                <p className="scroll-reveal text-xl lg:text-2xl text-maroon/80 leading-relaxed font-medium">
                   You check your calendar and see open slots. You check your bank account and wonder why the numbers don't match what you expected. You're working hard, but you're still <span className="italic">guessing</span> what next month looks like.
                 </p>
-                <p className="mt-6 text-xl lg:text-2xl text-maroon font-bold">
+                <p className="scroll-reveal delay-1 mt-6 text-xl lg:text-2xl text-maroon font-bold">
                   It's exhausting. And it doesn't have to be this way.
                 </p>
               </div>
@@ -77,26 +101,26 @@ const App: React.FC = () => {
             {/* SECTION 3: The Solution */}
             <section className="py-24 px-6 bg-white" id="how-it-works">
               <div className="max-w-7xl mx-auto">
-                <h2 className="text-3xl lg:text-4xl font-serif text-center text-maroon mb-16">
+                <h2 className="scroll-reveal text-3xl lg:text-4xl font-serif text-center text-maroon mb-16">
                   Three things that change everything
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  <div className="bg-white p-10 rounded-[32px] border border-slate-100 shadow-sm flex flex-col items-center text-center">
-                    <div className="w-16 h-16 bg-[#fff38a] rounded-2xl flex items-center justify-center text-maroon mb-6">
+                  <div className="scroll-reveal delay-1 card-hover bg-white p-10 rounded-[32px] border border-slate-100 shadow-sm flex flex-col items-center text-center">
+                    <div className="card-icon w-16 h-16 bg-[#fff38a] rounded-2xl flex items-center justify-center text-maroon mb-6">
                       <ICONS.Users />
                     </div>
                     <h3 className="text-xl font-bold mb-3 text-maroon">Map Your Clients</h3>
                     <p className="text-slate-500 leading-relaxed">Capture rotation schedules, preferences, and annual value. Know exactly who's in your chair and when.</p>
                   </div>
-                  <div className="bg-maroon p-10 rounded-[32px] shadow-lg flex flex-col items-center text-center text-white">
-                    <div className="w-16 h-16 bg-[#fff38a] rounded-2xl flex items-center justify-center text-maroon mb-6">
+                  <div className="scroll-reveal delay-2 card-hover bg-maroon p-10 rounded-[32px] shadow-lg flex flex-col items-center text-center text-white">
+                    <div className="card-icon w-16 h-16 bg-[#fff38a] rounded-2xl flex items-center justify-center text-maroon mb-6">
                       <ICONS.TrendingUp />
                     </div>
                     <h3 className="text-xl font-bold mb-3">Forecast Your Income</h3>
                     <p className="text-white/70 leading-relaxed">Every rotation has a value. Add them up and you know your year—before January ends.</p>
                   </div>
-                  <div className="bg-white p-10 rounded-[32px] border border-slate-100 shadow-sm flex flex-col items-center text-center">
-                    <div className="w-16 h-16 bg-[#fff38a] rounded-2xl flex items-center justify-center text-maroon mb-6">
+                  <div className="scroll-reveal delay-3 card-hover bg-white p-10 rounded-[32px] border border-slate-100 shadow-sm flex flex-col items-center text-center">
+                    <div className="card-icon w-16 h-16 bg-[#fff38a] rounded-2xl flex items-center justify-center text-maroon mb-6">
                       <ICONS.Alert />
                     </div>
                     <h3 className="text-xl font-bold mb-3 text-maroon">Stay Ahead of Churn</h3>
@@ -110,14 +134,14 @@ const App: React.FC = () => {
             <section className="py-24 px-6 bg-cream">
               <div className="max-w-6xl mx-auto">
                 <div className="text-center mb-12">
-                  <h2 className="text-3xl lg:text-4xl font-serif text-maroon mb-4">
+                  <h2 className="scroll-reveal text-3xl lg:text-4xl font-serif text-maroon mb-4">
                     This is Monday morning with Recur.
                   </h2>
-                  <p className="text-lg text-maroon/60">Your year, mapped. Your income, forecasted.</p>
+                  <p className="scroll-reveal delay-1 text-lg text-maroon/60">Your year, mapped. Your income, forecasted.</p>
                 </div>
 
                 {/* Dashboard Preview */}
-                <div className="bg-white rounded-[32px] shadow-2xl border border-slate-100 overflow-hidden">
+                <div className="scroll-reveal delay-2 dashboard-preview bg-white rounded-[32px] shadow-2xl border border-slate-100 overflow-hidden">
                   {/* Mini Header */}
                   <div className="border-b border-slate-100 p-6 flex justify-between items-center">
                     <div>
@@ -136,17 +160,17 @@ const App: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                       <div className="p-6 rounded-2xl bg-maroon text-white">
                         <div className="text-[10px] font-bold opacity-50 uppercase tracking-wider mb-2">Annual Forecast</div>
-                        <div className="text-3xl font-serif">$132,450</div>
+                        <div className="text-3xl font-serif number-animate">$132,450</div>
                         <div className="text-emerald-400 text-xs font-bold mt-1">+14.2% YoY</div>
                       </div>
                       <div className="p-6 rounded-2xl bg-white border border-slate-100">
                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Confirmed</div>
-                        <div className="text-3xl font-serif text-maroon">$92,240</div>
+                        <div className="text-3xl font-serif text-maroon number-animate">$92,240</div>
                         <div className="text-slate-400 text-xs font-bold mt-1">70% of goal</div>
                       </div>
                       <div className="p-6 rounded-2xl bg-[#fff38a]">
                         <div className="text-[10px] font-bold text-maroon/50 uppercase tracking-wider mb-2">Pending</div>
-                        <div className="text-3xl font-serif text-maroon">$40,210</div>
+                        <div className="text-3xl font-serif text-maroon number-animate">$40,210</div>
                         <div className="text-maroon/60 text-xs font-bold mt-1">6 clients need attention</div>
                       </div>
                     </div>
@@ -162,7 +186,7 @@ const App: React.FC = () => {
                           { name: 'Sienna West', tier: 'Standard', amount: '$165', status: 'Confirmed' },
                           { name: 'Evelyn Gray', tier: 'Flex', amount: '$310', status: 'At Risk' },
                         ].map((client, i) => (
-                          <div key={i} className="px-6 py-4 flex items-center justify-between">
+                          <div key={i} className="px-6 py-4 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
                             <div className="flex items-center gap-4">
                               <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-sm">
                                 {client.name.split(' ').map(n => n[0]).join('')}
@@ -191,17 +215,17 @@ const App: React.FC = () => {
             <section className="py-24 px-6 bg-white">
               <div className="max-w-5xl mx-auto">
                 <div className="text-center mb-16">
-                  <h2 className="text-3xl lg:text-4xl font-serif text-maroon mb-4">
+                  <h2 className="scroll-reveal text-3xl lg:text-4xl font-serif text-maroon mb-4">
                     Map your year with rotations
                   </h2>
-                  <p className="text-lg text-maroon/60 max-w-2xl mx-auto">
+                  <p className="scroll-reveal delay-1 text-lg text-maroon/60 max-w-2xl mx-auto">
                     Not all clients are the same. Some come every 8 weeks like clockwork. Others are every 12. Recur tracks every tier.
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="p-8 rounded-[28px] bg-indigo-50 border-2 border-indigo-100">
-                    <div className="w-12 h-12 bg-indigo-500 rounded-xl flex items-center justify-center text-white mb-6">
+                  <div className="scroll-reveal delay-1 card-hover p-8 rounded-[28px] bg-indigo-50 border-2 border-indigo-100">
+                    <div className="card-icon w-12 h-12 bg-indigo-500 rounded-xl flex items-center justify-center text-white mb-6">
                       <ICONS.Sparkle />
                     </div>
                     <h3 className="text-xl font-bold text-indigo-900 mb-2">Priority</h3>
@@ -209,8 +233,8 @@ const App: React.FC = () => {
                     <p className="text-indigo-700/70">Your VIPs. High frequency, high value. They keep your books full and your income steady.</p>
                   </div>
 
-                  <div className="p-8 rounded-[28px] bg-slate-50 border-2 border-slate-100">
-                    <div className="w-12 h-12 bg-maroon rounded-xl flex items-center justify-center text-white mb-6">
+                  <div className="scroll-reveal delay-2 card-hover p-8 rounded-[28px] bg-slate-50 border-2 border-slate-100">
+                    <div className="card-icon w-12 h-12 bg-maroon rounded-xl flex items-center justify-center text-white mb-6">
                       <ICONS.Calendar />
                     </div>
                     <h3 className="text-xl font-bold text-maroon mb-2">Standard</h3>
@@ -218,8 +242,8 @@ const App: React.FC = () => {
                     <p className="text-slate-500">Your core clientele. Reliable, consistent. The backbone of your annual forecast.</p>
                   </div>
 
-                  <div className="p-8 rounded-[28px] bg-amber-50 border-2 border-amber-100">
-                    <div className="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center text-white mb-6">
+                  <div className="scroll-reveal delay-3 card-hover p-8 rounded-[28px] bg-amber-50 border-2 border-amber-100">
+                    <div className="card-icon w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center text-white mb-6">
                       <ICONS.Sun />
                     </div>
                     <h3 className="text-xl font-bold text-amber-900 mb-2">Flex</h3>
@@ -233,15 +257,15 @@ const App: React.FC = () => {
             {/* SECTION 6: Pricing */}
             <section className="py-24 px-6 bg-cream" id="pricing">
               <div className="max-w-xl mx-auto text-center">
-                <h2 className="text-3xl lg:text-4xl font-serif text-maroon mb-4">
+                <h2 className="scroll-reveal text-3xl lg:text-4xl font-serif text-maroon mb-4">
                   Simple pricing
                 </h2>
-                <p className="text-lg text-maroon/60 mb-12">
+                <p className="scroll-reveal delay-1 text-lg text-maroon/60 mb-12">
                   One plan. Everything you need. No surprises.
                 </p>
 
-                <div className="bg-white p-10 rounded-[32px] shadow-xl border border-slate-100">
-                  <div className="text-5xl font-serif text-maroon mb-2">$29<span className="text-2xl text-slate-400">/month</span></div>
+                <div className="scroll-reveal delay-2 price-card bg-white p-10 rounded-[32px] shadow-xl border border-slate-100">
+                  <div className="text-5xl font-serif text-maroon mb-2 number-animate">$29<span className="text-2xl text-slate-400">/month</span></div>
                   <p className="text-slate-400 font-medium mb-8">Billed monthly. Cancel anytime.</p>
 
                   <ul className="text-left space-y-4 mb-10">
@@ -264,7 +288,7 @@ const App: React.FC = () => {
 
                   <button
                     onClick={() => setActiveView('demo')}
-                    className="w-full py-4 bg-maroon text-white rounded-xl font-bold text-lg hover:opacity-90 transition-all"
+                    className="btn-primary w-full py-4 bg-maroon text-white rounded-xl font-bold text-lg"
                   >
                     Start Your Free Trial
                   </button>
@@ -276,19 +300,21 @@ const App: React.FC = () => {
             {/* SECTION 7: Final CTA */}
             <section className="py-32 px-6 bg-maroon text-white text-center">
               <div className="max-w-3xl mx-auto">
-                <h2 className="text-4xl lg:text-5xl font-serif mb-6">
+                <h2 className="scroll-reveal text-4xl lg:text-5xl font-serif mb-6">
                   Know your year before it starts.
                 </h2>
-                <p className="text-xl text-white/70 mb-10">
+                <p className="scroll-reveal delay-1 text-xl text-white/70 mb-10">
                   Your clients, mapped. Your income, forecasted. Your business, finally predictable.
                 </p>
-                <button
-                  onClick={() => setActiveView('demo')}
-                  className="inline-flex items-center gap-2 px-10 py-5 bg-[#fff38a] text-maroon rounded-full text-lg font-bold hover:opacity-90 transition-all shadow-xl"
-                >
-                  <ICONS.Sparkle />
-                  Get Started Free
-                </button>
+                <div className="scroll-reveal delay-2">
+                  <button
+                    onClick={() => setActiveView('demo')}
+                    className="btn-primary cta-glow inline-flex items-center gap-2 px-10 py-5 bg-[#fff38a] text-maroon rounded-full text-lg font-bold shadow-xl"
+                  >
+                    <ICONS.Sparkle />
+                    Get Started Free
+                  </button>
+                </div>
               </div>
             </section>
 

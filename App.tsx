@@ -523,6 +523,12 @@ const App: React.FC = () => {
               >
                 Join the Waitlist
               </button>
+              <button
+                onClick={handleStartDemo}
+                className="text-maroon/60 hover:text-maroon text-sm font-medium underline underline-offset-4 transition-colors"
+              >
+                or see the demo →
+              </button>
             </div>
           </div>
         </section>

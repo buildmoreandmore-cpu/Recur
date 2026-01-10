@@ -63,6 +63,15 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
     () => clientToEdit?.addOns || []
   );
 
+  // First appointment scheduling
+  const [firstAppointmentDate, setFirstAppointmentDate] = useState(
+    () => new Date().toISOString().split('T')[0]
+  );
+  const [useSpecificTime, setUseSpecificTime] = useState(false);
+  const [firstAppointmentTimeSlot, setFirstAppointmentTimeSlot] = useState('Morning');
+  const [firstAppointmentSpecificTime, setFirstAppointmentSpecificTime] = useState('10:00');
+  const [repeatSameDayTime, setRepeatSameDayTime] = useState(true);
+
   const baseServices = profile.services.filter(s => s.category === 'base');
   const addonServices = profile.services.filter(s => s.category === 'addon');
   const eventServices = profile.services.filter(s => s.category === 'event');
@@ -103,8 +112,27 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
       // Generate appointments for the year
       const appointments = [];
       const rotationWeeks = client.rotationWeeks || 10;
-      let currentDate = new Date();
+
+      // Start from selected first appointment date
+      let currentDate = new Date(firstAppointmentDate + 'T12:00:00');
+      const targetDayOfWeek = currentDate.getDay(); // 0=Sunday, 1=Monday, etc.
       const visitsPerYear = Math.floor(52 / rotationWeeks);
+
+      // Helper to find next occurrence of target day of week
+      const getNextTargetDay = (fromDate: Date, weeksToAdd: number): Date => {
+        const nextDate = new Date(fromDate.getTime() + weeksToAdd * 7 * 24 * 60 * 60 * 1000);
+        if (repeatSameDayTime) {
+          // Adjust to same day of week
+          const dayDiff = targetDayOfWeek - nextDate.getDay();
+          if (dayDiff !== 0) {
+            nextDate.setDate(nextDate.getDate() + dayDiff);
+          }
+        }
+        return nextDate;
+      };
+
+      // Get time string for appointments
+      const timeString = useSpecificTime ? firstAppointmentSpecificTime : firstAppointmentTimeSlot;
 
       for (let i = 0; i < visitsPerYear; i++) {
         appointments.push({
@@ -112,8 +140,9 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
           service: client.baseService?.name || 'Service',
           price: client.baseService?.price || 0,
           status: i === 0 ? 'upcoming' as const : 'scheduled' as const,
+          time: timeString,
         });
-        currentDate = new Date(currentDate.getTime() + rotationWeeks * 7 * 24 * 60 * 60 * 1000);
+        currentDate = getNextTargetDay(currentDate, rotationWeeks);
       }
 
       // Add events
@@ -134,6 +163,8 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
         ...client,
         appointments,
         addOns: selectedAddOns,
+        nextAppointment: firstAppointmentDate,
+        preferredTime: useSpecificTime ? firstAppointmentSpecificTime : firstAppointmentTimeSlot,
       } as Client);
     }
   };
@@ -637,6 +668,12 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
                     <div className="font-bold text-lg">Priority</div>
                     <div className={`text-2xl font-serif ${client.rotation === RotationType.PRIORITY ? 'text-white' : ''}`}>8 weeks</div>
                     <div className={`text-sm mt-2 ${client.rotation === RotationType.PRIORITY ? 'text-white/70' : 'text-maroon/60'}`}>6-7 visits/year</div>
+                    <div className={`text-xs mt-3 pt-3 border-t ${client.rotation === RotationType.PRIORITY ? 'border-white/20' : 'border-current/20'}`}>
+                      <span className="font-medium">Premium investment</span>
+                      {client.baseService && (
+                        <div className={`mt-1 ${client.rotation === RotationType.PRIORITY ? 'text-white/70' : 'text-maroon/60'}`}>~{formatCurrency(client.baseService.price * 7)}/year</div>
+                      )}
+                    </div>
                   </button>
                   <button
                     onClick={() => setRotation(RotationType.STANDARD, 10)}
@@ -649,6 +686,12 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
                     <div className="font-bold text-lg">Standard</div>
                     <div className={`text-2xl font-serif ${client.rotation === RotationType.STANDARD ? 'text-white' : ''}`}>10 weeks</div>
                     <div className={`text-sm mt-2 ${client.rotation === RotationType.STANDARD ? 'text-white/70' : 'text-maroon/60'}`}>5-6 visits/year</div>
+                    <div className={`text-xs mt-3 pt-3 border-t ${client.rotation === RotationType.STANDARD ? 'border-white/20' : 'border-current/20'}`}>
+                      <span className="font-medium">Balanced</span>
+                      {client.baseService && (
+                        <div className={`mt-1 ${client.rotation === RotationType.STANDARD ? 'text-white/70' : 'text-maroon/60'}`}>~{formatCurrency(client.baseService.price * 5)}/year</div>
+                      )}
+                    </div>
                   </button>
                   <button
                     onClick={() => setRotation(RotationType.FLEX, 12)}
@@ -661,7 +704,100 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
                     <div className="font-bold text-lg">Flex</div>
                     <div className={`text-2xl font-serif ${client.rotation === RotationType.FLEX ? 'text-white' : ''}`}>12+ weeks</div>
                     <div className={`text-sm mt-2 ${client.rotation === RotationType.FLEX ? 'text-white/70' : 'text-maroon/60'}`}>4-5 visits/year</div>
+                    <div className={`text-xs mt-3 pt-3 border-t ${client.rotation === RotationType.FLEX ? 'border-white/20' : 'border-current/20'}`}>
+                      <span className="font-medium">Budget-friendly</span>
+                      {client.baseService && (
+                        <div className={`mt-1 ${client.rotation === RotationType.FLEX ? 'text-white/70' : 'text-maroon/60'}`}>~{formatCurrency(client.baseService.price * 4)}/year</div>
+                      )}
+                    </div>
                   </button>
+                </div>
+              </div>
+
+              {/* First Appointment */}
+              <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-slate-100">
+                <h3 className="text-lg font-bold text-maroon mb-4">First Appointment</h3>
+                <div className="space-y-4">
+                  {/* Date */}
+                  <div>
+                    <label className="block text-sm font-medium text-maroon mb-2">Date</label>
+                    <input
+                      type="date"
+                      value={firstAppointmentDate}
+                      onChange={(e) => setFirstAppointmentDate(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all"
+                    />
+                  </div>
+
+                  {/* Time Toggle */}
+                  <div>
+                    <label className="block text-sm font-medium text-maroon mb-2">Time</label>
+                    <div className="flex gap-2 mb-3">
+                      <button
+                        type="button"
+                        onClick={() => setUseSpecificTime(false)}
+                        className={`flex-1 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                          !useSpecificTime
+                            ? 'bg-maroon text-white'
+                            : 'bg-slate-100 text-maroon hover:bg-slate-200'
+                        }`}
+                      >
+                        Time Slot
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setUseSpecificTime(true)}
+                        className={`flex-1 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                          useSpecificTime
+                            ? 'bg-maroon text-white'
+                            : 'bg-slate-100 text-maroon hover:bg-slate-200'
+                        }`}
+                      >
+                        Specific Time
+                      </button>
+                    </div>
+                    {!useSpecificTime ? (
+                      <select
+                        value={firstAppointmentTimeSlot}
+                        onChange={(e) => setFirstAppointmentTimeSlot(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all"
+                      >
+                        <option value="Morning">Morning</option>
+                        <option value="Midday">Midday</option>
+                        <option value="Evening">Evening</option>
+                      </select>
+                    ) : (
+                      <input
+                        type="time"
+                        value={firstAppointmentSpecificTime}
+                        onChange={(e) => setFirstAppointmentSpecificTime(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all"
+                      />
+                    )}
+                  </div>
+
+                  {/* Repeat on same day & time */}
+                  <label className="flex items-start gap-3 p-4 bg-slate-50 rounded-xl cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={repeatSameDayTime}
+                      onChange={(e) => setRepeatSameDayTime(e.target.checked)}
+                      className="mt-0.5 w-5 h-5 rounded border-slate-300 text-maroon focus:ring-maroon"
+                    />
+                    <div>
+                      <span className="font-medium text-maroon">Repeat on same day & time</span>
+                      {firstAppointmentDate && (
+                        <p className="text-sm text-slate-500 mt-1">
+                          Every {new Date(firstAppointmentDate + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long' })}
+                          {useSpecificTime && firstAppointmentSpecificTime && (
+                            <> at {new Date(`2000-01-01T${firstAppointmentSpecificTime}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</>
+                          )}
+                          {!useSpecificTime && <> ({firstAppointmentTimeSlot})</>}
+                        </p>
+                      )}
+                    </div>
+                  </label>
                 </div>
               </div>
 

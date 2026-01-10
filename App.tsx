@@ -493,6 +493,10 @@ const App: React.FC = () => {
           onViewClient={handleViewClient}
           onBack={goBack}
           onExitDemo={() => setShowWaitlist(true)}
+          onLogoClick={() => {
+            setScreenHistory(['landing']);
+            setScreen('landing');
+          }}
         />
 
         {/* Waitlist Modal for Dashboard */}
@@ -715,13 +719,14 @@ const App: React.FC = () => {
                 {/* Time */}
                 <div>
                   <label className="block text-sm font-bold text-maroon mb-2">
-                    Time <span className="font-normal text-slate-400">(prefers {selectedClient.preferredTime})</span>
+                    Time <span className="font-normal text-slate-400">(optional - prefers {selectedClient.preferredTime})</span>
                   </label>
                   <select
                     value={bookingTime}
                     onChange={(e) => setBookingTime(e.target.value)}
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-maroon focus:ring-2 focus:ring-maroon/20 outline-none bg-white"
                   >
+                    <option value="TBD">TBD - To be determined</option>
                     <option value="Morning">Morning</option>
                     <option value="Midday">Midday</option>
                     <option value="Evening">Evening</option>

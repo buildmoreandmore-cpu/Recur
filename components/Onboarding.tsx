@@ -267,33 +267,30 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
                   ))}
                   {/* Add Custom Base Service */}
                   <div className="pt-4 border-t border-slate-100">
-                    <p className="text-xs text-slate-400 mb-2">Add custom service:</p>
-                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+                    <div className="flex items-center justify-between gap-2 sm:gap-4">
                       <input
                         type="text"
                         value={newBaseName}
                         onChange={(e) => setNewBaseName(e.target.value)}
-                        placeholder="Service name"
-                        className="flex-1 px-3 py-2 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all text-sm sm:text-base text-maroon"
+                        placeholder="Add custom service"
+                        className="flex-1 min-w-0 text-sm sm:text-base text-maroon bg-transparent outline-none placeholder:text-slate-400"
                       />
-                      <div className="flex items-center gap-2">
-                        <div className="relative flex-1 sm:flex-none">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
-                          <input
-                            type="number"
-                            value={newBasePrice}
-                            onChange={(e) => setNewBasePrice(e.target.value)}
-                            placeholder="0"
-                            className="w-full sm:w-24 pl-8 pr-2 py-2 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all text-right text-sm"
-                          />
-                        </div>
-                        <button
-                          onClick={() => addCustomService('base', newBaseName, newBasePrice, setNewBaseName, setNewBasePrice)}
-                          className="flex-shrink-0 w-10 h-10 bg-maroon text-white rounded-xl font-bold text-lg hover:bg-maroon/90 transition-all flex items-center justify-center"
-                        >
-                          +
-                        </button>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                        <input
+                          type="number"
+                          value={newBasePrice}
+                          onChange={(e) => setNewBasePrice(e.target.value)}
+                          placeholder="0"
+                          className="w-24 sm:w-28 pl-8 pr-2 sm:pr-4 py-2 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all text-right text-sm"
+                        />
                       </div>
+                      <button
+                        onClick={() => addCustomService('base', newBaseName, newBasePrice, setNewBaseName, setNewBasePrice)}
+                        className="flex-shrink-0 w-8 h-8 bg-maroon text-white rounded-lg font-bold text-sm hover:bg-maroon/90 transition-all flex items-center justify-center"
+                      >
+                        +
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -328,33 +325,30 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
                   ))}
                   {/* Add Custom Add-on Service */}
                   <div className="pt-4 border-t border-slate-100">
-                    <p className="text-xs text-slate-400 mb-2">Add custom add-on:</p>
-                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+                    <div className="flex items-center justify-between gap-2 sm:gap-4">
                       <input
                         type="text"
                         value={newAddonName}
                         onChange={(e) => setNewAddonName(e.target.value)}
-                        placeholder="Add-on name"
-                        className="flex-1 px-3 py-2 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all text-sm sm:text-base text-maroon"
+                        placeholder="Add custom add-on"
+                        className="flex-1 min-w-0 text-sm sm:text-base text-maroon bg-transparent outline-none placeholder:text-slate-400"
                       />
-                      <div className="flex items-center gap-2">
-                        <div className="relative flex-1 sm:flex-none">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
-                          <input
-                            type="number"
-                            value={newAddonPrice}
-                            onChange={(e) => setNewAddonPrice(e.target.value)}
-                            placeholder="0"
-                            className="w-full sm:w-24 pl-8 pr-2 py-2 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all text-right text-sm"
-                          />
-                        </div>
-                        <button
-                          onClick={() => addCustomService('addon', newAddonName, newAddonPrice, setNewAddonName, setNewAddonPrice)}
-                          className="flex-shrink-0 w-10 h-10 bg-maroon text-white rounded-xl font-bold text-lg hover:bg-maroon/90 transition-all flex items-center justify-center"
-                        >
-                          +
-                        </button>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                        <input
+                          type="number"
+                          value={newAddonPrice}
+                          onChange={(e) => setNewAddonPrice(e.target.value)}
+                          placeholder="0"
+                          className="w-24 sm:w-28 pl-8 pr-2 sm:pr-4 py-2 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all text-right text-sm"
+                        />
                       </div>
+                      <button
+                        onClick={() => addCustomService('addon', newAddonName, newAddonPrice, setNewAddonName, setNewAddonPrice)}
+                        className="flex-shrink-0 w-8 h-8 bg-maroon text-white rounded-lg font-bold text-sm hover:bg-maroon/90 transition-all flex items-center justify-center"
+                      >
+                        +
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -389,33 +383,30 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
                   ))}
                   {/* Add Custom Event Service */}
                   <div className="pt-4 border-t border-slate-100">
-                    <p className="text-xs text-slate-400 mb-2">Add custom event:</p>
-                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+                    <div className="flex items-center justify-between gap-2 sm:gap-4">
                       <input
                         type="text"
                         value={newEventName}
                         onChange={(e) => setNewEventName(e.target.value)}
-                        placeholder="Event name"
-                        className="flex-1 px-3 py-2 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all text-sm sm:text-base text-maroon"
+                        placeholder="Add custom event"
+                        className="flex-1 min-w-0 text-sm sm:text-base text-maroon bg-transparent outline-none placeholder:text-slate-400"
                       />
-                      <div className="flex items-center gap-2">
-                        <div className="relative flex-1 sm:flex-none">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
-                          <input
-                            type="number"
-                            value={newEventPrice}
-                            onChange={(e) => setNewEventPrice(e.target.value)}
-                            placeholder="0"
-                            className="w-full sm:w-24 pl-8 pr-2 py-2 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all text-right text-sm"
-                          />
-                        </div>
-                        <button
-                          onClick={() => addCustomService('event', newEventName, newEventPrice, setNewEventName, setNewEventPrice)}
-                          className="flex-shrink-0 w-10 h-10 bg-maroon text-white rounded-xl font-bold text-lg hover:bg-maroon/90 transition-all flex items-center justify-center"
-                        >
-                          +
-                        </button>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                        <input
+                          type="number"
+                          value={newEventPrice}
+                          onChange={(e) => setNewEventPrice(e.target.value)}
+                          placeholder="0"
+                          className="w-24 sm:w-28 pl-8 pr-2 sm:pr-4 py-2 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all text-right text-sm"
+                        />
                       </div>
+                      <button
+                        onClick={() => addCustomService('event', newEventName, newEventPrice, setNewEventName, setNewEventPrice)}
+                        className="flex-shrink-0 w-8 h-8 bg-maroon text-white rounded-lg font-bold text-sm hover:bg-maroon/90 transition-all flex items-center justify-center"
+                      >
+                        +
+                      </button>
                     </div>
                   </div>
                 </div>

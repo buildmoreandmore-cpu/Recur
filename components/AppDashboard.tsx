@@ -9,6 +9,7 @@ interface AppDashboardProps {
   onViewClient: (client: Client) => void;
   onBack: () => void;
   onExitDemo?: () => void;
+  onLogoClick?: () => void;
 }
 
 const ROTATION_COLORS = {
@@ -19,7 +20,7 @@ const ROTATION_COLORS = {
 
 const AVATAR_COLORS = ['#c17f59', '#7c9a7e', '#b5a078', '#6b7c91', '#a67c8e'];
 
-export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, onAddClient, onViewClient, onBack, onExitDemo }) => {
+export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, onAddClient, onViewClient, onBack, onExitDemo, onLogoClick }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<{ day: number; appointments: Client[] } | null>(null);
 
@@ -82,11 +83,14 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
       {/* Header */}
       <header className="bg-white border-b border-slate-100 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3 sm:gap-4">
+          <button
+            onClick={onLogoClick}
+            className="flex items-center gap-3 sm:gap-4 cursor-pointer hover:opacity-80 transition-all"
+          >
             <div className="text-maroon">
               <LOGOS.Main />
             </div>
-          </div>
+          </button>
           <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={onExitDemo || onBack}

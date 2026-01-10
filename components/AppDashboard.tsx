@@ -109,11 +109,32 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
         {/* Stat Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-6 mb-6 sm:mb-10">
           <div className="bg-maroon text-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg">
-            <div className="text-[10px] font-bold opacity-50 uppercase tracking-wider mb-1 sm:mb-2">Annual Forecast</div>
-            <div className="text-2xl sm:text-3xl font-serif number-animate">{formatCurrency(stats.annualProjected)}</div>
-            <div className="text-emerald-400 text-xs font-bold mt-1 sm:mt-2 flex items-center gap-1">
-              <ICONS.TrendingUp /> {clients.length} clients on rotation
-            </div>
+            {profile.annualGoal && profile.annualGoal > 0 ? (
+              <>
+                <div className="text-[10px] font-bold opacity-50 uppercase tracking-wider mb-1 sm:mb-2">Goal Progress</div>
+                <div className="text-2xl sm:text-3xl font-serif number-animate">{formatCurrency(stats.annualProjected)}</div>
+                <div className="mt-2 sm:mt-3">
+                  <div className="flex justify-between text-[10px] font-bold opacity-70 mb-1">
+                    <span>Goal: {formatCurrency(profile.annualGoal)}</span>
+                    <span>{Math.round((stats.annualProjected / profile.annualGoal) * 100)}%</span>
+                  </div>
+                  <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-emerald-400 rounded-full transition-all"
+                      style={{ width: `${Math.min((stats.annualProjected / profile.annualGoal) * 100, 100)}%` }}
+                    />
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="text-[10px] font-bold opacity-50 uppercase tracking-wider mb-1 sm:mb-2">Annual Forecast</div>
+                <div className="text-2xl sm:text-3xl font-serif number-animate">{formatCurrency(stats.annualProjected)}</div>
+                <div className="text-emerald-400 text-xs font-bold mt-1 sm:mt-2 flex items-center gap-1">
+                  <ICONS.TrendingUp /> {clients.length} clients on rotation
+                </div>
+              </>
+            )}
           </div>
           <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm">
             <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 sm:mb-2">Confirmed</div>

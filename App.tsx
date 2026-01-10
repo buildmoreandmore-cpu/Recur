@@ -408,8 +408,7 @@ const App: React.FC = () => {
                 See Demo
               </button>
 
-              <p className="mt-4 text-sm text-slate-400">Free for 14 days. No credit card required.</p>
-            </div>
+                          </div>
           </div>
         </section>
 
@@ -628,8 +627,7 @@ const App: React.FC = () => {
               >
                 See Demo
               </button>
-              <p className="mt-4 text-sm text-slate-400">Free for 14 days. No credit card required.</p>
-            </div>
+                          </div>
           </div>
         </section>
 

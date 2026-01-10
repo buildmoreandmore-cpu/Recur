@@ -187,7 +187,11 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
           <div className="space-y-8">
             <div>
               <h1 className="text-3xl font-serif text-maroon mb-2">Your Service Menu</h1>
-              <p className="text-maroon/60">Enter your services and pricing. Leave blank any services you don't offer.</p>
+              <p className="text-maroon/60">Optional: Enter your services and pricing, or skip to use demo data.</p>
+            </div>
+
+            <div className="bg-amber-50 text-amber-700 px-4 py-3 rounded-xl text-sm">
+              This step is optional for the demo. Click "Continue" to skip with sample pricing.
             </div>
 
             <div className="space-y-6">

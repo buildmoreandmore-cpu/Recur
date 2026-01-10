@@ -57,6 +57,15 @@ export interface Client {
   status: 'confirmed' | 'pending' | 'at-risk';
 }
 
+export type IndustryType =
+  | 'hair-stylist'
+  | 'personal-trainer'
+  | 'massage-therapist'
+  | 'therapist-counselor'
+  | 'esthetician'
+  | 'consultant-coach'
+  | 'other';
+
 export interface StylistProfile {
   name: string;
   businessName: string;
@@ -69,6 +78,7 @@ export interface StylistProfile {
   defaultRotation: number;
   annualGoal: number;
   monthlyGoal: number;
+  industry?: IndustryType;
 }
 
 export interface DashboardStats {

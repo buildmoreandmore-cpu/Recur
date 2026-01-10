@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { StylistProfile, Service } from '../types';
-import { ICONS } from '../constants';
+import { StylistProfile, Service, IndustryType } from '../types';
+import { ICONS, INDUSTRY_TEMPLATES } from '../constants';
 
 interface OnboardingProps {
   onComplete: (profile: StylistProfile) => void;
@@ -36,6 +36,7 @@ const DEFAULT_EVENT_SERVICES = [
 
 export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) => {
   const [step, setStep] = useState(1);
+  const [selectedIndustry, setSelectedIndustry] = useState<IndustryType | null>(null);
   const [profile, setProfile] = useState<Partial<StylistProfile>>({
     name: '',
     businessName: '',
@@ -47,11 +48,22 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
     defaultRotation: 10,
     annualGoal: 0,
     monthlyGoal: 0,
+    industry: undefined,
   });
 
   const [baseServices, setBaseServices] = useState(DEFAULT_BASE_SERVICES);
   const [addonServices, setAddonServices] = useState(DEFAULT_ADDON_SERVICES);
   const [eventServices, setEventServices] = useState(DEFAULT_EVENT_SERVICES);
+
+  // Load services based on industry selection
+  const handleIndustrySelect = (industry: IndustryType) => {
+    setSelectedIndustry(industry);
+    setProfile(prev => ({ ...prev, industry }));
+    const template = INDUSTRY_TEMPLATES[industry];
+    setBaseServices(template.baseServices.map(name => ({ name, price: 0 })));
+    setAddonServices(template.addonServices.map(name => ({ name, price: 0 })));
+    setEventServices(template.eventServices.map(name => ({ name, price: 0 })));
+  };
 
   // Custom service input state
   const [newBaseName, setNewBaseName] = useState('');
@@ -97,7 +109,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
   };
 
   const handleNext = () => {
-    if (step < 4) {
+    if (step < 5) {
       setStep(step + 1);
     } else {
       // Compile services
@@ -129,7 +141,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
           <button onClick={onBack} className="text-maroon/60 hover:text-maroon flex items-center gap-2 text-sm font-medium">
             ← Back
           </button>
-          <span className="text-sm font-bold text-maroon">Step {step} of 4</span>
+          <span className="text-sm font-bold text-maroon">Step {step} of 5</span>
         </div>
       </div>
 
@@ -138,7 +150,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
         <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
           <div
             className="h-full bg-maroon rounded-full transition-all duration-500"
-            style={{ width: `${(step / 4) * 100}%` }}
+            style={{ width: `${(step / 5) * 100}%` }}
           />
         </div>
       </div>
@@ -146,6 +158,45 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
       {/* Content */}
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
         {step === 1 && (
+          <div className="space-y-8">
+            <div>
+              <h1 className="text-3xl font-serif text-maroon mb-2">What type of clients do you serve?</h1>
+              <p className="text-maroon/60">Select your industry to get started with tailored services.</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              {(Object.keys(INDUSTRY_TEMPLATES) as IndustryType[]).map((industry) => {
+                const template = INDUSTRY_TEMPLATES[industry];
+                const isSelected = selectedIndustry === industry;
+                return (
+                  <button
+                    key={industry}
+                    onClick={() => handleIndustrySelect(industry)}
+                    className={`p-4 sm:p-6 rounded-xl text-left transition-all border-2 ${
+                      isSelected
+                        ? 'border-maroon bg-maroon/5'
+                        : 'border-slate-100 bg-white hover:border-slate-200'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl sm:text-3xl">{template.icon}</span>
+                      <span className={`font-bold text-sm sm:text-base ${isSelected ? 'text-maroon' : 'text-slate-700'}`}>
+                        {template.label}
+                      </span>
+                    </div>
+                    {isSelected && (
+                      <div className="mt-3 text-xs text-maroon/60">
+                        {template.baseServices.length} services • {template.addonServices.length} add-ons
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {step === 2 && (
           <div className="space-y-8">
             <div>
               <h1 className="text-3xl font-serif text-maroon mb-2">Let's set up your profile</h1>
@@ -226,7 +277,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
           </div>
         )}
 
-        {step === 2 && (
+        {step === 3 && (
           <div className="space-y-8">
             <div>
               <h1 className="text-3xl font-serif text-maroon mb-2">Your Service Menu</h1>
@@ -415,7 +466,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
           </div>
         )}
 
-        {step === 3 && (
+        {step === 4 && (
           <div className="space-y-8">
             <div>
               <h1 className="text-3xl font-serif text-maroon mb-2">Rotation Settings</h1>
@@ -429,7 +480,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
                 </div>
                 <h3 className="text-lg font-bold text-maroon mb-1">Priority</h3>
                 <p className="text-2xl font-serif text-maroon mb-3">8 Weeks</p>
-                <p className="text-sm text-maroon/70">Your color-dependent, event-driven clients. They keep your books full.</p>
+                <p className="text-sm text-maroon/70">Your highest-value clients. Frequent visits, consistent revenue. They keep your books full.</p>
               </div>
 
               <div className="bg-[#7c9a7e]/10 p-6 rounded-2xl border-2 border-[#7c9a7e]/30">
@@ -438,7 +489,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
                 </div>
                 <h3 className="text-lg font-bold text-maroon mb-1">Standard</h3>
                 <p className="text-2xl font-serif text-maroon mb-3">10 Weeks</p>
-                <p className="text-sm text-maroon/70">Consistent and reliable. The backbone of your business.</p>
+                <p className="text-sm text-maroon/70">Your core clients. Reliable and consistent. The backbone of your income.</p>
               </div>
 
               <div className="bg-[#b5a078]/10 p-6 rounded-2xl border-2 border-[#b5a078]/30">
@@ -447,7 +498,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
                 </div>
                 <h3 className="text-lg font-bold text-maroon mb-1">Flex</h3>
                 <p className="text-2xl font-serif text-maroon mb-3">12+ Weeks</p>
-                <p className="text-sm text-maroon/70">Low-maintenance clients. You offer slots when it works for you.</p>
+                <p className="text-sm text-maroon/70">Occasional clients. They come when you have room. You control the invite.</p>
               </div>
             </div>
 
@@ -466,7 +517,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
           </div>
         )}
 
-        {step === 4 && (
+        {step === 5 && (
           <div className="space-y-8">
             <div>
               <h1 className="text-3xl font-serif text-maroon mb-2">Set Your Goals</h1>
@@ -518,9 +569,10 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
         <div className="mt-8 flex justify-end">
           <button
             onClick={handleNext}
-            className="btn-primary px-8 py-4 bg-maroon text-white rounded-xl font-bold text-lg shadow-lg flex items-center gap-2"
+            disabled={step === 1 && !selectedIndustry}
+            className="btn-primary px-8 py-4 bg-maroon text-white rounded-xl font-bold text-lg shadow-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {step === 4 ? 'Complete Setup' : 'Continue'}
+            {step === 5 ? 'Complete Setup' : 'Continue'}
             <span>→</span>
           </button>
         </div>

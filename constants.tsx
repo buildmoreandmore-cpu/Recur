@@ -1,10 +1,69 @@
 import React from 'react';
-import { RotationType } from './types';
+import { RotationType, IndustryType } from './types';
 
 export const ROTATION_WEEKS: Record<RotationType, number> = {
   [RotationType.PRIORITY]: 8,
   [RotationType.STANDARD]: 10,
   [RotationType.FLEX]: 12,
+};
+
+// Industry templates for services
+export const INDUSTRY_TEMPLATES: Record<IndustryType, {
+  label: string;
+  icon: string;
+  baseServices: string[];
+  addonServices: string[];
+  eventServices: string[];
+}> = {
+  'hair-stylist': {
+    label: 'Hair Stylist / Barber',
+    icon: '💇',
+    baseServices: ['Shampoo + Style', 'Cut + Style', 'Color + Cut', 'Color + Cut + Gloss', 'Partial Highlights + Cut', 'Full Highlights + Cut', 'Balayage + Cut', 'Silk Press'],
+    addonServices: ['Deep conditioner', 'Scalp treatment', 'Gloss/Toner refresh', 'Olaplex/Bond treatment', 'Bang trim'],
+    eventServices: ['Wedding trial', 'Wedding day styling', 'Photoshoot prep', 'Birthday styling', 'Other event'],
+  },
+  'personal-trainer': {
+    label: 'Personal Trainer / Fitness Coach',
+    icon: '💪',
+    baseServices: ['1-on-1 Session', 'Partner Session', 'Group Session (small)', 'Assessment', 'Program Design'],
+    addonServices: ['Nutrition plan', 'Body composition scan', 'Recovery session', 'Video form check'],
+    eventServices: ['Competition prep', 'Wedding prep', 'Photoshoot prep', 'Reunion/vacation prep'],
+  },
+  'massage-therapist': {
+    label: 'Massage Therapist',
+    icon: '💆',
+    baseServices: ['60-min Massage', '90-min Massage', '30-min Focus Session', 'Couples Massage'],
+    addonServices: ['Hot stones', 'Aromatherapy', 'CBD upgrade', 'Cupping'],
+    eventServices: ['Bridal party', 'Corporate event', 'Sports event recovery'],
+  },
+  'therapist-counselor': {
+    label: 'Therapist / Counselor',
+    icon: '🧠',
+    baseServices: ['Individual Session (50 min)', 'Extended Session (80 min)', 'Couples Session', 'Family Session', 'Initial Assessment'],
+    addonServices: ['Between-session support', 'Assessment/testing', 'Letter/documentation'],
+    eventServices: ['Intensive session', 'Crisis support'],
+  },
+  'esthetician': {
+    label: 'Esthetician / Skincare',
+    icon: '✨',
+    baseServices: ['Basic Facial', 'Signature Facial', 'Chemical Peel', 'Microdermabrasion', 'Dermaplaning'],
+    addonServices: ['LED therapy', 'Extractions', 'Mask upgrade', 'Eye treatment'],
+    eventServices: ['Bridal prep', 'Event prep', 'Photoshoot prep'],
+  },
+  'consultant-coach': {
+    label: 'Consultant / Coach',
+    icon: '💼',
+    baseServices: ['Strategy Session (1 hr)', 'Half-day Intensive', 'Full-day Workshop', 'Monthly Retainer'],
+    addonServices: ['Rush delivery', 'Additional revisions', 'Travel', 'Async support'],
+    eventServices: ['Speaking engagement', 'Team workshop', 'Annual planning'],
+  },
+  'other': {
+    label: 'Other (Custom)',
+    icon: '📋',
+    baseServices: ['Service 1', 'Service 2', 'Service 3'],
+    addonServices: ['Add-on 1', 'Add-on 2'],
+    eventServices: ['Event 1'],
+  },
 };
 
 export const COLORS = {

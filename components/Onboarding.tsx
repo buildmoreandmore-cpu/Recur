@@ -30,6 +30,8 @@ const DEFAULT_EVENT_SERVICES = [
   { name: 'Wedding trial', price: 0 },
   { name: 'Wedding day styling', price: 0 },
   { name: 'Photoshoot prep', price: 0 },
+  { name: 'Birthday styling', price: 0 },
+  { name: 'Other event', price: 0 },
 ];
 
 const SPECIALTIES = [

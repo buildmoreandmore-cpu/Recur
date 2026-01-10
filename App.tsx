@@ -327,6 +327,8 @@ const DEFAULT_PROFILE: StylistProfile = {
     { id: 'event-0', name: 'Wedding trial', price: 150, category: 'event' },
     { id: 'event-1', name: 'Wedding day styling', price: 280, category: 'event' },
     { id: 'event-2', name: 'Photoshoot prep', price: 120, category: 'event' },
+    { id: 'event-3', name: 'Birthday styling', price: 95, category: 'event' },
+    { id: 'event-4', name: 'Other event', price: 100, category: 'event' },
   ],
   defaultRotation: 10,
   annualGoal: 120000,

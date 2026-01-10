@@ -901,7 +901,7 @@ const App: React.FC = () => {
         <section className="py-12 sm:py-24 px-4 sm:px-6 bg-white" id="how-it-works">
           <div className="max-w-7xl mx-auto">
             <h2 className="scroll-reveal text-2xl sm:text-3xl lg:text-4xl font-serif text-center text-maroon mb-8 sm:mb-16">
-              Three things that change everything
+              What changes when you stop guessing
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8">
               <div className="scroll-reveal delay-1 card-hover bg-white p-6 sm:p-10 rounded-2xl sm:rounded-[32px] border border-slate-100 shadow-sm flex flex-col items-center text-center">

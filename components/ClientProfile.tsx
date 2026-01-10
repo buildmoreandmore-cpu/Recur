@@ -1,9 +1,10 @@
 import React from 'react';
-import { Client, RotationType } from '../types';
+import { Client, RotationType, IndustryType } from '../types';
 import { ICONS } from '../constants';
 
 interface ClientProfileProps {
   client: Client;
+  industry: IndustryType;
   onBack: () => void;
   onEdit?: () => void;
   onBookAppointment?: () => void;
@@ -19,7 +20,8 @@ const ROTATION_COLORS = {
 
 const AVATAR_COLORS = ['#c17f59', '#7c9a7e', '#b5a078', '#6b7c91', '#a67c8e'];
 
-export const ClientProfile: React.FC<ClientProfileProps> = ({ client, onBack, onEdit, onBookAppointment, onMarkOverdue, onArchive }) => {
+export const ClientProfile: React.FC<ClientProfileProps> = ({ client, industry, onBack, onEdit, onBookAppointment, onMarkOverdue, onArchive }) => {
+  const isHairIndustry = industry === 'hair-stylist';
   const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase();
   const getAvatarColor = (name: string) => AVATAR_COLORS[name.length % AVATAR_COLORS.length];
 
@@ -278,77 +280,89 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client, onBack, on
               </div>
             </div>
 
-            {/* Hair Notes */}
+            {/* Client Notes */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
               <div className="px-4 sm:px-6 py-4 border-b border-slate-100">
-                <h2 className="font-bold text-maroon">Hair Notes</h2>
+                <h2 className="font-bold text-maroon">Client Notes</h2>
               </div>
               <div className="p-4 sm:p-6 space-y-4">
-                {client.naturalColor && (
+                {/* Hair-specific fields */}
+                {isHairIndustry && client.naturalColor && (
                   <div>
                     <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Natural Color</div>
                     <div className="text-maroon">{client.naturalColor}</div>
                   </div>
                 )}
-                {client.currentColor && (
+                {isHairIndustry && client.currentColor && (
                   <div>
                     <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Current Color</div>
                     <div className="text-maroon">{client.currentColor}</div>
                   </div>
                 )}
+                {/* Universal fields */}
+                {(client.serviceGoal || client.hairGoal) && (
+                  <div>
+                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Goal</div>
+                    <div className="text-maroon">{client.serviceGoal || client.hairGoal}</div>
+                  </div>
+                )}
                 {client.concerns && (
                   <div>
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Concerns</div>
+                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                      {isHairIndustry ? 'Concerns' : 'Notes / Concerns'}
+                    </div>
                     <div className="text-maroon">{client.concerns}</div>
                   </div>
                 )}
-                {client.allergies && (
+                {client.additionalNotes && (
+                  <div>
+                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Additional Notes</div>
+                    <div className="text-maroon">{client.additionalNotes}</div>
+                  </div>
+                )}
+                {isHairIndustry && client.allergies && (
                   <div>
                     <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Allergies</div>
                     <div className="text-maroon">{client.allergies}</div>
                   </div>
                 )}
-                {client.hairGoal && (
-                  <div>
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Goal</div>
-                    <div className="text-maroon">{client.hairGoal}</div>
-                  </div>
-                )}
               </div>
             </div>
 
-            {/* History */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-              <div className="px-4 sm:px-6 py-4 border-b border-slate-100">
-                <h2 className="font-bold text-maroon">History</h2>
+            {/* History - only show if there's content */}
+            {(isHairIndustry && (client.lastColor || client.lastCut)) || client.whatWorks || client.whatFailed ? (
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <div className="px-4 sm:px-6 py-4 border-b border-slate-100">
+                  <h2 className="font-bold text-maroon">History</h2>
+                </div>
+                <div className="p-4 sm:p-6 space-y-4">
+                  {isHairIndustry && client.lastColor && (
+                    <div>
+                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Last Color</div>
+                      <div className="text-maroon">{formatDate(client.lastColor)}</div>
+                    </div>
+                  )}
+                  {isHairIndustry && client.lastCut && (
+                    <div>
+                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Last Cut</div>
+                      <div className="text-maroon">{formatDate(client.lastCut)}</div>
+                    </div>
+                  )}
+                  {client.whatWorks && (
+                    <div>
+                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">What Works</div>
+                      <div className="text-maroon">{client.whatWorks}</div>
+                    </div>
+                  )}
+                  {client.whatFailed && (
+                    <div>
+                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">What Didn't Work</div>
+                      <div className="text-maroon">{client.whatFailed}</div>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="p-4 sm:p-6 space-y-4">
-                {client.lastColor && (
-                  <div>
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Last Color</div>
-                    <div className="text-maroon">{formatDate(client.lastColor)}</div>
-                  </div>
-                )}
-                {client.lastCut && (
-                  <div>
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Last Cut</div>
-                    <div className="text-maroon">{formatDate(client.lastCut)}</div>
-                  </div>
-                )}
-                {client.whatWorks && (
-                  <div>
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">What Works</div>
-                    <div className="text-maroon">{client.whatWorks}</div>
-                  </div>
-                )}
-                {client.whatFailed && (
-                  <div>
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">What Failed</div>
-                    <div className="text-maroon">{client.whatFailed}</div>
-                  </div>
-                )}
-              </div>
-            </div>
+            ) : null}
           </div>
         </div>
 

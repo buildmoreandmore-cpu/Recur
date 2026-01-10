@@ -687,6 +687,7 @@ const App: React.FC = () => {
       <>
         <ClientProfile
           client={selectedClient}
+          industry={profile.industry || 'hair-stylist'}
           onBack={() => {
             setSelectedClient(null);
             goBack();

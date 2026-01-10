@@ -55,9 +55,9 @@ const SAMPLE_CLIENTS: Client[] = [
   },
   {
     id: '2',
-    name: 'Maya Thompson',
+    name: 'Marcus Rivera',
     phone: '(555) 234-5678',
-    email: 'maya@email.com',
+    email: 'marcus@email.com',
     rotation: RotationType.STANDARD,
     rotationWeeks: 10,
     baseService: { id: 'base-1', name: 'Cut + Style', price: 85, category: 'base' },
@@ -175,9 +175,9 @@ const SAMPLE_CLIENTS: Client[] = [
   },
   {
     id: '5',
-    name: 'Evelyn Gray',
+    name: 'Dr. Sarah Chen',
     phone: '(555) 567-8901',
-    email: 'evelyn@email.com',
+    email: 'sarah.chen@email.com',
     rotation: RotationType.PRIORITY,
     rotationWeeks: 8,
     baseService: { id: 'base-5', name: 'Full Highlights + Cut', price: 285, category: 'base' },
@@ -865,7 +865,7 @@ const App: React.FC = () => {
             </h1>
 
             <p className="hero-animate hero-animate-delay-3 text-base sm:text-lg lg:text-xl text-maroon/70 mb-8 sm:mb-10 max-w-2xl mx-auto leading-relaxed px-2">
-              Map your clients. Forecast your income. Know your year.
+              For professionals with recurring clients. Map your rotations, forecast your income, know your year.
             </p>
 
             <div className="hero-animate hero-animate-delay-4 flex flex-col items-center gap-4">
@@ -897,8 +897,39 @@ const App: React.FC = () => {
           </div>
         </section>
 
+        {/* SECTION: Who It's For */}
+        <section className="py-12 sm:py-20 px-4 sm:px-6 bg-white">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="scroll-reveal text-2xl sm:text-3xl lg:text-4xl font-serif text-center text-maroon mb-8 sm:mb-12">
+              Built for professionals with recurring clients
+            </h2>
+            <div className="scroll-reveal delay-1 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mb-8 sm:mb-10">
+              {[
+                { icon: '💇', label: 'Hair stylists & barbers' },
+                { icon: '💪', label: 'Personal trainers' },
+                { icon: '💆', label: 'Massage therapists' },
+                { icon: '🧠', label: 'Therapists & counselors' },
+                { icon: '✨', label: 'Estheticians' },
+                { icon: '💼', label: 'Consultants & coaches' },
+                { icon: '📚', label: 'Tutors & instructors' },
+              ].map((item, i) => (
+                <div
+                  key={i}
+                  className="bg-cream p-4 sm:p-5 rounded-xl sm:rounded-2xl text-center border border-slate-100"
+                >
+                  <div className="text-2xl sm:text-3xl mb-2">{item.icon}</div>
+                  <div className="text-xs sm:text-sm font-medium text-maroon">{item.label}</div>
+                </div>
+              ))}
+            </div>
+            <p className="scroll-reveal delay-2 text-center text-base sm:text-lg text-maroon/70 italic max-w-xl mx-auto">
+              "If your clients come back on a schedule, Recur helps you know what that's worth."
+            </p>
+          </div>
+        </section>
+
         {/* SECTION 3: The Solution */}
-        <section className="py-12 sm:py-24 px-4 sm:px-6 bg-white" id="how-it-works">
+        <section className="py-12 sm:py-24 px-4 sm:px-6 bg-cream" id="how-it-works">
           <div className="max-w-7xl mx-auto">
             <h2 className="scroll-reveal text-2xl sm:text-3xl lg:text-4xl font-serif text-center text-maroon mb-8 sm:mb-16">
               What changes when you stop guessing
@@ -982,8 +1013,8 @@ const App: React.FC = () => {
                   <div className="divide-y divide-slate-50">
                     {[
                       { name: 'Jasmine Carter', tier: 'Priority', amount: '$1,917', date: 'Apr 12', color: '#c17f59' },
-                      { name: 'Maya Thompson', tier: 'Standard', amount: '$1,240', date: 'Apr 18', color: '#7c9a7e' },
-                      { name: 'Evelyn Gray', tier: 'Priority', amount: '$2,100', date: 'Apr 8', color: '#c17f59' },
+                      { name: 'Marcus Rivera', tier: 'Standard', amount: '$1,240', date: 'Apr 18', color: '#7c9a7e' },
+                      { name: 'Dr. Sarah Chen', tier: 'Priority', amount: '$2,100', date: 'Apr 8', color: '#c17f59' },
                     ].map((client, i) => (
                       <div key={i} className="px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
                         <div className="flex items-center gap-3 sm:gap-4">
@@ -1111,7 +1142,7 @@ const App: React.FC = () => {
               </div>
             </div>
             <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-slate-100 text-center">
-              <p className="text-xs sm:text-sm text-slate-400">© 2026 Recur. The income system for stylists.</p>
+              <p className="text-xs sm:text-sm text-slate-400">© 2026 Recur. The income system for recurring clients.</p>
             </div>
           </div>
         </footer>

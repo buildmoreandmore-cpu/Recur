@@ -12,12 +12,6 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen relative overflow-x-hidden">
-      {/* Announcement Bar */}
-      <div className="bg-[#fff38a] text-maroon text-[13px] font-semibold py-2.5 text-center flex items-center justify-center gap-2 px-4">
-        <span>Recur announces $25m Series A to empower the next generation of independent stylists</span>
-        <span className="text-lg">→</span>
-      </div>
-
       {/* Navigation */}
       <nav className="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
         <div className="flex items-center gap-12">
@@ -25,25 +19,18 @@ const App: React.FC = () => {
             <LOGOS.Main />
           </div>
           <div className="hidden lg:flex items-center gap-8 text-[15px] font-medium text-maroon">
-            <button onClick={() => scrollTo('how-it-works')} className="flex items-center gap-1 hover:opacity-70 transition-opacity">Product <span>▼</span></button>
-            <button className="flex items-center gap-1 hover:opacity-70 transition-opacity">Specialties <span>▼</span></button>
+            <button onClick={() => scrollTo('how-it-works')} className="hover:opacity-70 transition-opacity">How It Works</button>
             <button onClick={() => scrollTo('pricing')} className="hover:opacity-70 transition-opacity">Pricing</button>
-            <button className="flex items-center gap-1 hover:opacity-70 transition-opacity">Resources <span>▼</span></button>
           </div>
         </div>
-        
-        <div className="flex items-center gap-6">
-          <div className="hidden md:flex items-center gap-2 text-[15px] font-medium text-maroon cursor-pointer hover:opacity-70">
-            <span className="w-5 h-4 bg-slate-200 rounded-sm"></span>
-            US <span>▼</span>
-          </div>
-          <button className="hidden md:block text-[15px] font-medium text-maroon hover:opacity-70">Contact us</button>
-          <button className="px-5 py-2.5 bg-slate-100 rounded-xl text-[15px] font-bold text-maroon hover:bg-slate-200 transition-all">Log in</button>
-          <button 
+
+        <div className="flex items-center gap-4">
+          <button className="hidden md:block px-5 py-2.5 text-[15px] font-medium text-maroon hover:opacity-70">Log in</button>
+          <button
             onClick={() => setActiveView('demo')}
-            className="px-5 py-2.5 bg-[#fff38a] rounded-xl text-[15px] font-bold text-maroon shadow-sm hover:opacity-90 transition-all"
+            className="px-5 py-2.5 bg-maroon text-white rounded-xl text-[15px] font-bold shadow-sm hover:opacity-90 transition-all"
           >
-            Sign up
+            Get Started
           </button>
         </div>
       </nav>
@@ -51,156 +38,297 @@ const App: React.FC = () => {
       <main>
         {activeView === 'landing' ? (
           <>
-            {/* Hero Section */}
-            <section className="relative pt-32 pb-48 text-center px-6">
-              {/* Decorative Side Chevrons */}
-              <div className="hero-chevron hero-chevron-left hidden lg:block">
-                <svg width="400" height="600" viewBox="0 0 400 600" fill="none">
-                   <path d="M0 600L250 300L0 0H100L350 300L100 600H0Z" fill="#2d1212"/>
-                </svg>
-              </div>
-              <div className="hero-chevron hero-chevron-right hidden lg:block scale-x-[-1]">
-                <svg width="400" height="600" viewBox="0 0 400 600" fill="none">
-                   <path d="M0 600L250 300L0 0H100L350 300L100 600H0Z" fill="#2d1212"/>
-                </svg>
-              </div>
-
+            {/* SECTION 1: Hero */}
+            <section className="relative pt-24 pb-32 text-center px-6">
               <div className="max-w-4xl mx-auto relative z-10">
-                <span className="text-slate-400 text-sm font-medium tracking-wide mb-6 block">The income system trusted by stylists</span>
-                
-                <h1 className="text-6xl lg:text-[88px] font-serif leading-[1.05] text-maroon mb-10">
-                  Know your <span className="italic">income</span>.<br />
-                  Before the <span className="italic">year starts</span>.
+                <h1 className="text-5xl lg:text-[72px] font-serif leading-[1.1] text-maroon mb-8">
+                  Know your <span className="italic">income</span><br />
+                  before the year starts.
                 </h1>
-                
-                <p className="text-lg lg:text-xl text-maroon/70 mb-12 max-w-2xl mx-auto leading-relaxed font-medium">
-                  The client management system capturing every visit, rotation, and preference. 
-                  By your side while your business grows.
+
+                <p className="text-lg lg:text-xl text-maroon/70 mb-10 max-w-2xl mx-auto leading-relaxed">
+                  The client management system that maps every rotation, forecasts your revenue, and keeps you ahead of your book.
                 </p>
 
-                <button 
+                <button
                   onClick={() => setActiveView('demo')}
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-maroon text-white rounded-full text-lg font-bold hover:opacity-90 transition-all shadow-xl active:scale-95 group"
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-maroon text-white rounded-full text-lg font-bold hover:opacity-90 transition-all shadow-xl"
                 >
                   <ICONS.Sparkle />
-                  Get Recur free
+                  Start Free Trial
                 </button>
 
-                {/* Floating Decorative Elements */}
-                <div className="absolute top-0 left-10 lg:left-40 animate-float text-slate-300">
-                  <ICONS.Sparkle />
-                </div>
-                <div className="absolute top-20 right-10 lg:right-40 animate-float text-slate-300" style={{animationDelay: '1s'}}>
-                  <ICONS.Sparkle />
-                  <ICONS.Sparkle />
-                </div>
-                <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 animate-float text-slate-200" style={{animationDelay: '2s'}}>
-                  <ICONS.Sparkle />
-                </div>
+                <p className="mt-4 text-sm text-slate-400">Free for 14 days. No credit card required.</p>
               </div>
             </section>
 
-            {/* Feature Section Inspired by Heidi Cards */}
-            <section className="bg-cream py-32 px-6" id="how-it-works">
-              <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
-                 <div className="bg-white p-10 rounded-[32px] shadow-sm flex flex-col items-center text-center group hover:shadow-md transition-all">
-                    <div className="w-14 h-14 bg-[#fff38a] rounded-2xl flex items-center justify-center text-maroon mb-8 group-hover:scale-110 transition-transform">
-                      <ICONS.Layers />
+            {/* SECTION 2: The Problem */}
+            <section className="py-20 px-6 bg-cream">
+              <div className="max-w-3xl mx-auto text-center">
+                <p className="text-xl lg:text-2xl text-maroon/80 leading-relaxed font-medium">
+                  You check your calendar and see open slots. You check your bank account and wonder why the numbers don't match what you expected. You're working hard, but you're still <span className="italic">guessing</span> what next month looks like.
+                </p>
+                <p className="mt-6 text-xl lg:text-2xl text-maroon font-bold">
+                  It's exhausting. And it doesn't have to be this way.
+                </p>
+              </div>
+            </section>
+
+            {/* SECTION 3: The Solution */}
+            <section className="py-24 px-6 bg-white" id="how-it-works">
+              <div className="max-w-7xl mx-auto">
+                <h2 className="text-3xl lg:text-4xl font-serif text-center text-maroon mb-16">
+                  Three things that change everything
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <div className="bg-white p-10 rounded-[32px] border border-slate-100 shadow-sm flex flex-col items-center text-center">
+                    <div className="w-16 h-16 bg-[#fff38a] rounded-2xl flex items-center justify-center text-maroon mb-6">
+                      <ICONS.Users />
                     </div>
-                    <h3 className="text-2xl font-bold mb-4">Map Every Rotation</h3>
-                    <p className="text-slate-500 font-medium leading-relaxed">Capture lifestyle, events, and hair history. Know who needs color before their vacation.</p>
-                 </div>
-                 <div className="bg-[#fff38a] p-10 rounded-[32px] shadow-sm flex flex-col items-center text-center group hover:shadow-md transition-all">
-                    <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-maroon mb-8 group-hover:scale-110 transition-transform">
+                    <h3 className="text-xl font-bold mb-3 text-maroon">Map Your Clients</h3>
+                    <p className="text-slate-500 leading-relaxed">Capture rotation schedules, preferences, and annual value. Know exactly who's in your chair and when.</p>
+                  </div>
+                  <div className="bg-maroon p-10 rounded-[32px] shadow-lg flex flex-col items-center text-center text-white">
+                    <div className="w-16 h-16 bg-[#fff38a] rounded-2xl flex items-center justify-center text-maroon mb-6">
                       <ICONS.TrendingUp />
                     </div>
-                    <h3 className="text-2xl font-bold mb-4">True Forecasting</h3>
-                    <p className="text-maroon/70 font-medium leading-relaxed">Every rotation has a value. Add them up and you know your year—before January ends.</p>
-                 </div>
-                 <div className="bg-white p-10 rounded-[32px] shadow-sm flex flex-col items-center text-center group hover:shadow-md transition-all">
-                    <div className="w-14 h-14 bg-[#fff38a] rounded-2xl flex items-center justify-center text-maroon mb-8 group-hover:scale-110 transition-transform">
+                    <h3 className="text-xl font-bold mb-3">Forecast Your Income</h3>
+                    <p className="text-white/70 leading-relaxed">Every rotation has a value. Add them up and you know your year—before January ends.</p>
+                  </div>
+                  <div className="bg-white p-10 rounded-[32px] border border-slate-100 shadow-sm flex flex-col items-center text-center">
+                    <div className="w-16 h-16 bg-[#fff38a] rounded-2xl flex items-center justify-center text-maroon mb-6">
                       <ICONS.Alert />
                     </div>
-                    <h3 className="text-2xl font-bold mb-4">Stay Ahead of Gaps</h3>
-                    <p className="text-slate-500 font-medium leading-relaxed">See who's overdue and who's at risk. Stop chasing and start managing with confidence.</p>
-                 </div>
+                    <h3 className="text-xl font-bold mb-3 text-maroon">Stay Ahead of Churn</h3>
+                    <p className="text-slate-500 leading-relaxed">See who's overdue and who's at risk. Stop chasing and start managing with confidence.</p>
+                  </div>
+                </div>
               </div>
             </section>
 
-            {/* Floating Quick Actions Section */}
-            <section className="py-24 px-6 bg-white">
-               <div className="max-w-4xl mx-auto flex flex-wrap justify-center gap-3">
-                  <div className="p-3 bg-slate-50 rounded-2xl flex items-center gap-3 border border-slate-100 shadow-sm cursor-pointer hover:bg-slate-100 transition-colors">
-                    <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600">
-                      <ICONS.Sun />
+            {/* SECTION 4: The Dashboard */}
+            <section className="py-24 px-6 bg-cream">
+              <div className="max-w-6xl mx-auto">
+                <div className="text-center mb-12">
+                  <h2 className="text-3xl lg:text-4xl font-serif text-maroon mb-4">
+                    This is Monday morning with Recur.
+                  </h2>
+                  <p className="text-lg text-maroon/60">Your year, mapped. Your income, forecasted.</p>
+                </div>
+
+                {/* Dashboard Preview */}
+                <div className="bg-white rounded-[32px] shadow-2xl border border-slate-100 overflow-hidden">
+                  {/* Mini Header */}
+                  <div className="border-b border-slate-100 p-6 flex justify-between items-center">
+                    <div>
+                      <h3 className="font-bold text-maroon">Financial Forecast</h3>
+                      <p className="text-xs text-slate-400 uppercase tracking-wider">FY 2026 Overview</p>
                     </div>
-                    <span className="font-bold text-[15px] pr-2">Rotation Template</span>
-                  </div>
-                  <div className="p-3 bg-slate-50 rounded-2xl flex items-center gap-3 border border-slate-100 shadow-sm cursor-pointer hover:bg-slate-100 transition-colors">
-                    <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600">
-                      <ICONS.Layers />
+                    <div className="flex gap-2">
+                      <div className="w-3 h-3 rounded-full bg-slate-200"></div>
+                      <div className="w-3 h-3 rounded-full bg-slate-200"></div>
+                      <div className="w-3 h-3 rounded-full bg-slate-200"></div>
                     </div>
-                    <span className="font-bold text-[15px] pr-2">Client Context</span>
                   </div>
-                  <div className="p-3 bg-slate-50 rounded-2xl flex items-center gap-3 border border-slate-100 shadow-sm cursor-pointer hover:bg-slate-100 transition-colors">
-                    <div className="w-10 h-10 bg-slate-200 rounded-xl flex items-center justify-center text-maroon">
-                      <ICONS.Copy />
+
+                  {/* KPI Cards */}
+                  <div className="p-8">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                      <div className="p-6 rounded-2xl bg-maroon text-white">
+                        <div className="text-[10px] font-bold opacity-50 uppercase tracking-wider mb-2">Annual Forecast</div>
+                        <div className="text-3xl font-serif">$132,450</div>
+                        <div className="text-emerald-400 text-xs font-bold mt-1">+14.2% YoY</div>
+                      </div>
+                      <div className="p-6 rounded-2xl bg-white border border-slate-100">
+                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Confirmed</div>
+                        <div className="text-3xl font-serif text-maroon">$92,240</div>
+                        <div className="text-slate-400 text-xs font-bold mt-1">70% of goal</div>
+                      </div>
+                      <div className="p-6 rounded-2xl bg-[#fff38a]">
+                        <div className="text-[10px] font-bold text-maroon/50 uppercase tracking-wider mb-2">Pending</div>
+                        <div className="text-3xl font-serif text-maroon">$40,210</div>
+                        <div className="text-maroon/60 text-xs font-bold mt-1">6 clients need attention</div>
+                      </div>
                     </div>
-                    <span className="font-bold text-[15px] pr-2">Service Note</span>
+
+                    {/* Client List Preview */}
+                    <div className="border border-slate-100 rounded-2xl overflow-hidden">
+                      <div className="px-6 py-4 bg-slate-50 border-b border-slate-100">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Client Rotations</span>
+                      </div>
+                      <div className="divide-y divide-slate-50">
+                        {[
+                          { name: 'Julianne Miller', tier: 'Priority', amount: '$245', status: 'Confirmed' },
+                          { name: 'Sienna West', tier: 'Standard', amount: '$165', status: 'Confirmed' },
+                          { name: 'Evelyn Gray', tier: 'Flex', amount: '$310', status: 'At Risk' },
+                        ].map((client, i) => (
+                          <div key={i} className="px-6 py-4 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-sm">
+                                {client.name.split(' ').map(n => n[0]).join('')}
+                              </div>
+                              <div>
+                                <div className="font-bold text-maroon">{client.name}</div>
+                                <span className="text-[10px] font-bold text-slate-400 uppercase">{client.tier}</span>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-bold text-maroon">{client.amount}</div>
+                              <span className={`text-[10px] font-bold uppercase ${client.status === 'At Risk' ? 'text-orange-500' : 'text-emerald-500'}`}>
+                                {client.status}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-               </div>
+                </div>
+              </div>
             </section>
 
-            {/* Footer */}
-            <footer className="py-24 border-t border-slate-100">
-               <div className="max-w-7xl mx-auto px-6 text-center">
-                  <div className="mb-12 flex justify-center text-maroon">
+            {/* SECTION 5: The Rotation System */}
+            <section className="py-24 px-6 bg-white">
+              <div className="max-w-5xl mx-auto">
+                <div className="text-center mb-16">
+                  <h2 className="text-3xl lg:text-4xl font-serif text-maroon mb-4">
+                    Map your year with rotations
+                  </h2>
+                  <p className="text-lg text-maroon/60 max-w-2xl mx-auto">
+                    Not all clients are the same. Some come every 8 weeks like clockwork. Others are every 12. Recur tracks every tier.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="p-8 rounded-[28px] bg-indigo-50 border-2 border-indigo-100">
+                    <div className="w-12 h-12 bg-indigo-500 rounded-xl flex items-center justify-center text-white mb-6">
+                      <ICONS.Sparkle />
+                    </div>
+                    <h3 className="text-xl font-bold text-indigo-900 mb-2">Priority</h3>
+                    <p className="text-3xl font-serif text-indigo-900 mb-4">Every 8 weeks</p>
+                    <p className="text-indigo-700/70">Your VIPs. High frequency, high value. They keep your books full and your income steady.</p>
+                  </div>
+
+                  <div className="p-8 rounded-[28px] bg-slate-50 border-2 border-slate-100">
+                    <div className="w-12 h-12 bg-maroon rounded-xl flex items-center justify-center text-white mb-6">
+                      <ICONS.Calendar />
+                    </div>
+                    <h3 className="text-xl font-bold text-maroon mb-2">Standard</h3>
+                    <p className="text-3xl font-serif text-maroon mb-4">Every 10 weeks</p>
+                    <p className="text-slate-500">Your core clientele. Reliable, consistent. The backbone of your annual forecast.</p>
+                  </div>
+
+                  <div className="p-8 rounded-[28px] bg-amber-50 border-2 border-amber-100">
+                    <div className="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center text-white mb-6">
+                      <ICONS.Sun />
+                    </div>
+                    <h3 className="text-xl font-bold text-amber-900 mb-2">Flex</h3>
+                    <p className="text-3xl font-serif text-amber-900 mb-4">Every 12+ weeks</p>
+                    <p className="text-amber-700/70">Seasonal or occasional. They matter too—and now you can track when they're due back.</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* SECTION 6: Pricing */}
+            <section className="py-24 px-6 bg-cream" id="pricing">
+              <div className="max-w-xl mx-auto text-center">
+                <h2 className="text-3xl lg:text-4xl font-serif text-maroon mb-4">
+                  Simple pricing
+                </h2>
+                <p className="text-lg text-maroon/60 mb-12">
+                  One plan. Everything you need. No surprises.
+                </p>
+
+                <div className="bg-white p-10 rounded-[32px] shadow-xl border border-slate-100">
+                  <div className="text-5xl font-serif text-maroon mb-2">$29<span className="text-2xl text-slate-400">/month</span></div>
+                  <p className="text-slate-400 font-medium mb-8">Billed monthly. Cancel anytime.</p>
+
+                  <ul className="text-left space-y-4 mb-10">
+                    {[
+                      'Unlimited clients',
+                      'Full income dashboard',
+                      'Client profiles and intake',
+                      'Rotation tracking',
+                      'Smart reminders',
+                      'Export your data anytime',
+                    ].map((feature, i) => (
+                      <li key={i} className="flex items-center gap-3">
+                        <div className="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
+                          <ICONS.Check />
+                        </div>
+                        <span className="text-maroon font-medium">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <button
+                    onClick={() => setActiveView('demo')}
+                    className="w-full py-4 bg-maroon text-white rounded-xl font-bold text-lg hover:opacity-90 transition-all"
+                  >
+                    Start Your Free Trial
+                  </button>
+                  <p className="mt-4 text-sm text-slate-400">Free for 14 days. No credit card required.</p>
+                </div>
+              </div>
+            </section>
+
+            {/* SECTION 7: Final CTA */}
+            <section className="py-32 px-6 bg-maroon text-white text-center">
+              <div className="max-w-3xl mx-auto">
+                <h2 className="text-4xl lg:text-5xl font-serif mb-6">
+                  Know your year before it starts.
+                </h2>
+                <p className="text-xl text-white/70 mb-10">
+                  Your clients, mapped. Your income, forecasted. Your business, finally predictable.
+                </p>
+                <button
+                  onClick={() => setActiveView('demo')}
+                  className="inline-flex items-center gap-2 px-10 py-5 bg-[#fff38a] text-maroon rounded-full text-lg font-bold hover:opacity-90 transition-all shadow-xl"
+                >
+                  <ICONS.Sparkle />
+                  Get Started Free
+                </button>
+              </div>
+            </section>
+
+            {/* SECTION 8: Footer */}
+            <footer className="py-16 border-t border-slate-100 bg-white">
+              <div className="max-w-7xl mx-auto px-6">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-8">
+                  <div className="text-maroon">
                     <LOGOS.Main />
                   </div>
-                  <div className="flex flex-wrap justify-center gap-10 text-[15px] font-medium text-maroon/60 mb-16">
-                     <button onClick={() => scrollTo('how-it-works')} className="hover:text-maroon transition-colors">How It Works</button>
-                     <button onClick={() => scrollTo('pricing')} className="hover:text-maroon transition-colors">Pricing</button>
-                     <button className="hover:text-maroon transition-colors">About Us</button>
-                     <button className="hover:text-maroon transition-colors">Careers</button>
-                     <button className="hover:text-maroon transition-colors">Privacy</button>
+                  <div className="flex flex-wrap justify-center gap-8 text-[15px] font-medium text-maroon/60">
+                    <button onClick={() => scrollTo('how-it-works')} className="hover:text-maroon transition-colors">How It Works</button>
+                    <button onClick={() => scrollTo('pricing')} className="hover:text-maroon transition-colors">Pricing</button>
+                    <button className="hover:text-maroon transition-colors">Privacy</button>
+                    <button className="hover:text-maroon transition-colors">Contact</button>
                   </div>
-                  <p className="text-sm text-slate-400 font-medium">© 2026 Recur. The income system for stylists who are done guessing.</p>
-               </div>
+                </div>
+                <div className="mt-12 pt-8 border-t border-slate-100 text-center">
+                  <p className="text-sm text-slate-400">© 2026 Recur. The income system for stylists.</p>
+                </div>
+              </div>
             </footer>
           </>
         ) : (
           <div className="max-w-7xl mx-auto px-6 py-12">
             <div className="flex justify-between items-center mb-8">
-               <button 
-                  onClick={() => setActiveView('landing')}
-                  className="text-sm font-bold text-slate-400 hover:text-maroon flex items-center gap-2 transition-colors group"
-                >
-                  <span className="group-hover:-translate-x-1 transition-transform">←</span> Back to Landing
-               </button>
-               <div className="text-xs px-3 py-1 bg-[#fff38a] text-maroon font-bold rounded-full uppercase tracking-tighter">
-                  Demo Preview
-               </div>
+              <button
+                onClick={() => setActiveView('landing')}
+                className="text-sm font-bold text-slate-400 hover:text-maroon flex items-center gap-2 transition-colors group"
+              >
+                <span className="group-hover:-translate-x-1 transition-transform">←</span> Back to Landing
+              </button>
+              <div className="text-xs px-3 py-1 bg-[#fff38a] text-maroon font-bold rounded-full uppercase tracking-tighter">
+                Demo Preview
+              </div>
             </div>
             <DashboardView />
           </div>
         )}
       </main>
-
-      {/* Floating UI Elements Sidebar */}
-      <div className="fixed left-6 bottom-8 z-40 hidden lg:flex flex-col gap-3">
-        <div className="w-12 h-12 bg-emerald-500 rounded-2xl shadow-xl flex items-center justify-center text-white cursor-pointer hover:scale-110 transition-transform">
-           <ICONS.Check />
-        </div>
-        <div className="w-12 h-12 bg-orange-500 rounded-2xl shadow-xl flex items-center justify-center text-white cursor-pointer hover:scale-110 transition-transform">
-           <ICONS.Sparkle />
-        </div>
-        <div className="w-12 h-12 bg-indigo-500 rounded-2xl shadow-xl flex items-center justify-center text-white cursor-pointer hover:scale-110 transition-transform">
-           <ICONS.Layers />
-        </div>
-        <div className="w-12 h-12 bg-slate-500 rounded-2xl shadow-xl flex items-center justify-center text-white cursor-pointer hover:scale-110 transition-transform">
-           <ICONS.Copy />
-        </div>
-      </div>
     </div>
   );
 };

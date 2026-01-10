@@ -1007,6 +1007,10 @@ const App: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            <p className="scroll-reveal delay-3 text-center text-base sm:text-lg text-maroon/60 mt-8 sm:mt-12">
+              No anxiety. No guessing. Just your books, organized.
+            </p>
           </div>
         </section>
 

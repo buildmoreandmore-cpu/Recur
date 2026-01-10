@@ -20,6 +20,7 @@ const AVATAR_COLORS = ['#c17f59', '#7c9a7e', '#b5a078', '#6b7c91', '#a67c8e'];
 
 export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, onAddClient, onViewClient, onBack }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedDay, setSelectedDay] = useState<{ day: number; appointments: Client[] } | null>(null);
 
   const stats = {
     annualProjected: clients.reduce((sum, c) => sum + c.annualValue, 0),
@@ -173,25 +174,25 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
                 const day = i + 1;
                 const appointments = getAppointmentsForDate(day);
                 const isToday = isCurrentMonth && today.getDate() === day;
+                const hasAppointments = appointments.length > 0;
 
                 return (
                   <div
                     key={day}
+                    onClick={() => hasAppointments && setSelectedDay({ day, appointments })}
                     className={`aspect-square p-0.5 sm:p-1 rounded-md sm:rounded-lg transition-colors ${
-                      isToday ? 'bg-maroon/10 ring-1 sm:ring-2 ring-maroon' :
-                      appointments.length > 0 ? 'bg-slate-50 hover:bg-slate-100 cursor-pointer' : ''
-                    }`}
+                      isToday ? 'bg-maroon/10 ring-1 sm:ring-2 ring-maroon' : ''
+                    } ${hasAppointments ? 'bg-slate-50 hover:bg-slate-100 cursor-pointer' : ''}`}
                   >
                     <div className="h-full flex flex-col">
                       <span className={`text-xs sm:text-sm font-medium ${isToday ? 'text-maroon font-bold' : 'text-slate-600'}`}>
                         {day}
                       </span>
-                      {appointments.length > 0 && (
+                      {hasAppointments && (
                         <div className="flex flex-wrap gap-0.5 mt-0.5 sm:mt-1">
                           {appointments.slice(0, 2).map((client) => (
                             <div
                               key={client.id}
-                              onClick={() => onViewClient(client)}
                               className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full"
                               style={{ backgroundColor: ROTATION_COLORS[client.rotation].hex }}
                               title={client.name}
@@ -358,6 +359,110 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
           </div>
         </div>
       </main>
+
+      {/* Day Appointments Modal */}
+      {selectedDay && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+          onClick={() => setSelectedDay(null)}
+        >
+          <div
+            className="bg-white w-full sm:w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl shadow-2xl max-h-[80vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="px-4 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-cream">
+              <div>
+                <h3 className="font-bold text-maroon text-lg">
+                  {currentMonth.toLocaleDateString('en-US', { month: 'long' })} {selectedDay.day}
+                </h3>
+                <p className="text-sm text-maroon/60">{selectedDay.appointments.length} appointment{selectedDay.appointments.length !== 1 ? 's' : ''}</p>
+              </div>
+              <button
+                onClick={() => setSelectedDay(null)}
+                className="p-2 hover:bg-slate-100 rounded-full transition-colors text-maroon/60"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Appointments List */}
+            <div className="overflow-y-auto max-h-[60vh]">
+              {selectedDay.appointments.map((client) => (
+                <div key={client.id} className="p-4 sm:p-5 border-b border-slate-100 last:border-b-0">
+                  <div className="flex items-start gap-3 sm:gap-4 mb-3">
+                    <div
+                      className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
+                      style={{ backgroundColor: getAvatarColor(client.name) }}
+                    >
+                      {getInitials(client.name)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-maroon text-base sm:text-lg truncate">{client.name}</h4>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span
+                          className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase text-white"
+                          style={{ backgroundColor: ROTATION_COLORS[client.rotation].hex }}
+                        >
+                          {client.rotation}
+                        </span>
+                        <span className="text-sm text-slate-500">{client.baseService?.name}</span>
+                      </div>
+                      <p className="text-sm text-maroon/60 mt-1">{formatCurrency(client.baseService?.price || 0)}</p>
+                    </div>
+                  </div>
+
+                  {/* Quick Actions */}
+                  {client.phone && (
+                    <div className="flex gap-2 mt-3">
+                      <a
+                        href={`tel:${client.phone.replace(/[^0-9+]/g, '')}`}
+                        className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2.5 bg-emerald-500 text-white rounded-xl text-sm font-bold hover:bg-emerald-600 transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                        Call
+                      </a>
+                      <a
+                        href={`sms:${client.phone.replace(/[^0-9+]/g, '')}`}
+                        className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2.5 bg-blue-500 text-white rounded-xl text-sm font-bold hover:bg-blue-600 transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                        Text
+                      </a>
+                      <a
+                        href={`sms:${client.phone.replace(/[^0-9+]/g, '')}?body=Hi ${client.name.split(' ')[0]}! Just a reminder about your appointment on ${currentMonth.toLocaleDateString('en-US', { month: 'long' })} ${selectedDay.day}. See you soon!`}
+                        className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2.5 bg-[#c17f59] text-white rounded-xl text-sm font-bold hover:bg-[#a86b48] transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                        Remind
+                      </a>
+                    </div>
+                  )}
+
+                  {/* View Profile Button */}
+                  <button
+                    onClick={() => {
+                      setSelectedDay(null);
+                      onViewClient(client);
+                    }}
+                    className="w-full mt-3 py-2.5 text-maroon font-medium text-sm hover:bg-slate-50 rounded-xl transition-colors border border-slate-200"
+                  >
+                    View Full Profile →
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

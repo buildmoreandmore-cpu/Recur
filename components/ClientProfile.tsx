@@ -136,10 +136,10 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client, onBack, on
           </div>
         </div>
 
-        {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Service Roadmap */}
-          <div className="lg:col-span-2 space-y-6">
+        {/* Content Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Service Roadmap */}
+          <div className="space-y-6">
             {/* Service Roadmap */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
               <div className="px-6 py-4 border-b border-slate-100">

@@ -194,7 +194,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
       </div>
 
       {/* Content */}
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         {step === 1 && (
           <div className="space-y-8">
             <div>
@@ -362,7 +362,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
 
               <div className="pt-4 border-t border-slate-100">
                 <label className="block text-sm font-bold text-maroon mb-3">Any big events this year?</label>
-                <div className="flex gap-3 mb-4">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-4">
                   <input
                     type="text"
                     value={eventName}
@@ -370,18 +370,20 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
                     className="flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all"
                     placeholder="Event name (e.g., Wedding)"
                   />
-                  <input
-                    type="date"
-                    value={eventDate}
-                    onChange={(e) => setEventDate(e.target.value)}
-                    className="px-4 py-3 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all"
-                  />
-                  <button
-                    onClick={addEvent}
-                    className="px-4 py-3 bg-slate-100 rounded-xl text-maroon font-bold hover:bg-slate-200 transition-all"
-                  >
-                    Add
-                  </button>
+                  <div className="flex gap-2 sm:gap-3">
+                    <input
+                      type="date"
+                      value={eventDate}
+                      onChange={(e) => setEventDate(e.target.value)}
+                      className="flex-1 sm:flex-none px-4 py-3 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all"
+                    />
+                    <button
+                      onClick={addEvent}
+                      className="px-4 py-3 bg-slate-100 rounded-xl text-maroon font-bold hover:bg-slate-200 transition-all"
+                    >
+                      Add
+                    </button>
+                  </div>
                 </div>
                 {client.events && client.events.length > 0 && (
                   <div className="space-y-2">
@@ -721,7 +723,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
               </div>
 
               {/* Annual Projection */}
-              <div className="bg-maroon text-white rounded-2xl p-8 shadow-lg">
+              <div className="bg-maroon text-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg">
                 <h3 className="text-xs font-bold uppercase tracking-wider opacity-60 mb-4">Annual Projection</h3>
                 <div className="space-y-3 mb-6">
                   {client.baseService && (

@@ -71,7 +71,7 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client, onBack, on
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Profile Header */}
         <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-slate-100 mb-6 sm:mb-8">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
@@ -181,7 +181,7 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client, onBack, on
 
             {/* Upcoming Events */}
             {client.events && client.events.length > 0 && (
-              <div className="bg-[#fff38a]/30 rounded-2xl p-6">
+              <div className="bg-[#fff38a]/30 rounded-2xl p-4 sm:p-6">
                 <h3 className="font-bold text-maroon mb-4 flex items-center gap-2">
                   <ICONS.Sparkle /> Upcoming Events
                 </h3>
@@ -207,7 +207,7 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client, onBack, on
               <div className="px-4 sm:px-6 py-4 border-b border-slate-100">
                 <h2 className="font-bold text-maroon">Details</h2>
               </div>
-              <div className="p-6 space-y-4">
+              <div className="p-4 sm:p-6 space-y-4">
                 {client.baseService && (
                   <div>
                     <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Base Service</div>
@@ -250,7 +250,7 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client, onBack, on
               <div className="px-4 sm:px-6 py-4 border-b border-slate-100">
                 <h2 className="font-bold text-maroon">Lifestyle Notes</h2>
               </div>
-              <div className="p-6 space-y-4">
+              <div className="p-4 sm:p-6 space-y-4">
                 {client.occupation && (
                   <div>
                     <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Occupation</div>
@@ -283,7 +283,7 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client, onBack, on
               <div className="px-4 sm:px-6 py-4 border-b border-slate-100">
                 <h2 className="font-bold text-maroon">Hair Notes</h2>
               </div>
-              <div className="p-6 space-y-4">
+              <div className="p-4 sm:p-6 space-y-4">
                 {client.naturalColor && (
                   <div>
                     <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Natural Color</div>
@@ -322,7 +322,7 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client, onBack, on
               <div className="px-4 sm:px-6 py-4 border-b border-slate-100">
                 <h2 className="font-bold text-maroon">History</h2>
               </div>
-              <div className="p-6 space-y-4">
+              <div className="p-4 sm:p-6 space-y-4">
                 {client.lastColor && (
                   <div>
                     <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Last Color</div>
@@ -353,23 +353,23 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client, onBack, on
         </div>
 
         {/* Bottom Action Bar */}
-        <div className="mt-8 bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-          <div className="flex flex-wrap gap-4">
+        <div className="mt-6 sm:mt-8 bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-100">
+          <div className="flex flex-wrap gap-3 sm:gap-4">
             <button
               onClick={onBookAppointment}
-              className="btn-primary flex-1 md:flex-none px-8 py-4 bg-maroon text-white rounded-xl font-bold"
+              className="btn-primary flex-1 md:flex-none px-4 sm:px-8 py-3 sm:py-4 bg-maroon text-white rounded-xl font-bold text-sm sm:text-base"
             >
               Book Next Appointment
             </button>
             <button
               onClick={onMarkOverdue}
-              className="flex-1 md:flex-none px-4 sm:px-6 py-4 bg-amber-100 text-amber-700 rounded-xl font-bold hover:bg-amber-200 transition-all"
+              className="flex-1 md:flex-none px-3 sm:px-6 py-3 sm:py-4 bg-amber-100 text-amber-700 rounded-xl font-bold hover:bg-amber-200 transition-all text-sm sm:text-base"
             >
               Mark Overdue
             </button>
             <button
               onClick={onArchive}
-              className="flex-1 md:flex-none px-4 sm:px-6 py-4 text-red-500 hover:bg-red-50 rounded-xl font-bold transition-all"
+              className="flex-1 md:flex-none px-3 sm:px-6 py-3 sm:py-4 text-red-500 hover:bg-red-50 rounded-xl font-bold transition-all text-sm sm:text-base"
             >
               Archive Client
             </button>

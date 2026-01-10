@@ -1060,12 +1060,9 @@ const App: React.FC = () => {
         {/* SECTION 6: Pricing */}
         <section className="py-12 sm:py-24 px-4 sm:px-6 bg-cream" id="pricing">
           <div className="max-w-xl mx-auto text-center">
-            <h2 className="scroll-reveal text-2xl sm:text-3xl lg:text-4xl font-serif text-maroon mb-3 sm:mb-4">
-              Simple pricing
+            <h2 className="scroll-reveal text-2xl sm:text-3xl lg:text-4xl font-serif text-maroon mb-8 sm:mb-12">
+              Simple pricing. Serious results.
             </h2>
-            <p className="scroll-reveal delay-1 text-base sm:text-lg text-maroon/60 mb-8 sm:mb-12">
-              One plan. Everything you need. No surprises.
-            </p>
 
             <div className="price-card bg-white p-6 sm:p-10 rounded-2xl sm:rounded-[32px] shadow-xl border border-slate-100">
               <div className="text-4xl sm:text-5xl font-serif text-maroon mb-2 number-animate">$29<span className="text-xl sm:text-2xl text-slate-400">/month</span></div>

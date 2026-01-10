@@ -339,6 +339,19 @@ const App: React.FC = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [hasOnboarded, setHasOnboarded] = useState(false);
+  const [showWaitlist, setShowWaitlist] = useState(false);
+  const [waitlistEmail, setWaitlistEmail] = useState('');
+  const [waitlistSubmitted, setWaitlistSubmitted] = useState(false);
+
+  const handleWaitlistSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (waitlistEmail) {
+      // In production, this would send to a backend
+      console.log('Waitlist signup:', waitlistEmail);
+      setWaitlistSubmitted(true);
+      setWaitlistEmail('');
+    }
+  };
 
   const scrollTo = (id: string) => {
     const element = document.getElementById(id);
@@ -453,20 +466,16 @@ const App: React.FC = () => {
 
         <div className="flex items-center gap-2 sm:gap-4">
           <button
-            onClick={() => {
-              setHasOnboarded(true);
-              setClients(SAMPLE_CLIENTS);
-              setScreen('dashboard');
-            }}
+            onClick={handleStartDemo}
             className="hidden sm:block px-4 sm:px-5 py-2 sm:py-2.5 text-sm sm:text-[15px] font-medium text-maroon hover:opacity-70"
           >
-            Log in
+            See Demo
           </button>
           <button
-            onClick={handleStartDemo}
+            onClick={() => setShowWaitlist(true)}
             className="btn-primary px-4 sm:px-5 py-2 sm:py-2.5 bg-maroon text-white rounded-xl text-sm sm:text-[15px] font-bold shadow-sm"
           >
-            Get Started
+            Join Waitlist
           </button>
         </div>
       </nav>
@@ -494,12 +503,18 @@ const App: React.FC = () => {
               The client management system that maps every rotation, forecasts your revenue, and keeps you ahead of your book.
             </p>
 
-            <div className="hero-animate hero-animate-delay-4">
+            <div className="hero-animate hero-animate-delay-4 flex flex-col items-center gap-4">
               <button
-                onClick={handleStartDemo}
+                onClick={() => setShowWaitlist(true)}
                 className="btn-primary inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-maroon text-white rounded-full text-base sm:text-lg font-bold shadow-xl"
               >
-                See Demo
+                Join the Waitlist
+              </button>
+              <button
+                onClick={handleStartDemo}
+                className="text-maroon/60 hover:text-maroon text-sm font-medium underline underline-offset-4 transition-colors"
+              >
+                or see the demo →
               </button>
             </div>
           </div>
@@ -633,7 +648,7 @@ const App: React.FC = () => {
                 onClick={handleStartDemo}
                 className="btn-primary inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-maroon text-white rounded-xl font-bold text-sm sm:text-base"
               >
-                Try the Demo →
+                See the Demo →
               </button>
             </div>
           </div>
@@ -715,10 +730,16 @@ const App: React.FC = () => {
               </ul>
 
               <button
-                onClick={handleStartDemo}
+                onClick={() => setShowWaitlist(true)}
                 className="btn-primary w-full py-3 sm:py-4 bg-maroon text-white rounded-xl font-bold text-base sm:text-lg"
               >
-                See Demo
+                Join Waitlist for Early Access
+              </button>
+              <button
+                onClick={handleStartDemo}
+                className="w-full mt-3 py-2 text-maroon/60 hover:text-maroon text-sm font-medium transition-colors"
+              >
+                or see the demo →
               </button>
             </div>
           </div>
@@ -733,12 +754,18 @@ const App: React.FC = () => {
             <p className="scroll-reveal delay-1 text-base sm:text-xl text-white/70 mb-8 sm:mb-10 px-2">
               Your clients, mapped. Your income, forecasted. Your business, finally predictable.
             </p>
-            <div className="scroll-reveal delay-2">
+            <div className="scroll-reveal delay-2 flex flex-col items-center gap-4">
               <button
-                onClick={handleStartDemo}
+                onClick={() => setShowWaitlist(true)}
                 className="btn-primary cta-glow inline-flex items-center px-6 sm:px-10 py-3.5 sm:py-5 bg-[#fff38a] text-maroon rounded-full text-base sm:text-lg font-bold shadow-xl"
               >
-                Get Started Free
+                Join the Waitlist
+              </button>
+              <button
+                onClick={handleStartDemo}
+                className="text-white/60 hover:text-white text-sm font-medium underline underline-offset-4 transition-colors"
+              >
+                or see the demo →
               </button>
             </div>
           </div>
@@ -764,6 +791,103 @@ const App: React.FC = () => {
           </div>
         </footer>
       </main>
+
+      {/* Waitlist Modal */}
+      {showWaitlist && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={() => {
+            setShowWaitlist(false);
+            setWaitlistSubmitted(false);
+          }}
+        >
+          <div
+            className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {!waitlistSubmitted ? (
+              <>
+                {/* Modal Header */}
+                <div className="px-6 py-5 bg-maroon text-white text-center">
+                  <h3 className="text-xl sm:text-2xl font-serif mb-2">Join the Waitlist</h3>
+                  <p className="text-white/70 text-sm">Be the first to know when Recur launches.</p>
+                </div>
+
+                {/* Form */}
+                <form onSubmit={handleWaitlistSubmit} className="p-6">
+                  <div className="mb-4">
+                    <label className="block text-sm font-bold text-maroon mb-2">Email Address</label>
+                    <input
+                      type="email"
+                      value={waitlistEmail}
+                      onChange={(e) => setWaitlistEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      required
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl text-maroon focus:outline-none focus:ring-2 focus:ring-maroon/20 focus:border-maroon"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="btn-primary w-full py-3.5 bg-maroon text-white rounded-xl font-bold text-base"
+                  >
+                    Get Early Access
+                  </button>
+                  <p className="text-center text-xs text-slate-400 mt-4">
+                    We'll notify you when we launch. No spam, ever.
+                  </p>
+                </form>
+
+                {/* Demo Link */}
+                <div className="px-6 pb-6 pt-2 border-t border-slate-100">
+                  <button
+                    onClick={() => {
+                      setShowWaitlist(false);
+                      handleStartDemo();
+                    }}
+                    className="w-full py-2 text-maroon/60 hover:text-maroon text-sm font-medium transition-colors"
+                  >
+                    or explore the demo first →
+                  </button>
+                </div>
+              </>
+            ) : (
+              /* Success State */
+              <div className="p-8 text-center">
+                <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-serif text-maroon mb-2">You're on the list!</h3>
+                <p className="text-maroon/60 mb-6">We'll send you an email when Recur is ready for you.</p>
+                <button
+                  onClick={() => {
+                    setShowWaitlist(false);
+                    setWaitlistSubmitted(false);
+                    handleStartDemo();
+                  }}
+                  className="btn-primary px-6 py-3 bg-maroon text-white rounded-xl font-bold"
+                >
+                  Explore the Demo
+                </button>
+              </div>
+            )}
+
+            {/* Close Button */}
+            <button
+              onClick={() => {
+                setShowWaitlist(false);
+                setWaitlistSubmitted(false);
+              }}
+              className="absolute top-4 right-4 p-2 text-white/60 hover:text-white transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -605,7 +605,7 @@ const App: React.FC = () => {
               One plan. Everything you need. No surprises.
             </p>
 
-            <div className="scroll-reveal delay-2 price-card bg-white p-6 sm:p-10 rounded-2xl sm:rounded-[32px] shadow-xl border border-slate-100">
+            <div className="price-card bg-white p-6 sm:p-10 rounded-2xl sm:rounded-[32px] shadow-xl border border-slate-100">
               <div className="text-4xl sm:text-5xl font-serif text-maroon mb-2 number-animate">$29<span className="text-xl sm:text-2xl text-slate-400">/month</span></div>
               <p className="text-slate-400 font-medium mb-6 sm:mb-8 text-sm sm:text-base">Billed monthly. Cancel anytime.</p>
 

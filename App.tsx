@@ -865,7 +865,7 @@ const App: React.FC = () => {
             </h1>
 
             <p className="hero-animate hero-animate-delay-3 text-base sm:text-lg lg:text-xl text-maroon/70 mb-8 sm:mb-10 max-w-2xl mx-auto leading-relaxed px-2">
-              The client management system that maps every rotation, forecasts your revenue, and keeps you ahead of your book.
+              Map your clients. Forecast your income. Know your year.
             </p>
 
             <div className="hero-animate hero-animate-delay-4 flex flex-col items-center gap-4">

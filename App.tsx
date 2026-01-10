@@ -459,6 +459,41 @@ const App: React.FC = () => {
   }
 
   if (screen === 'client-profile' && selectedClient) {
+    const handleBookAppointment = () => {
+      // Add a new upcoming appointment for next rotation
+      const nextDate = new Date();
+      nextDate.setDate(nextDate.getDate() + (selectedClient.rotationWeeks || 10) * 7);
+      const newAppointment = {
+        date: nextDate.toISOString().split('T')[0],
+        service: selectedClient.baseService?.name || 'Service',
+        price: selectedClient.baseService?.price || 100,
+        status: 'scheduled' as const,
+      };
+      const updatedClient = {
+        ...selectedClient,
+        appointments: [...(selectedClient.appointments || []), newAppointment],
+        nextAppointment: nextDate.toISOString().split('T')[0],
+      };
+      setClients(clients.map(c => c.id === selectedClient.id ? updatedClient : c));
+      setSelectedClient(updatedClient);
+      alert(`Appointment booked for ${nextDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`);
+    };
+
+    const handleMarkOverdue = () => {
+      const updatedClient = { ...selectedClient, status: 'overdue' as const };
+      setClients(clients.map(c => c.id === selectedClient.id ? updatedClient : c));
+      setSelectedClient(updatedClient);
+      alert(`${selectedClient.name} marked as overdue`);
+    };
+
+    const handleArchive = () => {
+      if (confirm(`Archive ${selectedClient.name}? They will be removed from your active clients.`)) {
+        setClients(clients.filter(c => c.id !== selectedClient.id));
+        setSelectedClient(null);
+        setScreen('dashboard');
+      }
+    };
+
     return (
       <ClientProfile
         client={selectedClient}
@@ -466,6 +501,12 @@ const App: React.FC = () => {
           setSelectedClient(null);
           setScreen('dashboard');
         }}
+        onEdit={() => {
+          setScreen('client-intake');
+        }}
+        onBookAppointment={handleBookAppointment}
+        onMarkOverdue={handleMarkOverdue}
+        onArchive={handleArchive}
       />
     );
   }

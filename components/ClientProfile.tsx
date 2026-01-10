@@ -6,6 +6,9 @@ interface ClientProfileProps {
   client: Client;
   onBack: () => void;
   onEdit?: () => void;
+  onBookAppointment?: () => void;
+  onMarkOverdue?: () => void;
+  onArchive?: () => void;
 }
 
 const ROTATION_COLORS = {
@@ -16,7 +19,7 @@ const ROTATION_COLORS = {
 
 const AVATAR_COLORS = ['#c17f59', '#7c9a7e', '#b5a078', '#6b7c91', '#a67c8e'];
 
-export const ClientProfile: React.FC<ClientProfileProps> = ({ client, onBack, onEdit }) => {
+export const ClientProfile: React.FC<ClientProfileProps> = ({ client, onBack, onEdit, onBookAppointment, onMarkOverdue, onArchive }) => {
   const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase();
   const getAvatarColor = (name: string) => AVATAR_COLORS[name.length % AVATAR_COLORS.length];
 
@@ -352,13 +355,22 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client, onBack, on
         {/* Bottom Action Bar */}
         <div className="mt-8 bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
           <div className="flex flex-wrap gap-4">
-            <button className="btn-primary flex-1 md:flex-none px-8 py-4 bg-maroon text-white rounded-xl font-bold">
+            <button
+              onClick={onBookAppointment}
+              className="btn-primary flex-1 md:flex-none px-8 py-4 bg-maroon text-white rounded-xl font-bold"
+            >
               Book Next Appointment
             </button>
-            <button className="flex-1 md:flex-none px-6 py-4 bg-amber-100 text-amber-700 rounded-xl font-bold hover:bg-amber-200 transition-all">
+            <button
+              onClick={onMarkOverdue}
+              className="flex-1 md:flex-none px-6 py-4 bg-amber-100 text-amber-700 rounded-xl font-bold hover:bg-amber-200 transition-all"
+            >
               Mark Overdue
             </button>
-            <button className="flex-1 md:flex-none px-6 py-4 text-red-500 hover:bg-red-50 rounded-xl font-bold transition-all">
+            <button
+              onClick={onArchive}
+              className="flex-1 md:flex-none px-6 py-4 text-red-500 hover:bg-red-50 rounded-xl font-bold transition-all"
+            >
               Archive Client
             </button>
           </div>

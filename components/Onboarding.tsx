@@ -82,7 +82,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
     <div className="min-h-screen bg-cream">
       {/* Header */}
       <div className="bg-white border-b border-slate-100">
-        <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <button onClick={onBack} className="text-maroon/60 hover:text-maroon flex items-center gap-2 text-sm font-medium">
             ← Back
           </button>
@@ -91,7 +91,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
       </div>
 
       {/* Progress Bar */}
-      <div className="max-w-3xl mx-auto px-6 pt-6">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-6">
         <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
           <div
             className="h-full bg-maroon rounded-full transition-all duration-500"
@@ -101,7 +101,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
       </div>
 
       {/* Content */}
-      <div className="max-w-3xl mx-auto px-6 py-12">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
         {step === 1 && (
           <div className="space-y-8">
             <div>
@@ -109,7 +109,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
               <p className="text-maroon/60">Tell us about you and your business.</p>
             </div>
 
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 space-y-6">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-slate-100 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-bold text-maroon mb-2">Your Name *</label>
@@ -196,7 +196,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
 
             <div className="space-y-6">
               {/* Base Services */}
-              <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100">
+              <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-slate-100">
                 <h3 className="text-lg font-bold text-maroon mb-6">Base Services</h3>
                 <div className="space-y-4">
                   {baseServices.map((service, index) => (
@@ -218,7 +218,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
               </div>
 
               {/* Add-On Services */}
-              <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100">
+              <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-slate-100">
                 <h3 className="text-lg font-bold text-maroon mb-6">Add-On Services</h3>
                 <div className="space-y-4">
                   {addonServices.map((service, index) => (
@@ -240,7 +240,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
               </div>
 
               {/* Event Services */}
-              <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100">
+              <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-slate-100">
                 <h3 className="text-lg font-bold text-maroon mb-6">Event Services</h3>
                 <div className="space-y-4">
                   {eventServices.map((service, index) => (
@@ -300,7 +300,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-slate-100">
               <label className="block text-sm font-bold text-maroon mb-3">Default rotation for new clients</label>
               <select
                 value={profile.defaultRotation}
@@ -322,7 +322,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
               <p className="text-maroon/60">Optional: Set income goals to track your progress throughout the year.</p>
             </div>
 
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 space-y-6">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-slate-100 space-y-6">
               <div>
                 <label className="block text-sm font-bold text-maroon mb-2">Annual Income Goal</label>
                 <div className="relative">

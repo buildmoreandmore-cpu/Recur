@@ -175,7 +175,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
     <div className="min-h-screen bg-cream">
       {/* Header */}
       <div className="bg-white border-b border-slate-100">
-        <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <button onClick={onBack} className="text-maroon/60 hover:text-maroon flex items-center gap-2 text-sm font-medium">
             ← Cancel
           </button>
@@ -184,7 +184,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
       </div>
 
       {/* Progress Bar */}
-      <div className="max-w-3xl mx-auto px-6 pt-6">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-6">
         <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
           <div
             className="h-full bg-maroon rounded-full transition-all duration-500"
@@ -194,7 +194,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
       </div>
 
       {/* Content */}
-      <div className="max-w-3xl mx-auto px-6 py-12">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
         {step === 1 && (
           <div className="space-y-8">
             <div>
@@ -202,7 +202,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
               <p className="text-maroon/60">Start with the essentials.</p>
             </div>
 
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 space-y-6">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-slate-100 space-y-6">
               <div>
                 <label className="block text-sm font-bold text-maroon mb-2">Client Name *</label>
                 <input
@@ -252,12 +252,12 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
 
               <div>
                 <label className="block text-sm font-bold text-maroon mb-3">Preferred Days</label>
-                <div className="flex flex-wrap gap-2">
+                <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
                   {DAYS.map((day) => (
                     <button
                       key={day}
                       onClick={() => toggleDay(day)}
-                      className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                      className={`px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                         client.preferredDays?.includes(day)
                           ? 'bg-maroon text-white'
                           : 'bg-slate-100 text-maroon hover:bg-slate-200'
@@ -292,7 +292,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
               <p className="text-maroon/60">Understanding their life helps you serve them better.</p>
             </div>
 
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 space-y-6">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-slate-100 space-y-6">
               <div>
                 <label className="block text-sm font-bold text-maroon mb-2">What do you do for work?</label>
                 <input
@@ -309,7 +309,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
                 <div className="flex gap-3">
                   <button
                     onClick={() => setClient({ ...client, clientFacing: true })}
-                    className={`px-6 py-3 rounded-xl text-sm font-medium transition-all ${
+                    className={`px-4 sm:px-6 py-3 rounded-xl text-sm font-medium transition-all ${
                       client.clientFacing ? 'bg-maroon text-white' : 'bg-slate-100 text-maroon hover:bg-slate-200'
                     }`}
                   >
@@ -317,7 +317,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
                   </button>
                   <button
                     onClick={() => setClient({ ...client, clientFacing: false })}
-                    className={`px-6 py-3 rounded-xl text-sm font-medium transition-all ${
+                    className={`px-4 sm:px-6 py-3 rounded-xl text-sm font-medium transition-all ${
                       !client.clientFacing ? 'bg-maroon text-white' : 'bg-slate-100 text-maroon hover:bg-slate-200'
                     }`}
                   >
@@ -333,7 +333,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
                     <button
                       key={time}
                       onClick={() => setClient({ ...client, morningTime: time })}
-                      className={`px-6 py-3 rounded-xl text-sm font-medium transition-all ${
+                      className={`px-4 sm:px-6 py-3 rounded-xl text-sm font-medium transition-all ${
                         client.morningTime === time ? 'bg-maroon text-white' : 'bg-slate-100 text-maroon hover:bg-slate-200'
                       }`}
                     >
@@ -350,7 +350,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
                     <button
                       key={freq}
                       onClick={() => setClient({ ...client, photographed: freq })}
-                      className={`px-6 py-3 rounded-xl text-sm font-medium transition-all ${
+                      className={`px-4 sm:px-6 py-3 rounded-xl text-sm font-medium transition-all ${
                         client.photographed === freq ? 'bg-maroon text-white' : 'bg-slate-100 text-maroon hover:bg-slate-200'
                       }`}
                     >
@@ -406,7 +406,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
               <p className="text-maroon/60">What's worked, what hasn't, and what to watch out for.</p>
             </div>
 
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 space-y-6">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-slate-100 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-bold text-maroon mb-2">Last color service</label>
@@ -479,7 +479,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
                     <button
                       key={freq}
                       onClick={() => setClient({ ...client, heatTools: freq })}
-                      className={`px-6 py-3 rounded-xl text-sm font-medium transition-all ${
+                      className={`px-4 sm:px-6 py-3 rounded-xl text-sm font-medium transition-all ${
                         client.heatTools === freq ? 'bg-maroon text-white' : 'bg-slate-100 text-maroon hover:bg-slate-200'
                       }`}
                     >
@@ -499,7 +499,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
               <p className="text-maroon/60">What does success look like for their hair?</p>
             </div>
 
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 space-y-6">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-slate-100 space-y-6">
               <div>
                 <label className="block text-sm font-bold text-maroon mb-2">What's your goal for your hair this year?</label>
                 <textarea
@@ -518,7 +518,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
                     <button
                       key={level}
                       onClick={() => setClient({ ...client, maintenanceLevel: level })}
-                      className={`px-6 py-3 rounded-xl text-sm font-medium transition-all ${
+                      className={`px-4 sm:px-6 py-3 rounded-xl text-sm font-medium transition-all ${
                         client.maintenanceLevel === level ? 'bg-maroon text-white' : 'bg-slate-100 text-maroon hover:bg-slate-200'
                       }`}
                     >
@@ -558,7 +558,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
                     <button
                       key={weeks}
                       onClick={() => setClient({ ...client, growOutComfort: weeks })}
-                      className={`px-6 py-3 rounded-xl text-sm font-medium transition-all ${
+                      className={`px-4 sm:px-6 py-3 rounded-xl text-sm font-medium transition-all ${
                         client.growOutComfort === weeks ? 'bg-maroon text-white' : 'bg-slate-100 text-maroon hover:bg-slate-200'
                       }`}
                     >
@@ -580,7 +580,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
 
             <div className="space-y-6">
               {/* Base Service */}
-              <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100">
+              <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-slate-100">
                 <h3 className="text-lg font-bold text-maroon mb-4">Base Service</h3>
                 {baseServices.length === 0 ? (
                   <p className="text-slate-400">No base services set up. Go back to add services.</p>
@@ -608,7 +608,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
 
               {/* Add-Ons */}
               {addonServices.length > 0 && (
-                <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100">
+                <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-slate-100">
                   <h3 className="text-lg font-bold text-maroon mb-4">Regular Add-Ons</h3>
                   <div className="space-y-3">
                     {addonServices.map((service) => {
@@ -646,7 +646,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
 
               {/* Events */}
               {client.events && client.events.length > 0 && eventServices.length > 0 && (
-                <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100">
+                <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-slate-100">
                   <h3 className="text-lg font-bold text-maroon mb-4">Scheduled Events</h3>
                   <div className="space-y-4">
                     {client.events.map((event, i) => (
@@ -678,7 +678,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
               )}
 
               {/* Rotation Assignment */}
-              <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100">
+              <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-slate-100">
                 <h3 className="text-lg font-bold text-maroon mb-4">Rotation Assignment</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <button
@@ -762,7 +762,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
           {step > 1 && (
             <button
               onClick={() => setStep(step - 1)}
-              className="px-6 py-3 text-maroon font-bold hover:bg-slate-100 rounded-xl transition-all"
+              className="px-4 sm:px-6 py-3 text-maroon font-bold hover:bg-slate-100 rounded-xl transition-all"
             >
               ← Back
             </button>

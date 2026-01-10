@@ -58,7 +58,7 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client, onBack, on
     <div className="min-h-screen bg-cream">
       {/* Header */}
       <header className="bg-white border-b border-slate-100 sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <button onClick={onBack} className="text-maroon/60 hover:text-maroon flex items-center gap-2 text-sm font-medium">
             ← Back to Dashboard
           </button>
@@ -71,9 +71,9 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client, onBack, on
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-6 py-8">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         {/* Profile Header */}
-        <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 mb-8">
+        <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-slate-100 mb-6 sm:mb-8">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
             <div
               className="w-24 h-24 rounded-2xl flex items-center justify-center text-white text-3xl font-bold"
@@ -142,13 +142,13 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client, onBack, on
           <div className="space-y-6">
             {/* Service Roadmap */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-100">
+              <div className="px-4 sm:px-6 py-4 border-b border-slate-100">
                 <h2 className="font-bold text-maroon">Service Roadmap</h2>
               </div>
               <div className="divide-y divide-slate-50">
                 {client.appointments && client.appointments.length > 0 ? (
                   client.appointments.map((apt, i) => (
-                    <div key={i} className={`px-6 py-4 flex items-center justify-between ${apt.status === 'completed' ? 'bg-slate-50/50' : ''}`}>
+                    <div key={i} className={`px-4 sm:px-6 py-4 flex items-center justify-between ${apt.status === 'completed' ? 'bg-slate-50/50' : ''}`}>
                       <div className="flex items-center gap-4">
                         <div className="w-8 text-center">
                           {getStatusIcon(apt.status)}
@@ -172,7 +172,7 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client, onBack, on
                     </div>
                   ))
                 ) : (
-                  <div className="px-6 py-8 text-center text-slate-400">
+                  <div className="px-4 sm:px-6 py-8 text-center text-slate-400">
                     No appointments scheduled yet.
                   </div>
                 )}
@@ -204,7 +204,7 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client, onBack, on
           <div className="space-y-6">
             {/* Details */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-100">
+              <div className="px-4 sm:px-6 py-4 border-b border-slate-100">
                 <h2 className="font-bold text-maroon">Details</h2>
               </div>
               <div className="p-6 space-y-4">
@@ -247,7 +247,7 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client, onBack, on
 
             {/* Lifestyle Notes */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-100">
+              <div className="px-4 sm:px-6 py-4 border-b border-slate-100">
                 <h2 className="font-bold text-maroon">Lifestyle Notes</h2>
               </div>
               <div className="p-6 space-y-4">
@@ -280,7 +280,7 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client, onBack, on
 
             {/* Hair Notes */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-100">
+              <div className="px-4 sm:px-6 py-4 border-b border-slate-100">
                 <h2 className="font-bold text-maroon">Hair Notes</h2>
               </div>
               <div className="p-6 space-y-4">
@@ -319,7 +319,7 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client, onBack, on
 
             {/* History */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-100">
+              <div className="px-4 sm:px-6 py-4 border-b border-slate-100">
                 <h2 className="font-bold text-maroon">History</h2>
               </div>
               <div className="p-6 space-y-4">
@@ -363,13 +363,13 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client, onBack, on
             </button>
             <button
               onClick={onMarkOverdue}
-              className="flex-1 md:flex-none px-6 py-4 bg-amber-100 text-amber-700 rounded-xl font-bold hover:bg-amber-200 transition-all"
+              className="flex-1 md:flex-none px-4 sm:px-6 py-4 bg-amber-100 text-amber-700 rounded-xl font-bold hover:bg-amber-200 transition-all"
             >
               Mark Overdue
             </button>
             <button
               onClick={onArchive}
-              className="flex-1 md:flex-none px-6 py-4 text-red-500 hover:bg-red-50 rounded-xl font-bold transition-all"
+              className="flex-1 md:flex-none px-4 sm:px-6 py-4 text-red-500 hover:bg-red-50 rounded-xl font-bold transition-all"
             >
               Archive Client
             </button>

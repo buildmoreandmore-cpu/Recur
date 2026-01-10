@@ -337,6 +337,7 @@ const DEFAULT_PROFILE: StylistProfile = {
 
 const App: React.FC = () => {
   const [screen, setScreen] = useState<AppScreen>('landing');
+  const [screenHistory, setScreenHistory] = useState<AppScreen[]>(['landing']);
   const [profile, setProfile] = useState<StylistProfile>(DEFAULT_PROFILE);
   const [clients, setClients] = useState<Client[]>([]);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -346,6 +347,31 @@ const App: React.FC = () => {
   const [waitlistSubmitted, setWaitlistSubmitted] = useState(false);
   const [waitlistLoading, setWaitlistLoading] = useState(false);
   const [waitlistError, setWaitlistError] = useState('');
+
+  // Navigate to a new screen (adds to history)
+  const navigateTo = (newScreen: AppScreen) => {
+    setScreenHistory(prev => [...prev, newScreen]);
+    setScreen(newScreen);
+  };
+
+  // Go back to previous screen
+  const goBack = () => {
+    if (screenHistory.length > 1) {
+      const newHistory = [...screenHistory];
+      newHistory.pop(); // Remove current screen
+      const previousScreen = newHistory[newHistory.length - 1];
+      setScreenHistory(newHistory);
+      setScreen(previousScreen);
+    } else {
+      setScreen('landing');
+    }
+  };
+
+  // Go back to landing (resets history)
+  const goToLanding = () => {
+    setScreenHistory(['landing']);
+    setScreen('landing');
+  };
 
   const handleWaitlistSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -403,9 +429,9 @@ const App: React.FC = () => {
 
   const handleStartDemo = () => {
     if (hasOnboarded) {
-      setScreen('dashboard');
+      navigateTo('dashboard');
     } else {
-      setScreen('onboarding');
+      navigateTo('onboarding');
     }
   };
 
@@ -413,17 +439,17 @@ const App: React.FC = () => {
     setProfile(newProfile);
     setClients(SAMPLE_CLIENTS);
     setHasOnboarded(true);
-    setScreen('dashboard');
+    navigateTo('dashboard');
   };
 
   const handleAddClient = (client: Client) => {
     setClients([client, ...clients]);
-    setScreen('dashboard');
+    goBack(); // Go back to dashboard
   };
 
   const handleViewClient = (client: Client) => {
     setSelectedClient(client);
-    setScreen('client-profile');
+    navigateTo('client-profile');
   };
 
   // Render based on screen
@@ -431,7 +457,7 @@ const App: React.FC = () => {
     return (
       <Onboarding
         onComplete={handleOnboardingComplete}
-        onBack={() => setScreen('landing')}
+        onBack={goBack}
       />
     );
   }
@@ -441,9 +467,9 @@ const App: React.FC = () => {
       <AppDashboard
         profile={profile}
         clients={clients}
-        onAddClient={() => setScreen('client-intake')}
+        onAddClient={() => navigateTo('client-intake')}
         onViewClient={handleViewClient}
-        onBack={() => setScreen('landing')}
+        onBack={goBack}
       />
     );
   }
@@ -453,7 +479,7 @@ const App: React.FC = () => {
       <ClientIntake
         profile={profile}
         onSave={handleAddClient}
-        onBack={() => setScreen('dashboard')}
+        onBack={goBack}
       />
     );
   }
@@ -490,7 +516,7 @@ const App: React.FC = () => {
       if (confirm(`Archive ${selectedClient.name}? They will be removed from your active clients.`)) {
         setClients(clients.filter(c => c.id !== selectedClient.id));
         setSelectedClient(null);
-        setScreen('dashboard');
+        goBack();
       }
     };
 
@@ -499,10 +525,10 @@ const App: React.FC = () => {
         client={selectedClient}
         onBack={() => {
           setSelectedClient(null);
-          setScreen('dashboard');
+          goBack();
         }}
         onEdit={() => {
-          setScreen('client-intake');
+          navigateTo('client-intake');
         }}
         onBookAppointment={handleBookAppointment}
         onMarkOverdue={handleMarkOverdue}

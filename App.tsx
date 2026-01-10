@@ -405,7 +405,7 @@ const App: React.FC = () => {
                 className="btn-primary inline-flex items-center gap-2 px-8 py-4 bg-maroon text-white rounded-full text-lg font-bold shadow-xl"
               >
                 <ICONS.Sparkle />
-                Start Free Trial
+                See Demo
               </button>
 
               <p className="mt-4 text-sm text-slate-400">Free for 14 days. No credit card required.</p>
@@ -626,7 +626,7 @@ const App: React.FC = () => {
                 onClick={handleStartDemo}
                 className="btn-primary w-full py-4 bg-maroon text-white rounded-xl font-bold text-lg"
               >
-                Start Your Free Trial
+                See Demo
               </button>
               <p className="mt-4 text-sm text-slate-400">Free for 14 days. No credit card required.</p>
             </div>

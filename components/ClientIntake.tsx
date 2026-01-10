@@ -97,7 +97,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
   }, [client.baseService, client.rotationWeeks, selectedAddOns, client.events]);
 
   const handleNext = () => {
-    if (step < 5) {
+    if (step < 4) {
       setStep(step + 1);
     } else {
       // Generate appointments for the year
@@ -189,7 +189,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
           <button onClick={onBack} className="text-maroon/60 hover:text-maroon flex items-center gap-2 text-sm font-medium">
             ← Cancel
           </button>
-          <span className="text-sm font-bold text-maroon">Step {step} of 5</span>
+          <span className="text-sm font-bold text-maroon">Step {step} of 4</span>
         </div>
       </div>
 
@@ -198,7 +198,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
         <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
           <div
             className="h-full bg-maroon rounded-full transition-all duration-500"
-            style={{ width: `${(step / 5) * 100}%` }}
+            style={{ width: `${(step / 4) * 100}%` }}
           />
         </div>
       </div>
@@ -411,69 +411,15 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
                   </div>
                 )}
               </div>
-            </div>
-          </div>
-        )}
 
-        {step === 3 && (
-          <div className="space-y-8">
-            <div>
-              <h1 className="text-3xl font-serif text-maroon mb-2">Hair History</h1>
-              <p className="text-maroon/60">What's worked, what hasn't, and what to watch out for.</p>
-            </div>
-
-            <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-slate-100 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-bold text-maroon mb-2">Last color service</label>
-                  <input
-                    type="date"
-                    value={client.lastColor}
-                    onChange={(e) => setClient({ ...client, lastColor: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-maroon mb-2">Last cut</label>
-                  <input
-                    type="date"
-                    value={client.lastCut}
-                    onChange={(e) => setClient({ ...client, lastCut: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-maroon mb-2">Any current damage or concerns?</label>
+              <div className="pt-4 border-t border-slate-100">
+                <label className="block text-sm font-bold text-maroon mb-2">Any concerns or things to watch out for?</label>
                 <textarea
                   value={client.concerns}
                   onChange={(e) => setClient({ ...client, concerns: e.target.value })}
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all resize-none"
-                  rows={3}
-                  placeholder="Breakage, dryness, sensitive scalp..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-maroon mb-2">What's worked well in the past?</label>
-                <textarea
-                  value={client.whatWorks}
-                  onChange={(e) => setClient({ ...client, whatWorks: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all resize-none"
-                  rows={3}
-                  placeholder="Techniques, products, styles..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-maroon mb-2">What's failed or you'd never do again?</label>
-                <textarea
-                  value={client.whatFailed}
-                  onChange={(e) => setClient({ ...client, whatFailed: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all resize-none"
-                  rows={3}
-                  placeholder="Bad experiences, styles to avoid..."
+                  rows={2}
+                  placeholder="Sensitive scalp, breakage, color preferences..."
                 />
               </div>
 
@@ -487,28 +433,11 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
                   placeholder="Products, ingredients..."
                 />
               </div>
-
-              <div>
-                <label className="block text-sm font-bold text-maroon mb-3">How often do you use heat tools?</label>
-                <div className="flex flex-wrap gap-3">
-                  {['Daily', 'Few times a week', 'Rarely'].map((freq) => (
-                    <button
-                      key={freq}
-                      onClick={() => setClient({ ...client, heatTools: freq })}
-                      className={`px-4 sm:px-6 py-3 rounded-xl text-sm font-medium transition-all ${
-                        client.heatTools === freq ? 'bg-maroon text-white' : 'bg-slate-100 text-maroon hover:bg-slate-200'
-                      }`}
-                    >
-                      {freq}
-                    </button>
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
         )}
 
-        {step === 4 && (
+        {step === 3 && (
           <div className="space-y-8">
             <div>
               <h1 className="text-3xl font-serif text-maroon mb-2">Goals</h1>
@@ -587,7 +516,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
           </div>
         )}
 
-        {step === 5 && (
+        {step === 4 && (
           <div className="space-y-8">
             <div>
               <h1 className="text-3xl font-serif text-maroon mb-2">Service & Rotation</h1>
@@ -788,7 +717,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
             disabled={step === 1 && !client.name}
             className="btn-primary ml-auto px-8 py-4 bg-maroon text-white rounded-xl font-bold text-lg shadow-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {step === 5 ? (isEditMode ? 'Save Changes' : 'Save Client') : 'Continue'}
+            {step === 4 ? (isEditMode ? 'Save Changes' : 'Save Client') : 'Continue'}
             <span>→</span>
           </button>
         </div>

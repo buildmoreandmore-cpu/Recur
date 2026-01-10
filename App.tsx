@@ -865,7 +865,7 @@ const App: React.FC = () => {
             </h1>
 
             <p className="hero-animate hero-animate-delay-3 text-base sm:text-lg lg:text-xl text-maroon/70 mb-8 sm:mb-10 max-w-2xl mx-auto leading-relaxed px-2">
-              The client management system that maps every rotation, forecasts your revenue, and keeps you ahead of your book.
+              Map your clients. Forecast your income. Know your year.
             </p>
 
             <div className="hero-animate hero-animate-delay-4 flex flex-col items-center gap-4">
@@ -901,7 +901,7 @@ const App: React.FC = () => {
         <section className="py-12 sm:py-24 px-4 sm:px-6 bg-white" id="how-it-works">
           <div className="max-w-7xl mx-auto">
             <h2 className="scroll-reveal text-2xl sm:text-3xl lg:text-4xl font-serif text-center text-maroon mb-8 sm:mb-16">
-              Three things that change everything
+              What changes when you stop guessing
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8">
               <div className="scroll-reveal delay-1 card-hover bg-white p-6 sm:p-10 rounded-2xl sm:rounded-[32px] border border-slate-100 shadow-sm flex flex-col items-center text-center">
@@ -1007,6 +1007,10 @@ const App: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            <p className="scroll-reveal delay-3 text-center text-base sm:text-lg text-maroon/60 mt-8 sm:mt-12">
+              No anxiety. No guessing. Just your books, organized.
+            </p>
           </div>
         </section>
 
@@ -1056,12 +1060,9 @@ const App: React.FC = () => {
         {/* SECTION 6: Pricing */}
         <section className="py-12 sm:py-24 px-4 sm:px-6 bg-cream" id="pricing">
           <div className="max-w-xl mx-auto text-center">
-            <h2 className="scroll-reveal text-2xl sm:text-3xl lg:text-4xl font-serif text-maroon mb-3 sm:mb-4">
-              Simple pricing
+            <h2 className="scroll-reveal text-2xl sm:text-3xl lg:text-4xl font-serif text-maroon mb-8 sm:mb-12">
+              Simple pricing. Serious results.
             </h2>
-            <p className="scroll-reveal delay-1 text-base sm:text-lg text-maroon/60 mb-8 sm:mb-12">
-              One plan. Everything you need. No surprises.
-            </p>
 
             <div className="price-card bg-white p-6 sm:p-10 rounded-2xl sm:rounded-[32px] shadow-xl border border-slate-100">
               <div className="text-4xl sm:text-5xl font-serif text-maroon mb-2 number-animate">$29<span className="text-xl sm:text-2xl text-slate-400">/month</span></div>

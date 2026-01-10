@@ -714,9 +714,9 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
                 </div>
               </div>
 
-              {/* First Appointment */}
+              {/* Appointment Section */}
               <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-slate-100">
-                <h3 className="text-lg font-bold text-maroon mb-4">First Appointment</h3>
+                <h3 className="text-lg font-bold text-maroon mb-4">{isEditMode ? 'Modification to Appointments' : 'New Appointment'}</h3>
                 <div className="space-y-4">
                   {/* Date */}
                   <div>

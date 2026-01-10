@@ -353,8 +353,8 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen relative overflow-x-hidden">
       {/* Navigation */}
-      <nav className="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
-        <div className="flex items-center gap-12">
+      <nav className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex justify-between items-center">
+        <div className="flex items-center gap-6 sm:gap-12">
           <div className="cursor-pointer text-maroon" onClick={() => setScreen('landing')}>
             <LOGOS.Main />
           </div>
@@ -364,20 +364,20 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <button
             onClick={() => {
               setHasOnboarded(true);
               setClients(SAMPLE_CLIENTS);
               setScreen('dashboard');
             }}
-            className="hidden md:block px-5 py-2.5 text-[15px] font-medium text-maroon hover:opacity-70"
+            className="hidden sm:block px-4 sm:px-5 py-2 sm:py-2.5 text-sm sm:text-[15px] font-medium text-maroon hover:opacity-70"
           >
             Log in
           </button>
           <button
             onClick={handleStartDemo}
-            className="btn-primary px-5 py-2.5 bg-maroon text-white rounded-xl text-[15px] font-bold shadow-sm"
+            className="btn-primary px-4 sm:px-5 py-2 sm:py-2.5 bg-maroon text-white rounded-xl text-sm sm:text-[15px] font-bold shadow-sm"
           >
             Get Started
           </button>
@@ -386,95 +386,101 @@ const App: React.FC = () => {
 
       <main>
         {/* SECTION 1: Hero */}
-        <section className="relative pt-24 pb-32 text-center px-6">
+        <section className="relative pt-12 sm:pt-24 pb-16 sm:pb-32 text-center px-4 sm:px-6 overflow-hidden">
+          {/* Decorative Chevrons */}
+          <svg className="hero-chevron hero-chevron-left hidden lg:block" viewBox="0 0 300 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M250 50 L50 300 L250 550" stroke="#2d1212" strokeWidth="40" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+          </svg>
+          <svg className="hero-chevron hero-chevron-right hidden lg:block" viewBox="0 0 300 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 50 L250 300 L50 550" stroke="#2d1212" strokeWidth="40" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+          </svg>
+
           <div className="max-w-4xl mx-auto relative z-10">
-            <h1 className="text-5xl lg:text-[72px] font-serif leading-[1.1] text-maroon mb-8">
+            <h1 className="text-3xl sm:text-5xl lg:text-[72px] font-serif leading-[1.15] sm:leading-[1.1] text-maroon mb-6 sm:mb-8">
               <span className="hero-animate hero-animate-delay-1 inline-block">Know your </span>
               <span className="hero-animate hero-animate-delay-2 inline-block italic">income</span>
               <br />
               <span className="hero-animate hero-animate-delay-3 inline-block">before the year starts.</span>
             </h1>
 
-            <p className="hero-animate hero-animate-delay-3 text-lg lg:text-xl text-maroon/70 mb-10 max-w-2xl mx-auto leading-relaxed">
+            <p className="hero-animate hero-animate-delay-3 text-base sm:text-lg lg:text-xl text-maroon/70 mb-8 sm:mb-10 max-w-2xl mx-auto leading-relaxed px-2">
               The client management system that maps every rotation, forecasts your revenue, and keeps you ahead of your book.
             </p>
 
             <div className="hero-animate hero-animate-delay-4">
               <button
                 onClick={handleStartDemo}
-                className="btn-primary inline-flex items-center gap-2 px-8 py-4 bg-maroon text-white rounded-full text-lg font-bold shadow-xl"
+                className="btn-primary inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-maroon text-white rounded-full text-base sm:text-lg font-bold shadow-xl"
               >
-                <ICONS.Sparkle />
                 See Demo
               </button>
-
-                          </div>
+            </div>
           </div>
         </section>
 
         {/* SECTION 2: The Problem */}
-        <section className="py-20 px-6 bg-cream">
+        <section className="py-12 sm:py-20 px-4 sm:px-6 bg-cream">
           <div className="max-w-3xl mx-auto text-center">
-            <p className="scroll-reveal text-xl lg:text-2xl text-maroon/80 leading-relaxed font-medium">
+            <p className="scroll-reveal text-lg sm:text-xl lg:text-2xl text-maroon/80 leading-relaxed font-medium">
               You check your calendar and see open slots. You check your bank account and wonder why the numbers don't match what you expected. You're working hard, but you're still <span className="italic">guessing</span> what next month looks like.
             </p>
-            <p className="scroll-reveal delay-1 mt-6 text-xl lg:text-2xl text-maroon font-bold">
+            <p className="scroll-reveal delay-1 mt-4 sm:mt-6 text-lg sm:text-xl lg:text-2xl text-maroon font-bold">
               It's exhausting. And it doesn't have to be this way.
             </p>
           </div>
         </section>
 
         {/* SECTION 3: The Solution */}
-        <section className="py-24 px-6 bg-white" id="how-it-works">
+        <section className="py-12 sm:py-24 px-4 sm:px-6 bg-white" id="how-it-works">
           <div className="max-w-7xl mx-auto">
-            <h2 className="scroll-reveal text-3xl lg:text-4xl font-serif text-center text-maroon mb-16">
+            <h2 className="scroll-reveal text-2xl sm:text-3xl lg:text-4xl font-serif text-center text-maroon mb-8 sm:mb-16">
               Three things that change everything
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="scroll-reveal delay-1 card-hover bg-white p-10 rounded-[32px] border border-slate-100 shadow-sm flex flex-col items-center text-center">
-                <div className="card-icon w-16 h-16 bg-[#fff38a] rounded-2xl flex items-center justify-center text-maroon mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8">
+              <div className="scroll-reveal delay-1 card-hover bg-white p-6 sm:p-10 rounded-2xl sm:rounded-[32px] border border-slate-100 shadow-sm flex flex-col items-center text-center">
+                <div className="card-icon w-12 sm:w-16 h-12 sm:h-16 bg-[#fff38a] rounded-xl sm:rounded-2xl flex items-center justify-center text-maroon mb-4 sm:mb-6">
                   <ICONS.Users />
                 </div>
-                <h3 className="text-xl font-bold mb-3 text-maroon">Map Your Clients</h3>
-                <p className="text-slate-500 leading-relaxed">Capture rotation schedules, preferences, and annual value. Know exactly who's in your chair and when.</p>
+                <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3 text-maroon">Map Your Clients</h3>
+                <p className="text-sm sm:text-base text-slate-500 leading-relaxed">Capture rotation schedules, preferences, and annual value. Know exactly who's in your chair and when.</p>
               </div>
-              <div className="scroll-reveal delay-2 card-hover bg-maroon p-10 rounded-[32px] shadow-lg flex flex-col items-center text-center text-white">
-                <div className="card-icon w-16 h-16 bg-[#fff38a] rounded-2xl flex items-center justify-center text-maroon mb-6">
+              <div className="scroll-reveal delay-2 card-hover bg-maroon p-6 sm:p-10 rounded-2xl sm:rounded-[32px] shadow-lg flex flex-col items-center text-center text-white">
+                <div className="card-icon w-12 sm:w-16 h-12 sm:h-16 bg-[#fff38a] rounded-xl sm:rounded-2xl flex items-center justify-center text-maroon mb-4 sm:mb-6">
                   <ICONS.TrendingUp />
                 </div>
-                <h3 className="text-xl font-bold mb-3">Forecast Your Income</h3>
-                <p className="text-white/70 leading-relaxed">Every rotation has a value. Add them up and you know your year—before January ends.</p>
+                <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3">Forecast Your Income</h3>
+                <p className="text-sm sm:text-base text-white/70 leading-relaxed">Every rotation has a value. Add them up and you know your year—before January ends.</p>
               </div>
-              <div className="scroll-reveal delay-3 card-hover bg-white p-10 rounded-[32px] border border-slate-100 shadow-sm flex flex-col items-center text-center">
-                <div className="card-icon w-16 h-16 bg-[#fff38a] rounded-2xl flex items-center justify-center text-maroon mb-6">
+              <div className="scroll-reveal delay-3 card-hover bg-white p-6 sm:p-10 rounded-2xl sm:rounded-[32px] border border-slate-100 shadow-sm flex flex-col items-center text-center">
+                <div className="card-icon w-12 sm:w-16 h-12 sm:h-16 bg-[#fff38a] rounded-xl sm:rounded-2xl flex items-center justify-center text-maroon mb-4 sm:mb-6">
                   <ICONS.Alert />
                 </div>
-                <h3 className="text-xl font-bold mb-3 text-maroon">Stay Ahead of Churn</h3>
-                <p className="text-slate-500 leading-relaxed">See who's overdue and who's at risk. Stop chasing and start managing with confidence.</p>
+                <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3 text-maroon">Stay Ahead of Churn</h3>
+                <p className="text-sm sm:text-base text-slate-500 leading-relaxed">See who's overdue and who's at risk. Stop chasing and start managing with confidence.</p>
               </div>
             </div>
           </div>
         </section>
 
         {/* SECTION 4: The Dashboard */}
-        <section className="py-24 px-6 bg-cream">
+        <section className="py-12 sm:py-24 px-4 sm:px-6 bg-cream">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="scroll-reveal text-3xl lg:text-4xl font-serif text-maroon mb-4">
+            <div className="text-center mb-8 sm:mb-12">
+              <h2 className="scroll-reveal text-2xl sm:text-3xl lg:text-4xl font-serif text-maroon mb-3 sm:mb-4">
                 This is Monday morning with Recur.
               </h2>
-              <p className="scroll-reveal delay-1 text-lg text-maroon/60">Your year, mapped. Your income, forecasted.</p>
+              <p className="scroll-reveal delay-1 text-base sm:text-lg text-maroon/60">Your year, mapped. Your income, forecasted.</p>
             </div>
 
             {/* Dashboard Preview */}
-            <div className="scroll-reveal delay-2 dashboard-preview bg-white rounded-[32px] shadow-2xl border border-slate-100 overflow-hidden">
+            <div className="scroll-reveal delay-2 dashboard-preview bg-white rounded-2xl sm:rounded-[32px] shadow-2xl border border-slate-100 overflow-hidden">
               {/* Mini Header */}
-              <div className="border-b border-slate-100 p-6 flex justify-between items-center">
+              <div className="border-b border-slate-100 p-4 sm:p-6 flex justify-between items-center">
                 <div>
-                  <h3 className="font-bold text-maroon">Financial Forecast</h3>
-                  <p className="text-xs text-slate-400 uppercase tracking-wider">FY 2026 Overview</p>
+                  <h3 className="font-bold text-maroon text-sm sm:text-base">Financial Forecast</h3>
+                  <p className="text-[10px] sm:text-xs text-slate-400 uppercase tracking-wider">FY 2026 Overview</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="hidden sm:flex gap-2">
                   <div className="w-3 h-3 rounded-full bg-slate-200"></div>
                   <div className="w-3 h-3 rounded-full bg-slate-200"></div>
                   <div className="w-3 h-3 rounded-full bg-slate-200"></div>
@@ -482,28 +488,28 @@ const App: React.FC = () => {
               </div>
 
               {/* KPI Cards */}
-              <div className="p-8">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                  <div className="p-6 rounded-2xl bg-maroon text-white">
-                    <div className="text-[10px] font-bold opacity-50 uppercase tracking-wider mb-2">Annual Forecast</div>
-                    <div className="text-3xl font-serif number-animate">$127,400</div>
+              <div className="p-4 sm:p-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-6 mb-6 sm:mb-8">
+                  <div className="p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-maroon text-white">
+                    <div className="text-[10px] font-bold opacity-50 uppercase tracking-wider mb-1 sm:mb-2">Annual Forecast</div>
+                    <div className="text-2xl sm:text-3xl font-serif number-animate">$127,400</div>
                     <div className="text-emerald-400 text-xs font-bold mt-1">67 clients on rotation</div>
                   </div>
-                  <div className="p-6 rounded-2xl bg-white border border-slate-100">
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Confirmed</div>
-                    <div className="text-3xl font-serif text-emerald-600 number-animate">$89,200</div>
+                  <div className="p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-white border border-slate-100">
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 sm:mb-2">Confirmed</div>
+                    <div className="text-2xl sm:text-3xl font-serif text-emerald-600 number-animate">$89,200</div>
                     <div className="text-slate-400 text-xs font-bold mt-1">70% of forecast</div>
                   </div>
-                  <div className="p-6 rounded-2xl bg-[#fff38a]">
-                    <div className="text-[10px] font-bold text-maroon/50 uppercase tracking-wider mb-2">Pending</div>
-                    <div className="text-3xl font-serif text-maroon number-animate">$38,200</div>
+                  <div className="p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-[#fff38a]">
+                    <div className="text-[10px] font-bold text-maroon/50 uppercase tracking-wider mb-1 sm:mb-2">Pending</div>
+                    <div className="text-2xl sm:text-3xl font-serif text-maroon number-animate">$38,200</div>
                     <div className="text-maroon/60 text-xs font-bold mt-1">4 need attention this week</div>
                   </div>
                 </div>
 
                 {/* Client List Preview */}
-                <div className="border border-slate-100 rounded-2xl overflow-hidden">
-                  <div className="px-6 py-4 bg-slate-50 border-b border-slate-100">
+                <div className="border border-slate-100 rounded-xl sm:rounded-2xl overflow-hidden">
+                  <div className="px-4 sm:px-6 py-3 sm:py-4 bg-slate-50 border-b border-slate-100">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Client Rotations</span>
                   </div>
                   <div className="divide-y divide-slate-50">
@@ -512,21 +518,21 @@ const App: React.FC = () => {
                       { name: 'Maya Thompson', tier: 'Standard', amount: '$1,240', date: 'Apr 18', color: '#7c9a7e' },
                       { name: 'Evelyn Gray', tier: 'Priority', amount: '$2,100', date: 'Apr 8', color: '#c17f59' },
                     ].map((client, i) => (
-                      <div key={i} className="px-6 py-4 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: client.color }}>
+                      <div key={i} className="px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
+                        <div className="flex items-center gap-3 sm:gap-4">
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center text-white font-bold text-xs sm:text-sm" style={{ backgroundColor: client.color }}>
                             {client.name.split(' ').map(n => n[0]).join('')}
                           </div>
                           <div>
-                            <div className="font-bold text-maroon">{client.name}</div>
+                            <div className="font-bold text-maroon text-sm sm:text-base">{client.name}</div>
                             <div className="flex items-center gap-2">
-                              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase text-white" style={{ backgroundColor: client.color }}>{client.tier}</span>
-                              <span className="text-[11px] text-slate-400">{client.date}</span>
+                              <span className="px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-bold uppercase text-white" style={{ backgroundColor: client.color }}>{client.tier}</span>
+                              <span className="text-[10px] sm:text-[11px] text-slate-400">{client.date}</span>
                             </div>
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="font-bold text-maroon">{client.amount}<span className="text-slate-400 font-normal">/yr</span></div>
+                          <div className="font-bold text-maroon text-sm sm:text-base">{client.amount}<span className="text-slate-400 font-normal">/yr</span></div>
                         </div>
                       </div>
                     ))}
@@ -535,10 +541,10 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            <div className="text-center mt-8">
+            <div className="text-center mt-6 sm:mt-8">
               <button
                 onClick={handleStartDemo}
-                className="btn-primary inline-flex items-center gap-2 px-6 py-3 bg-maroon text-white rounded-xl font-bold"
+                className="btn-primary inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-maroon text-white rounded-xl font-bold text-sm sm:text-base"
               >
                 Try the Demo →
               </button>
@@ -547,63 +553,63 @@ const App: React.FC = () => {
         </section>
 
         {/* SECTION 5: The Rotation System */}
-        <section className="py-24 px-6 bg-white">
+        <section className="py-12 sm:py-24 px-4 sm:px-6 bg-white">
           <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="scroll-reveal text-3xl lg:text-4xl font-serif text-maroon mb-4">
+            <div className="text-center mb-8 sm:mb-16">
+              <h2 className="scroll-reveal text-2xl sm:text-3xl lg:text-4xl font-serif text-maroon mb-3 sm:mb-4">
                 Map your year with rotations
               </h2>
-              <p className="scroll-reveal delay-1 text-lg text-maroon/60 max-w-2xl mx-auto">
+              <p className="scroll-reveal delay-1 text-base sm:text-lg text-maroon/60 max-w-2xl mx-auto px-2">
                 Not all clients are the same. Some come every 8 weeks like clockwork. Others are every 12. Recur tracks every tier.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="scroll-reveal delay-1 card-hover p-8 rounded-[28px] bg-[#c17f59]/10 border-2 border-[#c17f59]/30">
-                <div className="card-icon w-12 h-12 bg-[#c17f59] rounded-xl flex items-center justify-center text-white mb-6">
-                  <ICONS.Sparkle />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+              <div className="scroll-reveal delay-1 card-hover p-6 sm:p-8 rounded-2xl sm:rounded-[28px] bg-[#c17f59]/10 border-2 border-[#c17f59]/30">
+                <div className="card-icon w-10 h-10 sm:w-12 sm:h-12 bg-[#c17f59] rounded-lg sm:rounded-xl flex items-center justify-center text-white mb-4 sm:mb-6">
+                  <ICONS.TrendingUp />
                 </div>
-                <h3 className="text-xl font-bold text-maroon mb-2">Priority</h3>
-                <p className="text-3xl font-serif text-maroon mb-4">Every 8 weeks</p>
-                <p className="text-maroon/70">Your VIPs. High frequency, high value. They keep your books full and your income steady.</p>
+                <h3 className="text-lg sm:text-xl font-bold text-maroon mb-2">Priority</h3>
+                <p className="text-2xl sm:text-3xl font-serif text-maroon mb-3 sm:mb-4">Every 8 weeks</p>
+                <p className="text-sm sm:text-base text-maroon/70">Your VIPs. High frequency, high value. They keep your books full and your income steady.</p>
               </div>
 
-              <div className="scroll-reveal delay-2 card-hover p-8 rounded-[28px] bg-[#7c9a7e]/10 border-2 border-[#7c9a7e]/30">
-                <div className="card-icon w-12 h-12 bg-[#7c9a7e] rounded-xl flex items-center justify-center text-white mb-6">
+              <div className="scroll-reveal delay-2 card-hover p-6 sm:p-8 rounded-2xl sm:rounded-[28px] bg-[#7c9a7e]/10 border-2 border-[#7c9a7e]/30">
+                <div className="card-icon w-10 h-10 sm:w-12 sm:h-12 bg-[#7c9a7e] rounded-lg sm:rounded-xl flex items-center justify-center text-white mb-4 sm:mb-6">
                   <ICONS.Calendar />
                 </div>
-                <h3 className="text-xl font-bold text-maroon mb-2">Standard</h3>
-                <p className="text-3xl font-serif text-maroon mb-4">Every 10 weeks</p>
-                <p className="text-maroon/70">Your core clientele. Reliable, consistent. The backbone of your annual forecast.</p>
+                <h3 className="text-lg sm:text-xl font-bold text-maroon mb-2">Standard</h3>
+                <p className="text-2xl sm:text-3xl font-serif text-maroon mb-3 sm:mb-4">Every 10 weeks</p>
+                <p className="text-sm sm:text-base text-maroon/70">Your core clientele. Reliable, consistent. The backbone of your annual forecast.</p>
               </div>
 
-              <div className="scroll-reveal delay-3 card-hover p-8 rounded-[28px] bg-[#b5a078]/10 border-2 border-[#b5a078]/30">
-                <div className="card-icon w-12 h-12 bg-[#b5a078] rounded-xl flex items-center justify-center text-white mb-6">
+              <div className="scroll-reveal delay-3 card-hover p-6 sm:p-8 rounded-2xl sm:rounded-[28px] bg-[#b5a078]/10 border-2 border-[#b5a078]/30">
+                <div className="card-icon w-10 h-10 sm:w-12 sm:h-12 bg-[#b5a078] rounded-lg sm:rounded-xl flex items-center justify-center text-white mb-4 sm:mb-6">
                   <ICONS.Sun />
                 </div>
-                <h3 className="text-xl font-bold text-maroon mb-2">Flex</h3>
-                <p className="text-3xl font-serif text-maroon mb-4">Every 12+ weeks</p>
-                <p className="text-maroon/70">Seasonal or occasional. They matter too—and now you can track when they're due back.</p>
+                <h3 className="text-lg sm:text-xl font-bold text-maroon mb-2">Flex</h3>
+                <p className="text-2xl sm:text-3xl font-serif text-maroon mb-3 sm:mb-4">Every 12+ weeks</p>
+                <p className="text-sm sm:text-base text-maroon/70">Seasonal or occasional. They matter too—and now you can track when they're due back.</p>
               </div>
             </div>
           </div>
         </section>
 
         {/* SECTION 6: Pricing */}
-        <section className="py-24 px-6 bg-cream" id="pricing">
+        <section className="py-12 sm:py-24 px-4 sm:px-6 bg-cream" id="pricing">
           <div className="max-w-xl mx-auto text-center">
-            <h2 className="scroll-reveal text-3xl lg:text-4xl font-serif text-maroon mb-4">
+            <h2 className="scroll-reveal text-2xl sm:text-3xl lg:text-4xl font-serif text-maroon mb-3 sm:mb-4">
               Simple pricing
             </h2>
-            <p className="scroll-reveal delay-1 text-lg text-maroon/60 mb-12">
+            <p className="scroll-reveal delay-1 text-base sm:text-lg text-maroon/60 mb-8 sm:mb-12">
               One plan. Everything you need. No surprises.
             </p>
 
-            <div className="scroll-reveal delay-2 price-card bg-white p-10 rounded-[32px] shadow-xl border border-slate-100">
-              <div className="text-5xl font-serif text-maroon mb-2 number-animate">$29<span className="text-2xl text-slate-400">/month</span></div>
-              <p className="text-slate-400 font-medium mb-8">Billed monthly. Cancel anytime.</p>
+            <div className="scroll-reveal delay-2 price-card bg-white p-6 sm:p-10 rounded-2xl sm:rounded-[32px] shadow-xl border border-slate-100">
+              <div className="text-4xl sm:text-5xl font-serif text-maroon mb-2 number-animate">$29<span className="text-xl sm:text-2xl text-slate-400">/month</span></div>
+              <p className="text-slate-400 font-medium mb-6 sm:mb-8 text-sm sm:text-base">Billed monthly. Cancel anytime.</p>
 
-              <ul className="text-left space-y-4 mb-10">
+              <ul className="text-left space-y-3 sm:space-y-4 mb-8 sm:mb-10">
                 {[
                   'Unlimited clients',
                   'Full income dashboard',
@@ -613,39 +619,38 @@ const App: React.FC = () => {
                   'Export your data anytime',
                 ].map((feature, i) => (
                   <li key={i} className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 flex-shrink-0">
                       <ICONS.Check />
                     </div>
-                    <span className="text-maroon font-medium">{feature}</span>
+                    <span className="text-maroon font-medium text-sm sm:text-base">{feature}</span>
                   </li>
                 ))}
               </ul>
 
               <button
                 onClick={handleStartDemo}
-                className="btn-primary w-full py-4 bg-maroon text-white rounded-xl font-bold text-lg"
+                className="btn-primary w-full py-3 sm:py-4 bg-maroon text-white rounded-xl font-bold text-base sm:text-lg"
               >
                 See Demo
               </button>
-                          </div>
+            </div>
           </div>
         </section>
 
         {/* SECTION 7: Final CTA */}
-        <section className="py-32 px-6 bg-maroon text-white text-center">
+        <section className="py-16 sm:py-32 px-4 sm:px-6 bg-maroon text-white text-center">
           <div className="max-w-3xl mx-auto">
-            <h2 className="scroll-reveal text-4xl lg:text-5xl font-serif mb-6">
+            <h2 className="scroll-reveal text-2xl sm:text-4xl lg:text-5xl font-serif mb-4 sm:mb-6">
               Know your year before it starts.
             </h2>
-            <p className="scroll-reveal delay-1 text-xl text-white/70 mb-10">
+            <p className="scroll-reveal delay-1 text-base sm:text-xl text-white/70 mb-8 sm:mb-10 px-2">
               Your clients, mapped. Your income, forecasted. Your business, finally predictable.
             </p>
             <div className="scroll-reveal delay-2">
               <button
                 onClick={handleStartDemo}
-                className="btn-primary cta-glow inline-flex items-center gap-2 px-10 py-5 bg-[#fff38a] text-maroon rounded-full text-lg font-bold shadow-xl"
+                className="btn-primary cta-glow inline-flex items-center px-6 sm:px-10 py-3.5 sm:py-5 bg-[#fff38a] text-maroon rounded-full text-base sm:text-lg font-bold shadow-xl"
               >
-                <ICONS.Sparkle />
                 Get Started Free
               </button>
             </div>
@@ -653,21 +658,21 @@ const App: React.FC = () => {
         </section>
 
         {/* SECTION 8: Footer */}
-        <footer className="py-16 border-t border-slate-100 bg-white">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-8">
+        <footer className="py-10 sm:py-16 border-t border-slate-100 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-6 sm:gap-8">
               <div className="text-maroon">
                 <LOGOS.Main />
               </div>
-              <div className="flex flex-wrap justify-center gap-8 text-[15px] font-medium text-maroon/60">
+              <div className="flex flex-wrap justify-center gap-4 sm:gap-8 text-sm sm:text-[15px] font-medium text-maroon/60">
                 <button onClick={() => scrollTo('how-it-works')} className="hover:text-maroon transition-colors">How It Works</button>
                 <button onClick={() => scrollTo('pricing')} className="hover:text-maroon transition-colors">Pricing</button>
                 <button className="hover:text-maroon transition-colors">Privacy</button>
                 <button className="hover:text-maroon transition-colors">Contact</button>
               </div>
             </div>
-            <div className="mt-12 pt-8 border-t border-slate-100 text-center">
-              <p className="text-sm text-slate-400">© 2026 Recur. The income system for stylists.</p>
+            <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-slate-100 text-center">
+              <p className="text-xs sm:text-sm text-slate-400">© 2026 Recur. The income system for stylists.</p>
             </div>
           </div>
         </footer>

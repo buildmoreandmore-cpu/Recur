@@ -147,6 +147,61 @@
         .number-animate:hover {
           transform: scale(1.05);
         }
+
+        /* Mobile Responsive Fixes */
+        @media (max-width: 640px) {
+          /* Reduce padding on mobile */
+          .px-6 { padding-left: 1rem; padding-right: 1rem; }
+          .px-8 { padding-left: 1.25rem; padding-right: 1.25rem; }
+          .py-24 { padding-top: 3rem; padding-bottom: 3rem; }
+          .py-32 { padding-top: 4rem; padding-bottom: 4rem; }
+          .py-20 { padding-top: 2.5rem; padding-bottom: 2.5rem; }
+          .pt-24 { padding-top: 3rem; }
+          .pb-32 { padding-bottom: 4rem; }
+          .p-10 { padding: 1.5rem; }
+          .p-8 { padding: 1.25rem; }
+          .p-6 { padding: 1rem; }
+
+          /* Reduce gaps on mobile */
+          .gap-8 { gap: 1.5rem; }
+          .gap-6 { gap: 1rem; }
+          .mb-16 { margin-bottom: 2.5rem; }
+          .mb-12 { margin-bottom: 2rem; }
+          .mb-10 { margin-bottom: 1.5rem; }
+          .mb-8 { margin-bottom: 1.25rem; }
+
+          /* Typography scaling for mobile */
+          .text-5xl { font-size: 2.25rem; line-height: 1.1; }
+          .text-4xl { font-size: 1.875rem; line-height: 1.15; }
+          .text-3xl { font-size: 1.5rem; line-height: 1.2; }
+          .text-2xl { font-size: 1.25rem; }
+          .text-xl { font-size: 1.1rem; }
+
+          /* Button sizing */
+          .rounded-full { border-radius: 0.75rem; }
+          .rounded-\[32px\] { border-radius: 1.25rem; }
+          .rounded-\[28px\] { border-radius: 1rem; }
+          .rounded-2xl { border-radius: 0.875rem; }
+
+          /* Card icon sizing */
+          .w-16 { width: 3rem; }
+          .h-16 { height: 3rem; }
+          .w-12 { width: 2.5rem; }
+          .h-12 { height: 2.5rem; }
+
+          /* Dashboard preview adjustments */
+          .dashboard-preview {
+            animation: none;
+          }
+        }
+
+        @media (max-width: 380px) {
+          /* Extra small devices */
+          .text-5xl { font-size: 1.875rem; }
+          .text-4xl { font-size: 1.5rem; }
+          .text-3xl { font-size: 1.25rem; }
+          .px-6 { padding-left: 0.75rem; padding-right: 0.75rem; }
+        }
     </style>
 </head>
 <body>

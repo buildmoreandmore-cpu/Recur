@@ -34,6 +34,87 @@ const DEFAULT_EVENT_SERVICES = [
   { name: 'Other event', price: 0 },
 ];
 
+// Industry SVG icons matching the landing page style
+const INDUSTRY_ICONS: Record<IndustryType, { icon: React.ReactNode; color: string }> = {
+  'hair-stylist': {
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="6" cy="6" r="3"/>
+        <path d="M8.12 8.12 12 12"/>
+        <path d="M20 4 8.12 15.88"/>
+        <circle cx="6" cy="18" r="3"/>
+        <path d="M14.8 14.8 20 20"/>
+      </svg>
+    ),
+    color: '#C17F59'
+  },
+  'personal-trainer': {
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14.4 14.4 9.6 9.6"/>
+        <path d="M18.657 21.485a2 2 0 1 1-2.829-2.828l-1.767 1.768a2 2 0 1 1-2.829-2.829l6.364-6.364a2 2 0 1 1 2.829 2.829l-1.768 1.767a2 2 0 1 1 2.828 2.829z"/>
+        <path d="m2.515 18.657 1.414-1.414"/>
+        <path d="M5.343 21.485a2 2 0 0 1-2.828-2.828l1.767-1.768a2 2 0 0 1 2.829 2.829z"/>
+      </svg>
+    ),
+    color: '#8B9A7D'
+  },
+  'massage-therapist': {
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/>
+        <path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/>
+        <path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/>
+        <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+      </svg>
+    ),
+    color: '#C17F59'
+  },
+  'therapist-counselor': {
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/>
+        <path d="M8 12h.01"/>
+        <path d="M12 12h.01"/>
+        <path d="M16 12h.01"/>
+      </svg>
+    ),
+    color: '#2A2420'
+  },
+  'esthetician': {
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
+      </svg>
+    ),
+    color: '#8B9A7D'
+  },
+  'consultant-coach': {
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/>
+        <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/>
+        <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>
+        <path d="M10 6h4"/>
+        <path d="M10 10h4"/>
+        <path d="M10 14h4"/>
+        <path d="M10 18h4"/>
+      </svg>
+    ),
+    color: '#2A2420'
+  },
+  'other': {
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+        <path d="M8 12h8"/>
+        <path d="M12 8v8"/>
+      </svg>
+    ),
+    color: '#C4B5A4'
+  }
+};
+
 export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) => {
   const [step, setStep] = useState(1);
   const [selectedIndustry, setSelectedIndustry] = useState<IndustryType | null>(null);
@@ -167,25 +248,34 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {(Object.keys(INDUSTRY_TEMPLATES) as IndustryType[]).map((industry) => {
                 const template = INDUSTRY_TEMPLATES[industry];
+                const iconData = INDUSTRY_ICONS[industry];
                 const isSelected = selectedIndustry === industry;
                 return (
                   <button
                     key={industry}
                     onClick={() => handleIndustrySelect(industry)}
-                    className={`p-4 sm:p-6 rounded-xl text-left transition-all border-2 ${
+                    className={`p-4 sm:p-5 rounded-xl text-left transition-all border-2 ${
                       isSelected
-                        ? 'border-maroon bg-maroon/5'
+                        ? 'border-[#C17F59] bg-[#C17F59]/5'
                         : 'border-slate-100 bg-white hover:border-slate-200'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl sm:text-3xl">{template.icon}</span>
+                      <div
+                        className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                        style={{
+                          backgroundColor: `${iconData.color}15`,
+                          color: iconData.color
+                        }}
+                      >
+                        {iconData.icon}
+                      </div>
                       <span className={`font-bold text-sm sm:text-base ${isSelected ? 'text-maroon' : 'text-slate-700'}`}>
                         {template.label}
                       </span>
                     </div>
                     {isSelected && (
-                      <div className="mt-3 text-xs text-maroon/60">
+                      <div className="mt-3 ml-13 text-xs text-maroon/60">
                         {template.baseServices.length} services • {template.addonServices.length} add-ons
                       </div>
                     )}

@@ -4,7 +4,7 @@ import { AppDashboard } from './components/AppDashboard';
 import { ClientIntake } from './components/ClientIntake';
 import { ClientProfile } from './components/ClientProfile';
 import { Client, StylistProfile, RotationType, AppScreen, Service } from './types';
-import { ICONS, LOGOS } from './constants';
+import { ICONS, LOGOS, INDUSTRY_SAMPLE_CLIENTS } from './constants';
 
 // Sample clients for demo
 const SAMPLE_CLIENTS: Client[] = [
@@ -39,7 +39,9 @@ const SAMPLE_CLIENTS: Client[] = [
     allergies: 'Use X brand only',
     heatTools: 'Few times a week',
     hairGoal: 'Go lighter for summer',
+    serviceGoal: 'Go lighter for summer',
     maintenanceLevel: 'Medium',
+    additionalNotes: 'Prefer seamless grow-out',
     naturalColor: 'Dark brown',
     currentColor: 'Warm brunette with highlights',
     growOutComfort: '4 weeks',
@@ -81,7 +83,9 @@ const SAMPLE_CLIENTS: Client[] = [
     allergies: '',
     heatTools: 'Rarely',
     hairGoal: 'Keep it healthy and easy',
+    serviceGoal: 'Keep it healthy and easy',
     maintenanceLevel: 'Low',
+    additionalNotes: '',
     naturalColor: 'Medium brown',
     currentColor: 'Natural',
     growOutComfort: '8+ weeks',
@@ -121,7 +125,9 @@ const SAMPLE_CLIENTS: Client[] = [
     allergies: '',
     heatTools: 'Daily',
     hairGoal: 'Maintain healthy color',
+    serviceGoal: 'Maintain healthy color',
     maintenanceLevel: 'Medium',
+    additionalNotes: '',
     naturalColor: 'Light brown',
     currentColor: 'Dimensional brunette',
     growOutComfort: '6 weeks',
@@ -161,7 +167,9 @@ const SAMPLE_CLIENTS: Client[] = [
     allergies: '',
     heatTools: 'Rarely',
     hairGoal: 'Low maintenance',
+    serviceGoal: 'Low maintenance',
     maintenanceLevel: 'Low',
+    additionalNotes: '',
     naturalColor: 'Black',
     currentColor: 'Natural',
     growOutComfort: '8+ weeks',
@@ -203,7 +211,9 @@ const SAMPLE_CLIENTS: Client[] = [
     allergies: '',
     heatTools: 'Daily',
     hairGoal: 'Stay bright blonde',
+    serviceGoal: 'Stay bright blonde',
     maintenanceLevel: 'High',
+    additionalNotes: 'Very particular about coverage',
     naturalColor: 'Medium brown',
     currentColor: 'Platinum blonde',
     growOutComfort: '4 weeks',
@@ -245,7 +255,9 @@ const SAMPLE_CLIENTS: Client[] = [
     allergies: '',
     heatTools: 'Daily',
     hairGoal: 'Sun-kissed natural look',
+    serviceGoal: 'Sun-kissed natural look',
     maintenanceLevel: 'Medium',
+    additionalNotes: 'Prefers lived-in look',
     naturalColor: 'Dark blonde',
     currentColor: 'Balayage blonde',
     growOutComfort: '6 weeks',
@@ -287,7 +299,9 @@ const SAMPLE_CLIENTS: Client[] = [
     allergies: '',
     heatTools: 'Weekly',
     hairGoal: 'Healthy, sleek styles',
+    serviceGoal: 'Healthy, sleek styles',
     maintenanceLevel: 'Low',
+    additionalNotes: 'Concerned about heat damage',
     naturalColor: 'Black',
     currentColor: 'Natural',
     growOutComfort: '8 weeks',
@@ -444,7 +458,9 @@ const App: React.FC = () => {
 
   const handleOnboardingComplete = (newProfile: StylistProfile) => {
     setProfile(newProfile);
-    setClients(SAMPLE_CLIENTS);
+    // Load industry-specific sample clients based on selected industry
+    const industry = newProfile.industry || 'hair-stylist';
+    setClients(INDUSTRY_SAMPLE_CLIENTS[industry] || SAMPLE_CLIENTS);
     setHasOnboarded(true);
     navigateTo('dashboard');
   };
@@ -585,6 +601,7 @@ const App: React.FC = () => {
     return (
       <ClientIntake
         profile={profile}
+        industry={profile.industry || 'hair-stylist'}
         onSave={handleSaveClient}
         onBack={goBack}
         clientToEdit={selectedClient || undefined}
@@ -905,19 +922,100 @@ const App: React.FC = () => {
             </h2>
             <div className="scroll-reveal delay-1 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mb-8 sm:mb-10">
               {[
-                { icon: '💇', label: 'Hair stylists & barbers' },
-                { icon: '💪', label: 'Personal trainers' },
-                { icon: '💆', label: 'Massage therapists' },
-                { icon: '🧠', label: 'Therapists & counselors' },
-                { icon: '✨', label: 'Estheticians' },
-                { icon: '💼', label: 'Consultants & coaches' },
-                { icon: '📚', label: 'Tutors & instructors' },
+                {
+                  icon: (
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C17F59" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="6" cy="6" r="3"/>
+                      <path d="M8.12 8.12 12 12"/>
+                      <path d="M20 4 8.12 15.88"/>
+                      <circle cx="6" cy="18" r="3"/>
+                      <path d="M14.8 14.8 20 20"/>
+                    </svg>
+                  ),
+                  label: 'Hair stylists & barbers',
+                  color: '#C17F59'
+                },
+                {
+                  icon: (
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#8B9A7D" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14.4 14.4 9.6 9.6"/>
+                      <path d="M18.657 21.485a2 2 0 1 1-2.829-2.828l-1.767 1.768a2 2 0 1 1-2.829-2.829l6.364-6.364a2 2 0 1 1 2.829 2.829l-1.768 1.767a2 2 0 1 1 2.828 2.829z"/>
+                      <path d="m2.515 18.657 1.414-1.414"/>
+                      <path d="M5.343 21.485a2 2 0 0 1-2.828-2.828l1.767-1.768a2 2 0 0 1 2.829 2.829z"/>
+                    </svg>
+                  ),
+                  label: 'Personal trainers',
+                  color: '#8B9A7D'
+                },
+                {
+                  icon: (
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C17F59" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/>
+                      <path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/>
+                      <path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/>
+                      <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+                    </svg>
+                  ),
+                  label: 'Massage therapists',
+                  color: '#C17F59'
+                },
+                {
+                  icon: (
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2A2420" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/>
+                      <path d="M8 12h.01"/>
+                      <path d="M12 12h.01"/>
+                      <path d="M16 12h.01"/>
+                    </svg>
+                  ),
+                  label: 'Therapists & counselors',
+                  color: '#2A2420'
+                },
+                {
+                  icon: (
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#8B9A7D" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
+                    </svg>
+                  ),
+                  label: 'Estheticians',
+                  color: '#8B9A7D'
+                },
+                {
+                  icon: (
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2A2420" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/>
+                      <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/>
+                      <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>
+                      <path d="M10 6h4"/>
+                      <path d="M10 10h4"/>
+                      <path d="M10 14h4"/>
+                      <path d="M10 18h4"/>
+                    </svg>
+                  ),
+                  label: 'Consultants & coaches',
+                  color: '#2A2420'
+                },
+                {
+                  icon: (
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C17F59" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 7v14"/>
+                      <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>
+                    </svg>
+                  ),
+                  label: 'Tutors & instructors',
+                  color: '#C17F59'
+                },
               ].map((item, i) => (
                 <div
                   key={i}
-                  className="bg-cream p-4 sm:p-5 rounded-xl sm:rounded-2xl text-center border border-slate-100"
+                  className="bg-cream p-4 sm:p-5 rounded-xl sm:rounded-2xl text-center border border-slate-100 flex flex-col items-center"
                 >
-                  <div className="text-2xl sm:text-3xl mb-2">{item.icon}</div>
+                  <div
+                    className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center mb-3"
+                    style={{ backgroundColor: `${item.color}15` }}
+                  >
+                    {item.icon}
+                  </div>
                   <div className="text-xs sm:text-sm font-medium text-maroon">{item.label}</div>
                 </div>
               ))}

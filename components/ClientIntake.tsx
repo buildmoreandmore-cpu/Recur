@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Client, RotationType, Service, StylistProfile } from '../types';
-import { ICONS } from '../constants';
+import { Client, RotationType, Service, StylistProfile, IndustryType } from '../types';
+import { ICONS, INDUSTRY_INTAKE_QUESTIONS } from '../constants';
 
 interface ClientIntakeProps {
   profile: StylistProfile;
+  industry: IndustryType;
   onSave: (client: Client) => void;
   onBack: () => void;
   clientToEdit?: Client;
@@ -11,7 +12,7 @@ interface ClientIntakeProps {
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onBack, clientToEdit }) => {
+export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, industry, onSave, onBack, clientToEdit }) => {
   const isEditMode = !!clientToEdit;
 
   const [step, setStep] = useState(1);
@@ -29,7 +30,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
       contactMethod: 'Text',
       occupation: '',
       clientFacing: false,
-      morningTime: '15 min',
+      morningTime: '',
       events: [],
       photographed: 'Rarely',
       lastColor: '',
@@ -38,12 +39,14 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
       whatWorks: '',
       whatFailed: '',
       allergies: '',
-      heatTools: 'Few times a week',
+      heatTools: '',
       hairGoal: '',
-      maintenanceLevel: 'Medium',
+      serviceGoal: '',
+      maintenanceLevel: '',
+      additionalNotes: '',
       naturalColor: '',
       currentColor: '',
-      growOutComfort: '4 weeks',
+      growOutComfort: '',
       rotation: RotationType.STANDARD,
       rotationWeeks: 10,
       baseService: null,
@@ -371,39 +374,41 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
                 </div>
               </div>
 
+              {/* Industry-specific time/frequency question */}
               <div>
-                <label className="block text-sm font-bold text-maroon mb-3">How much time on your hair each morning?</label>
-                <div className="flex flex-wrap gap-3">
-                  {['5 min', '15 min', '30+ min'].map((time) => (
-                    <button
-                      key={time}
-                      onClick={() => setClient({ ...client, morningTime: time })}
-                      className={`px-4 sm:px-6 py-3 rounded-xl text-sm font-medium transition-all ${
-                        client.morningTime === time ? 'bg-maroon text-white' : 'bg-slate-100 text-maroon hover:bg-slate-200'
-                      }`}
-                    >
-                      {time}
-                    </button>
-                  ))}
-                </div>
+                <label className="block text-sm font-bold text-maroon mb-2">
+                  {INDUSTRY_INTAKE_QUESTIONS[industry].lifestyle.timeQuestion.label}
+                </label>
+                <input
+                  type="text"
+                  value={client.morningTime}
+                  onChange={(e) => setClient({ ...client, morningTime: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all"
+                  placeholder={INDUSTRY_INTAKE_QUESTIONS[industry].lifestyle.timeQuestion.placeholder}
+                />
               </div>
 
-              <div>
-                <label className="block text-sm font-bold text-maroon mb-3">How often are you photographed or on camera?</label>
-                <div className="flex flex-wrap gap-3">
-                  {['Rarely', 'Monthly', 'Weekly'].map((freq) => (
-                    <button
-                      key={freq}
-                      onClick={() => setClient({ ...client, photographed: freq })}
-                      className={`px-4 sm:px-6 py-3 rounded-xl text-sm font-medium transition-all ${
-                        client.photographed === freq ? 'bg-maroon text-white' : 'bg-slate-100 text-maroon hover:bg-slate-200'
-                      }`}
-                    >
-                      {freq}
-                    </button>
-                  ))}
+              {/* Industry-specific tools/options question (if available) */}
+              {INDUSTRY_INTAKE_QUESTIONS[industry].lifestyle.toolsQuestion && (
+                <div>
+                  <label className="block text-sm font-bold text-maroon mb-3">
+                    {INDUSTRY_INTAKE_QUESTIONS[industry].lifestyle.toolsQuestion!.label}
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {INDUSTRY_INTAKE_QUESTIONS[industry].lifestyle.toolsQuestion!.options.map((option) => (
+                      <button
+                        key={option}
+                        onClick={() => setClient({ ...client, heatTools: option })}
+                        className={`px-3 sm:px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                          client.heatTools === option ? 'bg-maroon text-white' : 'bg-slate-100 text-maroon hover:bg-slate-200'
+                        }`}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="pt-4 border-t border-slate-100">
                 <label className="block text-sm font-bold text-maroon mb-3">Any big events this year?</label>
@@ -444,24 +449,15 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
               </div>
 
               <div className="pt-4 border-t border-slate-100">
-                <label className="block text-sm font-bold text-maroon mb-2">Any concerns or things to watch out for?</label>
+                <label className="block text-sm font-bold text-maroon mb-2">
+                  {INDUSTRY_INTAKE_QUESTIONS[industry].lifestyle.concernsLabel}
+                </label>
                 <textarea
                   value={client.concerns}
                   onChange={(e) => setClient({ ...client, concerns: e.target.value })}
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all resize-none"
                   rows={2}
-                  placeholder="Sensitive scalp, breakage, color preferences..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-maroon mb-2">Any allergies or sensitivities?</label>
-                <input
-                  type="text"
-                  value={client.allergies}
-                  onChange={(e) => setClient({ ...client, allergies: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all"
-                  placeholder="Products, ingredients..."
+                  placeholder={INDUSTRY_INTAKE_QUESTIONS[industry].lifestyle.concernsPlaceholder}
                 />
               </div>
             </div>
@@ -472,77 +468,87 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
           <div className="space-y-8">
             <div>
               <h1 className="text-3xl font-serif text-maroon mb-2">Goals</h1>
-              <p className="text-maroon/60">What does success look like for their hair?</p>
+              <p className="text-maroon/60">What does success look like for this client?</p>
             </div>
 
             <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-slate-100 space-y-6">
+              {/* Main goal question - industry specific */}
               <div>
-                <label className="block text-sm font-bold text-maroon mb-2">What's your goal for your hair this year?</label>
+                <label className="block text-sm font-bold text-maroon mb-2">
+                  {INDUSTRY_INTAKE_QUESTIONS[industry].goals.mainGoalQuestion}
+                </label>
                 <textarea
-                  value={client.hairGoal}
-                  onChange={(e) => setClient({ ...client, hairGoal: e.target.value })}
+                  value={client.serviceGoal}
+                  onChange={(e) => setClient({ ...client, serviceGoal: e.target.value, hairGoal: industry === 'hair-stylist' ? e.target.value : client.hairGoal })}
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all resize-none"
                   rows={3}
-                  placeholder="Grow it out, go blonde, maintain health..."
+                  placeholder={INDUSTRY_INTAKE_QUESTIONS[industry].goals.mainGoalPlaceholder}
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-bold text-maroon mb-3">Maintenance level preference</label>
-                <div className="flex flex-wrap gap-3">
-                  {['Low', 'Medium', 'High'].map((level) => (
-                    <button
-                      key={level}
-                      onClick={() => setClient({ ...client, maintenanceLevel: level })}
-                      className={`px-4 sm:px-6 py-3 rounded-xl text-sm font-medium transition-all ${
-                        client.maintenanceLevel === level ? 'bg-maroon text-white' : 'bg-slate-100 text-maroon hover:bg-slate-200'
-                      }`}
-                    >
-                      {level}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Secondary question - industry specific options */}
+              {INDUSTRY_INTAKE_QUESTIONS[industry].goals.secondaryQuestion && (
                 <div>
-                  <label className="block text-sm font-bold text-maroon mb-2">Natural hair color</label>
-                  <input
-                    type="text"
-                    value={client.naturalColor}
-                    onChange={(e) => setClient({ ...client, naturalColor: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all"
-                    placeholder="Dark brown, black, etc."
+                  <label className="block text-sm font-bold text-maroon mb-3">
+                    {INDUSTRY_INTAKE_QUESTIONS[industry].goals.secondaryQuestion!.label}
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {INDUSTRY_INTAKE_QUESTIONS[industry].goals.secondaryQuestion!.options.map((option) => (
+                      <button
+                        key={option}
+                        onClick={() => setClient({ ...client, maintenanceLevel: option })}
+                        className={`px-3 sm:px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                          client.maintenanceLevel === option ? 'bg-maroon text-white' : 'bg-slate-100 text-maroon hover:bg-slate-200'
+                        }`}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Hair-specific color fields - only for hair stylists */}
+              {INDUSTRY_INTAKE_QUESTIONS[industry].goals.showColorFields && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-bold text-maroon mb-2">Natural hair color</label>
+                    <input
+                      type="text"
+                      value={client.naturalColor}
+                      onChange={(e) => setClient({ ...client, naturalColor: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all"
+                      placeholder="Dark brown, black, etc."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-maroon mb-2">Current color</label>
+                    <input
+                      type="text"
+                      value={client.currentColor}
+                      onChange={(e) => setClient({ ...client, currentColor: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all"
+                      placeholder="Balayage, highlights, etc."
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Tertiary question - industry specific */}
+              {INDUSTRY_INTAKE_QUESTIONS[industry].goals.tertiaryQuestion && (
+                <div>
+                  <label className="block text-sm font-bold text-maroon mb-2">
+                    {INDUSTRY_INTAKE_QUESTIONS[industry].goals.tertiaryQuestion!.label}
+                  </label>
+                  <textarea
+                    value={client.additionalNotes}
+                    onChange={(e) => setClient({ ...client, additionalNotes: e.target.value, growOutComfort: industry === 'hair-stylist' ? e.target.value : client.growOutComfort })}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all resize-none"
+                    rows={2}
+                    placeholder={INDUSTRY_INTAKE_QUESTIONS[industry].goals.tertiaryQuestion!.placeholder}
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-bold text-maroon mb-2">Current color</label>
-                  <input
-                    type="text"
-                    value={client.currentColor}
-                    onChange={(e) => setClient({ ...client, currentColor: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#c17f59] focus:ring-2 focus:ring-[#c17f59]/20 outline-none transition-all"
-                    placeholder="Balayage, highlights, etc."
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-maroon mb-3">How much grow-out are you comfortable with?</label>
-                <div className="flex flex-wrap gap-3">
-                  {['2 weeks', '4 weeks', '6 weeks', '8+ weeks'].map((weeks) => (
-                    <button
-                      key={weeks}
-                      onClick={() => setClient({ ...client, growOutComfort: weeks })}
-                      className={`px-4 sm:px-6 py-3 rounded-xl text-sm font-medium transition-all ${
-                        client.growOutComfort === weeks ? 'bg-maroon text-white' : 'bg-slate-100 text-maroon hover:bg-slate-200'
-                      }`}
-                    >
-                      {weeks}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              )}
             </div>
           </div>
         )}

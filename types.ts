@@ -26,26 +26,29 @@ export interface Client {
   preferredDays: string[];
   preferredTime: string;
   contactMethod: string;
-  // Lifestyle
+  // Lifestyle (universal)
   occupation: string;
   clientFacing: boolean;
-  morningTime: string;
+  morningTime: string; // Generic: time spent on service prep / routine
   events: { name: string; date: string; service: Service | null }[];
   photographed: string;
-  // Hair
-  lastColor: string;
-  lastCut: string;
-  concerns: string;
-  whatWorks: string;
-  whatFailed: string;
-  allergies: string;
-  heatTools: string;
-  // Goals
-  hairGoal: string;
-  maintenanceLevel: string;
-  naturalColor: string;
-  currentColor: string;
-  growOutComfort: string;
+  concerns: string; // Generic: concerns, limitations, sensitivities
+  // Hair-specific (optional)
+  lastColor?: string;
+  lastCut?: string;
+  whatWorks?: string;
+  whatFailed?: string;
+  allergies?: string;
+  heatTools?: string;
+  hairGoal?: string;
+  naturalColor?: string;
+  currentColor?: string;
+  growOutComfort?: string;
+  // Generic fields (all industries)
+  serviceGoal: string; // Main goal for any industry
+  maintenanceLevel: string; // Preference level / secondary choice
+  additionalNotes: string; // Tertiary question response
+  industryData?: Record<string, string>; // Flexible storage for industry-specific data
   // Service History
   appointments: {
     date: string;

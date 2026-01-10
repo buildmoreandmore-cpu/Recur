@@ -6,52 +6,62 @@ interface ClientIntakeProps {
   profile: StylistProfile;
   onSave: (client: Client) => void;
   onBack: () => void;
+  clientToEdit?: Client;
 }
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onBack }) => {
+export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onBack, clientToEdit }) => {
+  const isEditMode = !!clientToEdit;
+
   const [step, setStep] = useState(1);
-  const [client, setClient] = useState<Partial<Client>>({
-    id: `client-${Date.now()}`,
-    name: '',
-    phone: '',
-    email: '',
-    preferredDays: [],
-    preferredTime: 'Morning',
-    contactMethod: 'Text',
-    occupation: '',
-    clientFacing: false,
-    morningTime: '15 min',
-    events: [],
-    photographed: 'Rarely',
-    lastColor: '',
-    lastCut: '',
-    concerns: '',
-    whatWorks: '',
-    whatFailed: '',
-    allergies: '',
-    heatTools: 'Few times a week',
-    hairGoal: '',
-    maintenanceLevel: 'Medium',
-    naturalColor: '',
-    currentColor: '',
-    growOutComfort: '4 weeks',
-    rotation: RotationType.STANDARD,
-    rotationWeeks: 10,
-    baseService: null,
-    addOns: [],
-    annualValue: 0,
-    nextAppointment: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    clientSince: new Date().toISOString().split('T')[0],
-    appointments: [],
-    notes: '',
-    status: 'pending',
+  const [client, setClient] = useState<Partial<Client>>(() => {
+    if (clientToEdit) {
+      return { ...clientToEdit };
+    }
+    return {
+      id: `client-${Date.now()}`,
+      name: '',
+      phone: '',
+      email: '',
+      preferredDays: [],
+      preferredTime: 'Morning',
+      contactMethod: 'Text',
+      occupation: '',
+      clientFacing: false,
+      morningTime: '15 min',
+      events: [],
+      photographed: 'Rarely',
+      lastColor: '',
+      lastCut: '',
+      concerns: '',
+      whatWorks: '',
+      whatFailed: '',
+      allergies: '',
+      heatTools: 'Few times a week',
+      hairGoal: '',
+      maintenanceLevel: 'Medium',
+      naturalColor: '',
+      currentColor: '',
+      growOutComfort: '4 weeks',
+      rotation: RotationType.STANDARD,
+      rotationWeeks: 10,
+      baseService: null,
+      addOns: [],
+      annualValue: 0,
+      nextAppointment: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      clientSince: new Date().toISOString().split('T')[0],
+      appointments: [],
+      notes: '',
+      status: 'pending',
+    };
   });
 
   const [eventName, setEventName] = useState('');
   const [eventDate, setEventDate] = useState('');
-  const [selectedAddOns, setSelectedAddOns] = useState<{ service: Service; frequency: string }[]>([]);
+  const [selectedAddOns, setSelectedAddOns] = useState<{ service: Service; frequency: string }[]>(
+    () => clientToEdit?.addOns || []
+  );
 
   const baseServices = profile.services.filter(s => s.category === 'base');
   const addonServices = profile.services.filter(s => s.category === 'addon');
@@ -198,8 +208,12 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
         {step === 1 && (
           <div className="space-y-8">
             <div>
-              <h1 className="text-3xl font-serif text-maroon mb-2">Client Basics</h1>
-              <p className="text-maroon/60">Start with the essentials.</p>
+              <h1 className="text-3xl font-serif text-maroon mb-2">
+                {isEditMode ? `Edit ${client.name?.split(' ')[0] || 'Client'}` : 'Client Basics'}
+              </h1>
+              <p className="text-maroon/60">
+                {isEditMode ? 'Update client information.' : 'Start with the essentials.'}
+              </p>
             </div>
 
             <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-slate-100 space-y-6">
@@ -774,7 +788,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, onSave, onB
             disabled={step === 1 && !client.name}
             className="btn-primary ml-auto px-8 py-4 bg-maroon text-white rounded-xl font-bold text-lg shadow-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {step === 5 ? 'Save Client' : 'Continue'}
+            {step === 5 ? (isEditMode ? 'Save Changes' : 'Save Client') : 'Continue'}
             <span>→</span>
           </button>
         </div>

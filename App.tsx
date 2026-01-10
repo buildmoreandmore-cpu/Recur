@@ -442,9 +442,20 @@ const App: React.FC = () => {
     navigateTo('dashboard');
   };
 
-  const handleAddClient = (client: Client) => {
-    setClients([client, ...clients]);
-    goBack(); // Go back to dashboard
+  const handleSaveClient = (client: Client) => {
+    // Check if this is an existing client (update) or new client (add)
+    const existingIndex = clients.findIndex(c => c.id === client.id);
+    if (existingIndex >= 0) {
+      // Update existing client
+      const updatedClients = [...clients];
+      updatedClients[existingIndex] = client;
+      setClients(updatedClients);
+      setSelectedClient(client);
+    } else {
+      // Add new client
+      setClients([client, ...clients]);
+    }
+    goBack(); // Go back to previous screen
   };
 
   const handleViewClient = (client: Client) => {
@@ -467,7 +478,10 @@ const App: React.FC = () => {
       <AppDashboard
         profile={profile}
         clients={clients}
-        onAddClient={() => navigateTo('client-intake')}
+        onAddClient={() => {
+          setSelectedClient(null);
+          navigateTo('client-intake');
+        }}
         onViewClient={handleViewClient}
         onBack={goBack}
         onExitDemo={() => setShowWaitlist(true)}
@@ -479,8 +493,9 @@ const App: React.FC = () => {
     return (
       <ClientIntake
         profile={profile}
-        onSave={handleAddClient}
+        onSave={handleSaveClient}
         onBack={goBack}
+        clientToEdit={selectedClient || undefined}
       />
     );
   }

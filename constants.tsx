@@ -76,11 +76,46 @@ export const ICONS = {
 };
 
 export const LOGOS = {
+  // Elegant cursive R logo mark
+  RMark: ({ size = 32, className = '' }: { size?: number; className?: string }) => (
+    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+      <path
+        d="M30 75 C30 75, 30 45, 30 35 C30 25, 35 15, 50 15 C65 15, 70 25, 65 35 C60 45, 45 45, 40 45 C40 45, 55 55, 75 80"
+        stroke="currentColor"
+        strokeWidth="8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      <path
+        d="M50 15 C50 5, 60 0, 65 10 C70 20, 60 25, 55 22"
+        stroke="currentColor"
+        strokeWidth="8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </svg>
+  ),
   Main: () => (
     <div className="flex items-center gap-2">
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M16 2C8.26801 2 2 8.26801 2 16C2 23.732 8.26801 30 16 30C23.732 30 30 23.732 30 16C30 8.26801 23.732 2 16 2ZM16 26C10.4772 26 6 21.5228 6 16C6 10.4772 10.4772 6 16 6C21.5228 6 26 10.4772 26 16C26 21.5228 21.5228 26 16 26Z" fill="currentColor"/>
-        <path d="M16 10L18 14H14L16 10ZM16 22L14 18H18L16 22ZM22 16L18 18V14L22 16ZM10 16L14 14V18L10 16Z" fill="currentColor"/>
+      <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M30 75 C30 75, 30 45, 30 35 C30 25, 35 15, 50 15 C65 15, 70 25, 65 35 C60 45, 45 45, 40 45 C40 45, 55 55, 75 80"
+          stroke="currentColor"
+          strokeWidth="8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
+        <path
+          d="M50 15 C50 5, 60 0, 65 10 C70 20, 60 25, 55 22"
+          stroke="currentColor"
+          strokeWidth="8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
       </svg>
       <span className="text-xl font-bold tracking-tight uppercase">Recur</span>
     </div>

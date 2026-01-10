@@ -344,14 +344,33 @@ const App: React.FC = () => {
   const [showWaitlist, setShowWaitlist] = useState(false);
   const [waitlistEmail, setWaitlistEmail] = useState('');
   const [waitlistSubmitted, setWaitlistSubmitted] = useState(false);
+  const [waitlistLoading, setWaitlistLoading] = useState(false);
+  const [waitlistError, setWaitlistError] = useState('');
 
-  const handleWaitlistSubmit = (e: React.FormEvent) => {
+  const handleWaitlistSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (waitlistEmail) {
-      // In production, this would send to a backend
-      console.log('Waitlist signup:', waitlistEmail);
-      setWaitlistSubmitted(true);
-      setWaitlistEmail('');
+    if (!waitlistEmail) return;
+
+    setWaitlistLoading(true);
+    setWaitlistError('');
+
+    try {
+      const response = await fetch('https://formspree.io/f/mnjjavvn', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: waitlistEmail }),
+      });
+
+      if (response.ok) {
+        setWaitlistSubmitted(true);
+        setWaitlistEmail('');
+      } else {
+        setWaitlistError('Something went wrong. Please try again.');
+      }
+    } catch {
+      setWaitlistError('Network error. Please try again.');
+    } finally {
+      setWaitlistLoading(false);
     }
   };
 
@@ -512,12 +531,6 @@ const App: React.FC = () => {
               >
                 Join the Waitlist
               </button>
-              <button
-                onClick={handleStartDemo}
-                className="text-maroon/60 hover:text-maroon text-sm font-medium underline underline-offset-4 transition-colors"
-              >
-                or see the demo →
-              </button>
             </div>
           </div>
         </section>
@@ -644,15 +657,6 @@ const App: React.FC = () => {
                 </div>
               </div>
             </div>
-
-            <div className="text-center mt-6 sm:mt-8">
-              <button
-                onClick={handleStartDemo}
-                className="btn-primary inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-maroon text-white rounded-xl font-bold text-sm sm:text-base"
-              >
-                See the Demo →
-              </button>
-            </div>
           </div>
         </section>
 
@@ -737,43 +741,11 @@ const App: React.FC = () => {
               >
                 Join Waitlist for Early Access
               </button>
-              <button
-                onClick={handleStartDemo}
-                className="w-full mt-3 py-2 text-maroon/60 hover:text-maroon text-sm font-medium transition-colors"
-              >
-                or see the demo →
-              </button>
             </div>
           </div>
         </section>
 
-        {/* SECTION 7: Final CTA */}
-        <section className="py-16 sm:py-32 px-4 sm:px-6 bg-maroon text-white text-center">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="scroll-reveal text-2xl sm:text-4xl lg:text-5xl font-serif mb-4 sm:mb-6">
-              Know your year before it starts.
-            </h2>
-            <p className="scroll-reveal delay-1 text-base sm:text-xl text-white/70 mb-8 sm:mb-10 px-2">
-              Your clients, mapped. Your income, forecasted. Your business, finally predictable.
-            </p>
-            <div className="scroll-reveal delay-2 flex flex-col items-center gap-4">
-              <button
-                onClick={() => setShowWaitlist(true)}
-                className="btn-primary cta-glow inline-flex items-center px-6 sm:px-10 py-3.5 sm:py-5 bg-[#fff38a] text-maroon rounded-full text-base sm:text-lg font-bold shadow-xl"
-              >
-                Join the Waitlist
-              </button>
-              <button
-                onClick={handleStartDemo}
-                className="text-white/60 hover:text-white text-sm font-medium underline underline-offset-4 transition-colors"
-              >
-                or see the demo →
-              </button>
-            </div>
-          </div>
-        </section>
-
-        {/* SECTION 8: Footer */}
+        {/* SECTION 7: Footer */}
         <footer className="py-10 sm:py-16 border-t border-slate-100 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <div className="flex flex-col md:flex-row justify-between items-center gap-6 sm:gap-8">
@@ -825,32 +797,34 @@ const App: React.FC = () => {
                       onChange={(e) => setWaitlistEmail(e.target.value)}
                       placeholder="you@example.com"
                       required
-                      className="w-full px-4 py-3 border border-slate-200 rounded-xl text-maroon focus:outline-none focus:ring-2 focus:ring-maroon/20 focus:border-maroon"
+                      disabled={waitlistLoading}
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl text-maroon focus:outline-none focus:ring-2 focus:ring-maroon/20 focus:border-maroon disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </div>
+                  {waitlistError && (
+                    <p className="text-red-600 text-sm mb-4 text-center">{waitlistError}</p>
+                  )}
                   <button
                     type="submit"
-                    className="btn-primary w-full py-3.5 bg-maroon text-white rounded-xl font-bold text-base"
+                    disabled={waitlistLoading}
+                    className="btn-primary w-full py-3.5 bg-maroon text-white rounded-xl font-bold text-base disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    Get Early Access
+                    {waitlistLoading ? (
+                      <>
+                        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        Joining...
+                      </>
+                    ) : (
+                      'Get Early Access'
+                    )}
                   </button>
                   <p className="text-center text-xs text-slate-400 mt-4">
                     We'll notify you when we launch. No spam, ever.
                   </p>
                 </form>
-
-                {/* Demo Link */}
-                <div className="px-6 pb-6 pt-2 border-t border-slate-100">
-                  <button
-                    onClick={() => {
-                      setShowWaitlist(false);
-                      handleStartDemo();
-                    }}
-                    className="w-full py-2 text-maroon/60 hover:text-maroon text-sm font-medium transition-colors"
-                  >
-                    or explore the demo first →
-                  </button>
-                </div>
               </>
             ) : (
               /* Success State */

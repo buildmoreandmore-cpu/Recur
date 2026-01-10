@@ -348,6 +348,13 @@ const App: React.FC = () => {
   const [waitlistLoading, setWaitlistLoading] = useState(false);
   const [waitlistError, setWaitlistError] = useState('');
 
+  // Booking modal state
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [bookingDate, setBookingDate] = useState('');
+  const [bookingTime, setBookingTime] = useState('Morning');
+  const [bookingService, setBookingService] = useState<Service | null>(null);
+  const [bookingAddOns, setBookingAddOns] = useState<Service[]>([]);
+
   // Navigate to a new screen (adds to history)
   const navigateTo = (newScreen: AppScreen) => {
     setScreenHistory(prev => [...prev, newScreen]);
@@ -502,23 +509,45 @@ const App: React.FC = () => {
 
   if (screen === 'client-profile' && selectedClient) {
     const handleBookAppointment = () => {
-      // Add a new upcoming appointment for next rotation
+      // Initialize modal with recommendations based on client data
       const nextDate = new Date();
       nextDate.setDate(nextDate.getDate() + (selectedClient.rotationWeeks || 10) * 7);
+      setBookingDate(nextDate.toISOString().split('T')[0]);
+      setBookingTime(selectedClient.preferredTime || 'Morning');
+      setBookingService(selectedClient.baseService || null);
+
+      // Pre-select add-ons that are marked as "Every visit"
+      const everyVisitAddOns = selectedClient.addOns
+        ?.filter(addon => addon.frequency === 'Every visit')
+        .map(addon => addon.service) || [];
+      setBookingAddOns(everyVisitAddOns);
+
+      setShowBookingModal(true);
+    };
+
+    const handleConfirmBooking = () => {
+      if (!bookingService) return;
+
+      const addOnTotal = bookingAddOns.reduce((sum, addon) => sum + addon.price, 0);
+      const totalPrice = bookingService.price + addOnTotal;
+      const serviceName = bookingAddOns.length > 0
+        ? `${bookingService.name} + ${bookingAddOns.map(a => a.name).join(', ')}`
+        : bookingService.name;
+
       const newAppointment = {
-        date: nextDate.toISOString().split('T')[0],
-        service: selectedClient.baseService?.name || 'Service',
-        price: selectedClient.baseService?.price || 100,
+        date: bookingDate,
+        service: serviceName,
+        price: totalPrice,
         status: 'scheduled' as const,
       };
       const updatedClient = {
         ...selectedClient,
         appointments: [...(selectedClient.appointments || []), newAppointment],
-        nextAppointment: nextDate.toISOString().split('T')[0],
+        nextAppointment: bookingDate,
       };
       setClients(clients.map(c => c.id === selectedClient.id ? updatedClient : c));
       setSelectedClient(updatedClient);
-      alert(`Appointment booked for ${nextDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`);
+      setShowBookingModal(false);
     };
 
     const handleMarkOverdue = () => {
@@ -536,20 +565,174 @@ const App: React.FC = () => {
       }
     };
 
+    const baseServices = profile.services.filter(s => s.category === 'base');
+    const addonServices = profile.services.filter(s => s.category === 'addon');
+    const bookingTotal = (bookingService?.price || 0) + bookingAddOns.reduce((sum, a) => sum + a.price, 0);
+
+    const toggleBookingAddOn = (service: Service) => {
+      if (bookingAddOns.some(a => a.id === service.id)) {
+        setBookingAddOns(bookingAddOns.filter(a => a.id !== service.id));
+      } else {
+        setBookingAddOns([...bookingAddOns, service]);
+      }
+    };
+
+    const formatCurrency = (amount: number) => {
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(amount);
+    };
+
     return (
-      <ClientProfile
-        client={selectedClient}
-        onBack={() => {
-          setSelectedClient(null);
-          goBack();
-        }}
-        onEdit={() => {
-          navigateTo('client-intake');
-        }}
-        onBookAppointment={handleBookAppointment}
-        onMarkOverdue={handleMarkOverdue}
-        onArchive={handleArchive}
-      />
+      <>
+        <ClientProfile
+          client={selectedClient}
+          onBack={() => {
+            setSelectedClient(null);
+            goBack();
+          }}
+          onEdit={() => {
+            navigateTo('client-intake');
+          }}
+          onBookAppointment={handleBookAppointment}
+          onMarkOverdue={handleMarkOverdue}
+          onArchive={handleArchive}
+        />
+
+        {/* Booking Modal */}
+        {showBookingModal && (
+          <div
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+            onClick={() => setShowBookingModal(false)}
+          >
+            <div
+              className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="px-6 py-5 bg-maroon text-white">
+                <h3 className="text-xl font-serif mb-1">Book Appointment</h3>
+                <p className="text-white/70 text-sm">for {selectedClient.name}</p>
+              </div>
+
+              {/* Form */}
+              <div className="p-6 space-y-5">
+                {/* Recommendation Note */}
+                <div className="bg-emerald-50 text-emerald-700 px-4 py-3 rounded-xl text-sm">
+                  Recommended based on {selectedClient.rotationWeeks}-week rotation
+                </div>
+
+                {/* Date */}
+                <div>
+                  <label className="block text-sm font-bold text-maroon mb-2">Date</label>
+                  <input
+                    type="date"
+                    value={bookingDate}
+                    onChange={(e) => setBookingDate(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-maroon focus:ring-2 focus:ring-maroon/20 outline-none"
+                  />
+                </div>
+
+                {/* Time */}
+                <div>
+                  <label className="block text-sm font-bold text-maroon mb-2">
+                    Time <span className="font-normal text-slate-400">(prefers {selectedClient.preferredTime})</span>
+                  </label>
+                  <select
+                    value={bookingTime}
+                    onChange={(e) => setBookingTime(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-maroon focus:ring-2 focus:ring-maroon/20 outline-none bg-white"
+                  >
+                    <option value="Morning">Morning</option>
+                    <option value="Midday">Midday</option>
+                    <option value="Evening">Evening</option>
+                  </select>
+                </div>
+
+                {/* Service */}
+                <div>
+                  <label className="block text-sm font-bold text-maroon mb-2">Service</label>
+                  <select
+                    value={bookingService?.id || ''}
+                    onChange={(e) => {
+                      const service = baseServices.find(s => s.id === e.target.value);
+                      setBookingService(service || null);
+                    }}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-maroon focus:ring-2 focus:ring-maroon/20 outline-none bg-white"
+                  >
+                    <option value="">Select a service</option>
+                    {baseServices.map(service => (
+                      <option key={service.id} value={service.id}>
+                        {service.name} — {formatCurrency(service.price)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Add-ons */}
+                {addonServices.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-bold text-maroon mb-2">Add-ons</label>
+                    <div className="space-y-2">
+                      {addonServices.map(service => {
+                        const isSelected = bookingAddOns.some(a => a.id === service.id);
+                        const isRecommended = selectedClient.addOns?.some(
+                          a => a.service.id === service.id && a.frequency === 'Every visit'
+                        );
+                        return (
+                          <label
+                            key={service.id}
+                            className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all ${
+                              isSelected ? 'bg-maroon/10 border-2 border-maroon' : 'bg-slate-50 border-2 border-transparent'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => toggleBookingAddOn(service)}
+                                className="w-5 h-5 rounded border-slate-300 text-maroon focus:ring-maroon"
+                              />
+                              <span className="font-medium text-maroon">{service.name}</span>
+                              {isRecommended && (
+                                <span className="text-[10px] font-bold uppercase bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">
+                                  Usual
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-slate-500">+{formatCurrency(service.price)}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Total */}
+                <div className="pt-4 border-t border-slate-100 flex justify-between items-center">
+                  <span className="font-bold text-maroon">Total</span>
+                  <span className="text-2xl font-serif text-maroon">{formatCurrency(bookingTotal)}</span>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => setShowBookingModal(false)}
+                    className="flex-1 px-4 py-3 text-maroon font-bold hover:bg-slate-100 rounded-xl transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleConfirmBooking}
+                    disabled={!bookingService}
+                    className="flex-1 px-4 py-3 bg-maroon text-white font-bold rounded-xl hover:bg-maroon/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Book Appointment
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
     );
   }
 

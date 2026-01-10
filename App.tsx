@@ -470,6 +470,7 @@ const App: React.FC = () => {
         onAddClient={() => navigateTo('client-intake')}
         onViewClient={handleViewClient}
         onBack={goBack}
+        onExitDemo={() => setShowWaitlist(true)}
       />
     );
   }

@@ -61,6 +61,22 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
 
   const overdueClients = clients.filter(c => isOverdue(c));
 
+  // Coming due: clients whose next appointment is within 14 days (and not overdue)
+  const isComingDue = (client: Client) => {
+    const nextAppt = new Date(client.nextAppointment);
+    const today = new Date();
+    const daysUntilDue = Math.ceil((nextAppt.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    return daysUntilDue > 0 && daysUntilDue <= 14 && !isOverdue(client);
+  };
+
+  const getDaysUntilDue = (client: Client) => {
+    const nextAppt = new Date(client.nextAppointment);
+    const today = new Date();
+    return Math.ceil((nextAppt.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  };
+
+  const comingDueClients = clients.filter(c => isComingDue(c));
+
   const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase();
   const getAvatarColor = (name: string) => AVATAR_COLORS[name.length % AVATAR_COLORS.length];
 
@@ -431,6 +447,58 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
                       </button>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* Coming Due */}
+            {comingDueClients.length > 0 && (
+              <div className="bg-blue-50 rounded-xl sm:rounded-2xl border-2 border-blue-200 shadow-sm overflow-hidden">
+                <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-blue-200 bg-blue-100">
+                  <h2 className="font-bold text-blue-700 flex items-center gap-2 text-sm sm:text-base">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                      <line x1="16" y1="2" x2="16" y2="6"/>
+                      <line x1="8" y1="2" x2="8" y2="6"/>
+                      <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    Coming Due
+                    <span className="ml-auto bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{comingDueClients.length}</span>
+                  </h2>
+                </div>
+                <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
+                  {comingDueClients.slice(0, 3).map((client) => {
+                    const daysUntil = getDaysUntilDue(client);
+                    return (
+                      <div
+                        key={client.id}
+                        className="p-3 sm:p-4 bg-white rounded-lg sm:rounded-xl border border-blue-200"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-bold text-maroon text-sm">{client.name}</span>
+                          <span className="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
+                            {daysUntil === 1 ? 'Tomorrow' : `In ${daysUntil} days`}
+                          </span>
+                        </div>
+                        <p className="text-xs text-maroon/60 mb-3">
+                          {client.rotationWeeks}-week rotation • {client.baseService?.name || 'Service'}
+                        </p>
+                        <button
+                          onClick={() => setBookingClient(client)}
+                          className="w-full py-2 bg-blue-500 text-white rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center justify-center gap-1.5"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                            <path d="M9 16l2 2 4-4"/>
+                          </svg>
+                          Schedule
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}

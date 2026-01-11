@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Client, RotationType, IndustryType } from '../types';
 import { ICONS } from '../constants';
 
@@ -21,6 +21,8 @@ const ROTATION_COLORS = {
 const AVATAR_COLORS = ['#c17f59', '#7c9a7e', '#b5a078', '#6b7c91', '#a67c8e'];
 
 export const ClientProfile: React.FC<ClientProfileProps> = ({ client, industry, onBack, onEdit, onBookAppointment, onMarkOverdue, onArchive }) => {
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+
   const isHairIndustry = industry === 'hair-stylist';
   const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase();
   const getAvatarColor = (name: string) => AVATAR_COLORS[name.length % AVATAR_COLORS.length];
@@ -55,6 +57,70 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client, industry, 
         return <span className="text-slate-400">○</span>;
     }
   };
+
+  // Calendar helpers
+  const getDaysInMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  };
+
+  const getAppointmentForDate = (day: number) => {
+    const dateStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    return client.appointments?.find(apt => {
+      const aptDate = apt.date.split('T')[0];
+      return aptDate === dateStr;
+    });
+  };
+
+  const getEventForDate = (day: number) => {
+    const dateStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    return client.events?.find(event => {
+      const eventDate = event.date.split('T')[0];
+      return eventDate === dateStr;
+    });
+  };
+
+  // Calculate future appointments based on rotation
+  const getFutureAppointments = () => {
+    const appointments: Date[] = [];
+    if (!client.nextAppointment) return appointments;
+
+    let nextDate = new Date(client.nextAppointment);
+    const endDate = new Date();
+    endDate.setMonth(endDate.getMonth() + 6); // Show 6 months ahead
+
+    while (nextDate <= endDate) {
+      appointments.push(new Date(nextDate));
+      nextDate = new Date(nextDate);
+      nextDate.setDate(nextDate.getDate() + (client.rotationWeeks * 7));
+    }
+    return appointments;
+  };
+
+  const isFutureAppointment = (day: number) => {
+    const dateStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    return getFutureAppointments().some(apt => {
+      const aptDate = `${apt.getFullYear()}-${String(apt.getMonth() + 1).padStart(2, '0')}-${String(apt.getDate()).padStart(2, '0')}`;
+      return aptDate === dateStr;
+    });
+  };
+
+  const prevMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+  };
+
+  const nextMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+  };
+
+  const monthName = currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const daysInMonth = getDaysInMonth(currentMonth);
+  const firstDay = getFirstDayOfMonth(currentMonth);
+  const today = new Date();
+  const isCurrentMonth = today.getMonth() === currentMonth.getMonth() && today.getFullYear() === currentMonth.getFullYear();
 
   return (
     <div className="min-h-screen bg-cream">
@@ -140,8 +206,120 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client, industry, 
 
         {/* Content Layout */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Service Roadmap */}
+          {/* Left Column */}
           <div className="space-y-6">
+            {/* Client Calendar */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+              <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 flex items-center justify-between">
+                <h2 className="font-bold text-maroon flex items-center gap-2">
+                  <svg className="w-4 h-4 text-maroon/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                  {client.name.split(' ')[0]}'s Calendar
+                </h2>
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <button
+                    onClick={prevMonth}
+                    className="p-1.5 sm:p-2 hover:bg-slate-100 rounded-lg transition-colors text-maroon/60 hover:text-maroon"
+                  >
+                    ←
+                  </button>
+                  <span className="font-medium text-maroon min-w-[100px] sm:min-w-[130px] text-center text-xs sm:text-sm">{monthName}</span>
+                  <button
+                    onClick={nextMonth}
+                    className="p-1.5 sm:p-2 hover:bg-slate-100 rounded-lg transition-colors text-maroon/60 hover:text-maroon"
+                  >
+                    →
+                  </button>
+                </div>
+              </div>
+              <div className="p-2 sm:p-4">
+                {/* Day headers */}
+                <div className="grid grid-cols-7 mb-1 sm:mb-2">
+                  {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
+                    <div key={i} className="text-center text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider py-1 sm:py-2">
+                      <span className="sm:hidden">{day}</span>
+                      <span className="hidden sm:inline">{['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][i]}</span>
+                    </div>
+                  ))}
+                </div>
+                {/* Calendar grid */}
+                <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
+                  {/* Empty cells for days before the first of the month */}
+                  {Array.from({ length: firstDay }).map((_, i) => (
+                    <div key={`empty-${i}`} className="aspect-square p-0.5 sm:p-1" />
+                  ))}
+                  {/* Days of the month */}
+                  {Array.from({ length: daysInMonth }).map((_, i) => {
+                    const day = i + 1;
+                    const appointment = getAppointmentForDate(day);
+                    const event = getEventForDate(day);
+                    const hasFutureAppt = isFutureAppointment(day);
+                    const isToday = isCurrentMonth && today.getDate() === day;
+
+                    return (
+                      <div
+                        key={day}
+                        className={`aspect-square p-0.5 sm:p-1 rounded-md sm:rounded-lg transition-colors relative ${
+                          isToday ? 'bg-maroon/10 ring-1 sm:ring-2 ring-maroon' : ''
+                        } ${appointment ? (appointment.status === 'completed' ? 'bg-emerald-50' : 'bg-[#c17f59]/10') : ''} ${
+                          event ? 'bg-amber-50' : ''
+                        } ${hasFutureAppt && !appointment ? 'bg-[#7c9a7e]/10' : ''}`}
+                      >
+                        <div className="h-full flex flex-col items-center">
+                          <span className={`text-xs sm:text-sm font-medium ${
+                            isToday ? 'text-maroon font-bold' :
+                            appointment ? (appointment.status === 'completed' ? 'text-emerald-600' : 'text-[#c17f59]') :
+                            event ? 'text-amber-600' :
+                            hasFutureAppt ? 'text-[#7c9a7e]' :
+                            'text-slate-600'
+                          }`}>
+                            {day}
+                          </span>
+                          {/* Indicators */}
+                          <div className="flex gap-0.5 mt-0.5">
+                            {appointment && (
+                              <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${
+                                appointment.status === 'completed' ? 'bg-emerald-500' : 'bg-[#c17f59]'
+                              }`} title={appointment.service} />
+                            )}
+                            {event && (
+                              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-500" title={event.name} />
+                            )}
+                            {hasFutureAppt && !appointment && (
+                              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#7c9a7e]/50 border border-[#7c9a7e]" title="Projected visit" />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                {/* Legend */}
+                <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-slate-100 flex flex-wrap gap-2 sm:gap-4 text-[10px] sm:text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-emerald-500" />
+                    <span className="text-slate-500">Completed</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-[#c17f59]" />
+                    <span className="text-slate-500">Upcoming</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-[#7c9a7e]/50 border border-[#7c9a7e]" />
+                    <span className="text-slate-500">Projected</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-amber-500" />
+                    <span className="text-slate-500">Event</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Service Roadmap */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
               <div className="px-4 sm:px-6 py-4 border-b border-slate-100">

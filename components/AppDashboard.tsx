@@ -10,6 +10,7 @@ interface AppDashboardProps {
   onBack: () => void;
   onExitDemo?: () => void;
   onLogoClick?: () => void;
+  onNavigateToSettings?: () => void;
 }
 
 const ROTATION_COLORS = {
@@ -20,7 +21,7 @@ const ROTATION_COLORS = {
 
 const AVATAR_COLORS = ['#c17f59', '#7c9a7e', '#b5a078', '#6b7c91', '#a67c8e'];
 
-export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, onAddClient, onViewClient, onBack, onExitDemo, onLogoClick }) => {
+export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, onAddClient, onViewClient, onBack, onExitDemo, onLogoClick, onNavigateToSettings }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<{ day: number; appointments: Client[] } | null>(null);
   const [bookingClient, setBookingClient] = useState<Client | null>(null);
@@ -140,7 +141,7 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
           </button>
           <div className="flex items-center gap-2 sm:gap-3">
             <button
-              onClick={() => setShowSettings(true)}
+              onClick={() => onNavigateToSettings ? onNavigateToSettings() : setShowSettings(true)}
               className="p-2 text-maroon/60 hover:text-maroon hover:bg-slate-100 rounded-xl transition-all"
               title="Settings"
             >

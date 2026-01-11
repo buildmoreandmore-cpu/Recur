@@ -3,6 +3,7 @@ import { Onboarding } from './components/Onboarding';
 import { AppDashboard } from './components/AppDashboard';
 import { ClientIntake } from './components/ClientIntake';
 import { ClientProfile } from './components/ClientProfile';
+import { Settings } from './components/Settings';
 import { Client, StylistProfile, RotationType, AppScreen, Service } from './types';
 import { ICONS, LOGOS, INDUSTRY_SAMPLE_CLIENTS } from './constants';
 
@@ -513,6 +514,7 @@ const App: React.FC = () => {
             setScreenHistory(['landing']);
             setScreen('landing');
           }}
+          onNavigateToSettings={() => navigateTo('settings')}
         />
 
         {/* Waitlist Modal for Dashboard */}
@@ -594,6 +596,20 @@ const App: React.FC = () => {
           </div>
         )}
       </>
+    );
+  }
+
+  if (screen === 'settings') {
+    return (
+      <Settings
+        profile={profile}
+        onBack={goBack}
+        onUpdateProfile={(updatedProfile) => setProfile(updatedProfile)}
+        onLogoClick={() => {
+          setScreenHistory(['landing']);
+          setScreen('landing');
+        }}
+      />
     );
   }
 

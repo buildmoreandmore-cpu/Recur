@@ -368,7 +368,7 @@ const App: React.FC = () => {
   // Booking modal state
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [bookingDate, setBookingDate] = useState('');
-  const [bookingTime, setBookingTime] = useState('Morning');
+  const [bookingTime, setBookingTime] = useState('10:00 AM');
   const [bookingService, setBookingService] = useState<Service | null>(null);
   const [bookingAddOns, setBookingAddOns] = useState<Service[]>([]);
 
@@ -678,7 +678,14 @@ const App: React.FC = () => {
       const nextDate = new Date();
       nextDate.setDate(nextDate.getDate() + (selectedClient.rotationWeeks || 10) * 7);
       setBookingDate(nextDate.toISOString().split('T')[0]);
-      setBookingTime(selectedClient.preferredTime || 'Morning');
+      // Set default time based on client's preference
+      const preferredTimeMap: Record<string, string> = {
+        'Morning': '10:00 AM',
+        'Midday': '12:00 PM',
+        'Afternoon': '3:00 PM',
+        'Evening': '6:00 PM',
+      };
+      setBookingTime(preferredTimeMap[selectedClient.preferredTime] || '10:00 AM');
       setBookingService(selectedClient.baseService || null);
 
       // Pre-select add-ons that are marked as "Every visit"
@@ -800,17 +807,43 @@ const App: React.FC = () => {
                 {/* Time */}
                 <div>
                   <label className="block text-sm font-bold text-maroon mb-2">
-                    Time <span className="font-normal text-slate-400">(optional - prefers {selectedClient.preferredTime})</span>
+                    Time <span className="font-normal text-slate-400">(prefers {selectedClient.preferredTime})</span>
                   </label>
                   <select
                     value={bookingTime}
                     onChange={(e) => setBookingTime(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-maroon focus:ring-2 focus:ring-maroon/20 outline-none bg-white"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-maroon focus:ring-2 focus:ring-maroon/20 outline-none bg-white appearance-none cursor-pointer"
+                    style={{ WebkitAppearance: 'menulist' }}
                   >
-                    <option value="TBD">TBD - To be determined</option>
-                    <option value="Morning">Morning</option>
-                    <option value="Midday">Midday</option>
-                    <option value="Evening">Evening</option>
+                    <optgroup label="Morning">
+                      <option value="9:00 AM">9:00 AM</option>
+                      <option value="9:30 AM">9:30 AM</option>
+                      <option value="10:00 AM">10:00 AM</option>
+                      <option value="10:30 AM">10:30 AM</option>
+                      <option value="11:00 AM">11:00 AM</option>
+                      <option value="11:30 AM">11:30 AM</option>
+                    </optgroup>
+                    <optgroup label="Midday">
+                      <option value="12:00 PM">12:00 PM</option>
+                      <option value="12:30 PM">12:30 PM</option>
+                      <option value="1:00 PM">1:00 PM</option>
+                      <option value="1:30 PM">1:30 PM</option>
+                      <option value="2:00 PM">2:00 PM</option>
+                      <option value="2:30 PM">2:30 PM</option>
+                    </optgroup>
+                    <optgroup label="Afternoon">
+                      <option value="3:00 PM">3:00 PM</option>
+                      <option value="3:30 PM">3:30 PM</option>
+                      <option value="4:00 PM">4:00 PM</option>
+                      <option value="4:30 PM">4:30 PM</option>
+                      <option value="5:00 PM">5:00 PM</option>
+                      <option value="5:30 PM">5:30 PM</option>
+                    </optgroup>
+                    <optgroup label="Evening">
+                      <option value="6:00 PM">6:00 PM</option>
+                      <option value="6:30 PM">6:30 PM</option>
+                      <option value="7:00 PM">7:00 PM</option>
+                    </optgroup>
                   </select>
                 </div>
 

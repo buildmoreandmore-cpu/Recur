@@ -4,7 +4,9 @@ import { AppDashboard } from './components/AppDashboard';
 import { ClientIntake } from './components/ClientIntake';
 import { ClientProfile } from './components/ClientProfile';
 import { Settings } from './components/Settings';
-import { Client, StylistProfile, RotationType, AppScreen, Service } from './types';
+import { PublicProfile } from './components/PublicProfile';
+import { ClientBookingFlow } from './components/ClientBookingFlow';
+import { Client, StylistProfile, RotationType, AppScreen, Service, BookingSettings, BookingRequest } from './types';
 import { ICONS, LOGOS, INDUSTRY_SAMPLE_CLIENTS } from './constants';
 
 // Sample clients for demo
@@ -370,6 +372,21 @@ const App: React.FC = () => {
   const [bookingService, setBookingService] = useState<Service | null>(null);
   const [bookingAddOns, setBookingAddOns] = useState<Service[]>([]);
 
+  // Public booking flow state
+  const [bookingSettings, setBookingSettings] = useState<BookingSettings>({
+    profileSlug: 'studio-j-hair',
+    bio: 'Specializing in balayage, color correction, and lived-in looks. Making hair magic since 2015.',
+    showPrices: true,
+    takingNewClients: true,
+    waitlistMode: false,
+    requireDeposit: false,
+    depositAmount: 50,
+    depositType: 'fixed',
+    minimumLeadTime: '48',
+    maximumAdvanceBooking: '60',
+    autoConfirmExisting: false,
+  });
+
   // Navigate to a new screen (adds to history)
   const navigateTo = (newScreen: AppScreen) => {
     setScreenHistory(prev => [...prev, newScreen]);
@@ -609,6 +626,36 @@ const App: React.FC = () => {
           setScreenHistory(['landing']);
           setScreen('landing');
         }}
+        onPreviewProfile={() => navigateTo('public-profile')}
+      />
+    );
+  }
+
+  if (screen === 'public-profile') {
+    return (
+      <PublicProfile
+        profile={profile}
+        bookingSettings={bookingSettings}
+        onStartBooking={() => navigateTo('client-booking')}
+        onJoinWaitlist={() => {
+          alert('Demo: You would be added to the waitlist and notified when a spot opens.');
+          goBack();
+        }}
+      />
+    );
+  }
+
+  if (screen === 'client-booking') {
+    return (
+      <ClientBookingFlow
+        profile={profile}
+        bookingSettings={bookingSettings}
+        onSubmit={(request: BookingRequest) => {
+          console.log('New booking request:', request);
+          // In demo, just show toast - in production this would create the request
+          alert('Demo: In production, this request would be sent to the professional for review.');
+        }}
+        onBack={goBack}
       />
     );
   }

@@ -92,7 +92,7 @@ export interface DashboardStats {
   attentionNeeded: number;
 }
 
-export type AppScreen = 'landing' | 'onboarding' | 'dashboard' | 'client-intake' | 'client-profile' | 'settings';
+export type AppScreen = 'landing' | 'onboarding' | 'dashboard' | 'client-intake' | 'client-profile' | 'settings' | 'public-profile' | 'client-booking';
 
 export interface RotationTier {
   type: RotationType;
@@ -121,4 +121,68 @@ export interface BillingInfo {
     amount: number;
     status: 'paid' | 'pending' | 'failed';
   }[];
+}
+
+// Booking Link / Public Profile Settings
+export interface BookingSettings {
+  profileSlug: string;
+  bio: string;
+  showPrices: boolean;
+  takingNewClients: boolean;
+  waitlistMode: boolean;
+  requireDeposit: boolean;
+  depositAmount: number;
+  depositType: 'fixed' | 'percentage';
+  minimumLeadTime: '24' | '48' | '72' | '168'; // hours
+  maximumAdvanceBooking: '14' | '30' | '60' | '90'; // days
+  autoConfirmExisting: boolean;
+}
+
+// Booking Request from potential client
+export interface BookingRequest {
+  id: string;
+  status: 'pending' | 'confirmed' | 'declined' | 'cancelled';
+  createdAt: string;
+  // Client info
+  clientName: string;
+  clientPhone: string;
+  clientEmail: string;
+  referralSource: string;
+  contactMethod: string;
+  preferredDays: string[];
+  preferredTime: string;
+  // Lifestyle answers
+  occupation: string;
+  upcomingEvents: string;
+  morningTime: string;
+  // Goals
+  serviceGoal: string;
+  maintenanceLevel: string;
+  concerns: string;
+  // Hair-specific (optional)
+  naturalColor?: string;
+  currentColor?: string;
+  // Appointment request
+  requestedService: Service | null;
+  requestedAddOns: Service[];
+  requestedDate: string;
+  requestedTimeSlot: string;
+  additionalNotes: string;
+  // Payment
+  hasCardOnFile: boolean;
+  depositPaid: boolean;
+  cardLast4?: string;
+  // Industry data
+  industryData?: Record<string, string>;
+}
+
+// Waitlist entry
+export interface WaitlistEntry {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  serviceInterested: string;
+  dateAdded: string;
+  notes?: string;
 }

@@ -1,6 +1,63 @@
 import React, { useState } from 'react';
-import { Client, RotationType, StylistProfile } from '../types';
+import { Client, RotationType, StylistProfile, BookingRequest } from '../types';
 import { ICONS, LOGOS } from '../constants';
+
+// Sample booking requests for demo
+const SAMPLE_BOOKING_REQUESTS: BookingRequest[] = [
+  {
+    id: 'req-1',
+    status: 'pending',
+    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+    clientName: 'Sarah Mitchell',
+    clientPhone: '(555) 234-5678',
+    clientEmail: 'sarah.mitchell@email.com',
+    referralSource: 'Instagram',
+    contactMethod: 'text',
+    preferredDays: ['Tue', 'Thu', 'Sat'],
+    preferredTime: 'Morning',
+    occupation: 'Marketing Manager',
+    upcomingEvents: 'Company retreat in March',
+    morningTime: '15 min',
+    serviceGoal: 'Looking for a fresh, modern look. Want to go lighter for spring but still low-maintenance.',
+    maintenanceLevel: 'Low',
+    concerns: 'Sensitive scalp, had a bad bleaching experience years ago',
+    naturalColor: 'Dark brown',
+    currentColor: 'Virgin hair (no color)',
+    requestedService: { id: 'color-cut', name: 'Color + Cut', price: 185, category: 'base' },
+    requestedAddOns: [{ id: 'treatment', name: 'Deep Treatment', price: 35, category: 'addon' }],
+    requestedDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 2 weeks from now
+    requestedTimeSlot: 'Morning',
+    additionalNotes: 'Very excited to finally find someone who specializes in balayage!',
+    hasCardOnFile: true,
+    depositPaid: false,
+    cardLast4: '4242',
+  },
+  {
+    id: 'req-2',
+    status: 'pending',
+    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+    clientName: 'Mike Johnson',
+    clientPhone: '(555) 345-6789',
+    clientEmail: 'mike.j@email.com',
+    referralSource: 'Referral from friend',
+    contactMethod: 'email',
+    preferredDays: ['Sat'],
+    preferredTime: 'Midday',
+    occupation: 'Software Engineer',
+    upcomingEvents: '',
+    morningTime: '5 min',
+    serviceGoal: 'Just need a clean cut. Nothing fancy.',
+    maintenanceLevel: 'Low',
+    concerns: '',
+    requestedService: { id: 'cut-style', name: 'Cut + Style', price: 85, category: 'base' },
+    requestedAddOns: [],
+    requestedDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 1 week from now
+    requestedTimeSlot: 'Midday',
+    additionalNotes: '',
+    hasCardOnFile: false,
+    depositPaid: false,
+  },
+];
 
 interface AppDashboardProps {
   profile: StylistProfile;
@@ -27,6 +84,8 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
   const [bookingClient, setBookingClient] = useState<Client | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showSquarePreview, setShowSquarePreview] = useState(false);
+  const [bookingRequests, setBookingRequests] = useState<BookingRequest[]>(SAMPLE_BOOKING_REQUESTS);
+  const [selectedRequest, setSelectedRequest] = useState<BookingRequest | null>(null);
 
   const stats = {
     annualProjected: clients.reduce((sum, c) => sum + c.annualValue, 0),
@@ -76,6 +135,20 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
     const nextAppt = new Date(client.nextAppointment);
     const today = new Date();
     return Math.ceil((nextAppt.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  };
+
+  const getTimeAgo = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays === 1) return 'Yesterday';
+    return `${diffDays} days ago`;
   };
 
   const comingDueClients = clients.filter(c => isComingDue(c));
@@ -417,6 +490,80 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
 
           {/* Sidebar */}
           <div className="space-y-4 sm:space-y-6">
+            {/* Pending Booking Requests */}
+            {bookingRequests.filter(r => r.status === 'pending').length > 0 && (
+              <div className="bg-purple-50 rounded-xl sm:rounded-2xl border-2 border-purple-200 shadow-sm overflow-hidden">
+                <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-purple-200 bg-purple-100">
+                  <h2 className="font-bold text-purple-700 flex items-center gap-2 text-sm sm:text-base">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    </svg>
+                    New Requests
+                    <span className="ml-auto bg-purple-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      {bookingRequests.filter(r => r.status === 'pending').length}
+                    </span>
+                  </h2>
+                </div>
+                <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
+                  {bookingRequests.filter(r => r.status === 'pending').slice(0, 3).map((request) => {
+                    const timeAgo = getTimeAgo(request.createdAt);
+                    return (
+                      <div
+                        key={request.id}
+                        className="p-3 sm:p-4 bg-white rounded-lg sm:rounded-xl border border-purple-200"
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <span className="font-bold text-maroon text-sm block">{request.clientName}</span>
+                            <span className="text-[10px] text-purple-600">{timeAgo}</span>
+                          </div>
+                          <span className="text-[10px] font-bold text-purple-600 bg-purple-100 px-2 py-0.5 rounded-full">
+                            NEW
+                          </span>
+                        </div>
+                        <p className="text-xs text-maroon/70 mb-1">
+                          {request.requestedService?.name} • {formatCurrency(request.requestedService?.price || 0)}
+                        </p>
+                        <p className="text-xs text-maroon/60 mb-3">
+                          {formatDate(request.requestedDate)} • {request.requestedTimeSlot}
+                        </p>
+                        <div className="flex items-center gap-2 text-[10px] text-maroon/50 mb-3">
+                          <span>via {request.referralSource}</span>
+                          {request.hasCardOnFile && (
+                            <span className="flex items-center gap-0.5 text-emerald-600">
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                              </svg>
+                              ••{request.cardLast4}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setSelectedRequest(request)}
+                            className="flex-1 py-2 bg-white border-2 border-purple-300 text-purple-700 rounded-lg text-xs font-bold hover:bg-purple-50 transition-colors"
+                          >
+                            Review
+                          </button>
+                          <button
+                            onClick={() => {
+                              setBookingRequests(prev => prev.map(r =>
+                                r.id === request.id ? { ...r, status: 'confirmed' as const } : r
+                              ));
+                              alert('Demo: Client would receive confirmation email/SMS.');
+                            }}
+                            className="flex-1 py-2 bg-purple-500 text-white rounded-lg text-xs font-bold hover:bg-purple-600 transition-colors"
+                          >
+                            Confirm
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Overdue Alerts */}
             {overdueClients.length > 0 && (
               <div className="bg-orange-50 rounded-xl sm:rounded-2xl border-2 border-orange-200 shadow-sm overflow-hidden">
@@ -1077,6 +1224,235 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
                   className="flex-1 py-3 bg-maroon text-white font-bold rounded-xl hover:bg-maroon/90 transition-colors"
                 >
                   Join Waitlist
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Review Request Modal */}
+      {selectedRequest && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto"
+          onClick={() => setSelectedRequest(null)}
+        >
+          <div
+            className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden my-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-6 py-4 bg-purple-50 border-b border-purple-100 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-bold text-purple-600 bg-purple-200 px-2 py-0.5 rounded-full mb-1 inline-block">
+                  NEW REQUEST
+                </span>
+                <h2 className="text-xl font-serif text-maroon">{selectedRequest.clientName}</h2>
+              </div>
+              <button
+                onClick={() => setSelectedRequest(null)}
+                className="p-2 text-maroon/40 hover:text-maroon hover:bg-white rounded-lg transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-6 max-h-[70vh] overflow-y-auto">
+              {/* Contact Info */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <div>
+                  <p className="text-xs text-slate-400 uppercase tracking-wider">Phone</p>
+                  <p className="text-maroon font-medium">{selectedRequest.clientPhone}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 uppercase tracking-wider">Email</p>
+                  <p className="text-maroon font-medium text-sm">{selectedRequest.clientEmail}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 uppercase tracking-wider">Prefers</p>
+                  <p className="text-maroon font-medium capitalize">{selectedRequest.contactMethod}</p>
+                </div>
+              </div>
+
+              {/* Appointment Request */}
+              <div className="bg-slate-50 rounded-xl p-4 mb-6">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Appointment Request</h3>
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <p className="font-bold text-maroon text-lg">{selectedRequest.requestedService?.name}</p>
+                    {selectedRequest.requestedAddOns.length > 0 && (
+                      <p className="text-sm text-maroon/60">
+                        + {selectedRequest.requestedAddOns.map(a => a.name).join(', ')}
+                      </p>
+                    )}
+                  </div>
+                  <p className="text-xl font-bold text-maroon">
+                    {formatCurrency((selectedRequest.requestedService?.price || 0) + selectedRequest.requestedAddOns.reduce((sum, a) => sum + a.price, 0))}
+                  </p>
+                </div>
+                <div className="flex items-center gap-4 text-sm text-maroon/70">
+                  <span className="flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                      <line x1="16" y1="2" x2="16" y2="6"/>
+                      <line x1="8" y1="2" x2="8" y2="6"/>
+                      <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    {formatDate(selectedRequest.requestedDate)}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="10"/>
+                      <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    {selectedRequest.requestedTimeSlot}
+                  </span>
+                </div>
+                {selectedRequest.preferredDays.length > 0 && (
+                  <p className="text-xs text-maroon/50 mt-2">
+                    Prefers: {selectedRequest.preferredDays.join(', ')}
+                  </p>
+                )}
+              </div>
+
+              {/* Payment Status */}
+              <div className="flex items-center gap-4 mb-6">
+                {selectedRequest.hasCardOnFile ? (
+                  <span className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-medium">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                    Card on file (••{selectedRequest.cardLast4})
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-sm font-medium">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                    No card on file
+                  </span>
+                )}
+                <span className="text-sm text-maroon/60">via {selectedRequest.referralSource}</span>
+              </div>
+
+              {/* Client Info Sections */}
+              <div className="space-y-4">
+                {/* Lifestyle */}
+                <div className="border border-slate-200 rounded-xl overflow-hidden">
+                  <div className="px-4 py-2 bg-slate-50 border-b border-slate-200">
+                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Lifestyle</h4>
+                  </div>
+                  <div className="p-4 space-y-3">
+                    {selectedRequest.occupation && (
+                      <div>
+                        <span className="text-xs text-slate-400">Occupation</span>
+                        <p className="text-maroon">{selectedRequest.occupation}</p>
+                      </div>
+                    )}
+                    {selectedRequest.upcomingEvents && (
+                      <div>
+                        <span className="text-xs text-slate-400">Upcoming Events</span>
+                        <p className="text-maroon">{selectedRequest.upcomingEvents}</p>
+                      </div>
+                    )}
+                    {selectedRequest.morningTime && (
+                      <div>
+                        <span className="text-xs text-slate-400">Morning Routine Time</span>
+                        <p className="text-maroon">{selectedRequest.morningTime}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Goals */}
+                <div className="border border-slate-200 rounded-xl overflow-hidden">
+                  <div className="px-4 py-2 bg-slate-50 border-b border-slate-200">
+                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Goals & Preferences</h4>
+                  </div>
+                  <div className="p-4 space-y-3">
+                    {selectedRequest.serviceGoal && (
+                      <div>
+                        <span className="text-xs text-slate-400">What they want</span>
+                        <p className="text-maroon">{selectedRequest.serviceGoal}</p>
+                      </div>
+                    )}
+                    {selectedRequest.maintenanceLevel && (
+                      <div>
+                        <span className="text-xs text-slate-400">Maintenance Level</span>
+                        <p className="text-maroon">{selectedRequest.maintenanceLevel}</p>
+                      </div>
+                    )}
+                    {selectedRequest.naturalColor && (
+                      <div>
+                        <span className="text-xs text-slate-400">Natural Color</span>
+                        <p className="text-maroon">{selectedRequest.naturalColor}</p>
+                      </div>
+                    )}
+                    {selectedRequest.currentColor && (
+                      <div>
+                        <span className="text-xs text-slate-400">Current Color</span>
+                        <p className="text-maroon">{selectedRequest.currentColor}</p>
+                      </div>
+                    )}
+                    {selectedRequest.concerns && (
+                      <div>
+                        <span className="text-xs text-slate-400">Concerns / To Avoid</span>
+                        <p className="text-maroon">{selectedRequest.concerns}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Additional Notes */}
+                {selectedRequest.additionalNotes && (
+                  <div className="border border-slate-200 rounded-xl overflow-hidden">
+                    <div className="px-4 py-2 bg-slate-50 border-b border-slate-200">
+                      <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Additional Notes</h4>
+                    </div>
+                    <div className="p-4">
+                      <p className="text-maroon italic">"{selectedRequest.additionalNotes}"</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => {
+                    setBookingRequests(prev => prev.map(r =>
+                      r.id === selectedRequest.id ? { ...r, status: 'declined' as const } : r
+                    ));
+                    setSelectedRequest(null);
+                    alert('Demo: Client would receive a polite decline message.');
+                  }}
+                  className="sm:flex-1 py-3 text-red-500 hover:bg-red-50 rounded-xl font-bold transition-colors order-3 sm:order-1"
+                >
+                  Decline
+                </button>
+                <button
+                  onClick={() => {
+                    alert('Demo: Would open edit modal to adjust appointment details.');
+                  }}
+                  className="sm:flex-1 py-3 border-2 border-slate-200 text-maroon font-bold rounded-xl hover:bg-white transition-colors order-2"
+                >
+                  Edit & Confirm
+                </button>
+                <button
+                  onClick={() => {
+                    setBookingRequests(prev => prev.map(r =>
+                      r.id === selectedRequest.id ? { ...r, status: 'confirmed' as const } : r
+                    ));
+                    setSelectedRequest(null);
+                    alert('Demo: Client would receive confirmation email/SMS with appointment details.');
+                  }}
+                  className="sm:flex-1 py-3 bg-emerald-500 text-white font-bold rounded-xl hover:bg-emerald-600 transition-colors order-1 sm:order-3"
+                >
+                  Confirm Appointment
                 </button>
               </div>
             </div>

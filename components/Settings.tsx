@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StylistProfile, Service, IndustryType, RotationType, UserPreferences, BillingInfo } from '../types';
+import { StylistProfile, Service, IndustryType, RotationType, UserPreferences, BillingInfo, BookingSettings } from '../types';
 import { LOGOS } from '../constants';
 
 interface SettingsProps {
@@ -7,9 +7,10 @@ interface SettingsProps {
   onBack: () => void;
   onUpdateProfile: (profile: StylistProfile) => void;
   onLogoClick?: () => void;
+  onPreviewProfile?: () => void;
 }
 
-type SettingsTab = 'profile' | 'business' | 'services' | 'rotation' | 'integrations' | 'billing' | 'preferences';
+type SettingsTab = 'profile' | 'business' | 'services' | 'rotation' | 'booking' | 'integrations' | 'billing' | 'preferences';
 
 const INDUSTRY_OPTIONS: { value: IndustryType; label: string }[] = [
   { value: 'hair-stylist', label: 'Hair Stylist / Barber' },
@@ -43,7 +44,21 @@ const DEFAULT_BILLING: BillingInfo = {
   ],
 };
 
-export const Settings: React.FC<SettingsProps> = ({ profile, onBack, onUpdateProfile, onLogoClick }) => {
+const DEFAULT_BOOKING_SETTINGS: BookingSettings = {
+  profileSlug: '',
+  bio: '',
+  showPrices: true,
+  takingNewClients: true,
+  waitlistMode: false,
+  requireDeposit: false,
+  depositAmount: 50,
+  depositType: 'fixed',
+  minimumLeadTime: '24',
+  maximumAdvanceBooking: '60',
+  autoConfirmExisting: false,
+};
+
+export const Settings: React.FC<SettingsProps> = ({ profile, onBack, onUpdateProfile, onLogoClick, onPreviewProfile }) => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   const [editedProfile, setEditedProfile] = useState<StylistProfile>(profile);
   const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFERENCES);
@@ -54,12 +69,18 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onBack, onUpdatePro
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [bookingSettings, setBookingSettings] = useState<BookingSettings>({
+    ...DEFAULT_BOOKING_SETTINGS,
+    profileSlug: profile.businessName?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || 'my-business',
+  });
+  const [copySuccess, setCopySuccess] = useState(false);
 
   const tabs: { id: SettingsTab; label: string; icon: React.ReactNode }[] = [
     { id: 'profile', label: 'Profile', icon: <UserIcon /> },
     { id: 'business', label: 'Business', icon: <BuildingIcon /> },
     { id: 'services', label: 'Services', icon: <TagIcon /> },
     { id: 'rotation', label: 'Rotation', icon: <RefreshIcon /> },
+    { id: 'booking', label: 'Booking Link', icon: <ShareIcon /> },
     { id: 'integrations', label: 'Integrations', icon: <LinkIcon /> },
     { id: 'billing', label: 'Billing', icon: <CreditCardIcon /> },
     { id: 'preferences', label: 'Preferences', icon: <SettingsIcon /> },
@@ -595,6 +616,276 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onBack, onUpdatePro
                     >
                       Save Changes
                     </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Booking Link Section */}
+            {activeTab === 'booking' && (
+              <div className="space-y-6">
+                {/* Share Link Card */}
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                  <div className="px-6 py-4 border-b border-slate-100">
+                    <h2 className="text-xl font-serif text-maroon">Your Booking Link</h2>
+                  </div>
+                  <div className="p-6">
+                    <p className="text-maroon/60 text-sm mb-4">
+                      Share this link with potential clients so they can book appointments with you.
+                    </p>
+
+                    {/* Link Display */}
+                    <div className="flex gap-2 mb-4">
+                      <div className="flex-1 px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl font-mono text-sm text-maroon overflow-hidden">
+                        <span className="text-slate-400">bookrecur.com/book/</span>
+                        {bookingSettings.profileSlug}
+                      </div>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(`https://bookrecur.com/book/${bookingSettings.profileSlug}`);
+                          setCopySuccess(true);
+                          setTimeout(() => setCopySuccess(false), 2000);
+                        }}
+                        className={`px-4 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${
+                          copySuccess
+                            ? 'bg-emerald-500 text-white'
+                            : 'bg-maroon text-white hover:bg-maroon/90'
+                        }`}
+                      >
+                        {copySuccess ? (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            Copied!
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            Copy
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Share Buttons */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <button
+                        onClick={() => {
+                          window.open(`sms:?body=Book your next appointment with me! https://bookrecur.com/book/${bookingSettings.profileSlug}`, '_blank');
+                        }}
+                        className="px-4 py-3 bg-emerald-50 text-emerald-700 rounded-xl font-medium text-sm hover:bg-emerald-100 transition-colors flex items-center justify-center gap-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                        Text
+                      </button>
+                      <button
+                        onClick={() => {
+                          window.open(`mailto:?subject=Book with ${profile.name || 'me'}&body=Book your next appointment with me! https://bookrecur.com/book/${bookingSettings.profileSlug}`, '_blank');
+                        }}
+                        className="px-4 py-3 bg-blue-50 text-blue-700 rounded-xl font-medium text-sm hover:bg-blue-100 transition-colors flex items-center justify-center gap-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        Email
+                      </button>
+                      <button
+                        onClick={() => {
+                          alert('Demo: QR code would be generated and downloaded.');
+                        }}
+                        className="px-4 py-3 bg-purple-50 text-purple-700 rounded-xl font-medium text-sm hover:bg-purple-100 transition-colors flex items-center justify-center gap-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                        </svg>
+                        QR Code
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (onPreviewProfile) {
+                            onPreviewProfile();
+                          } else {
+                            alert('Demo: Would open page preview in new tab.');
+                          }
+                        }}
+                        className="px-4 py-3 bg-slate-100 text-slate-700 rounded-xl font-medium text-sm hover:bg-slate-200 transition-colors flex items-center justify-center gap-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        Preview
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Profile Settings */}
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                  <div className="px-6 py-4 border-b border-slate-100">
+                    <h3 className="font-bold text-maroon">Profile Settings</h3>
+                  </div>
+                  <div className="p-6 space-y-6">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Profile URL Slug</label>
+                      <div className="flex items-center gap-2">
+                        <span className="text-slate-400 text-sm">bookrecur.com/book/</span>
+                        <input
+                          type="text"
+                          value={bookingSettings.profileSlug}
+                          onChange={(e) => setBookingSettings({ ...bookingSettings, profileSlug: e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') })}
+                          className="flex-1 px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-[#c17f59] focus:outline-none transition-colors"
+                          placeholder="your-business-name"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Bio (max 200 characters)</label>
+                      <textarea
+                        value={bookingSettings.bio}
+                        onChange={(e) => setBookingSettings({ ...bookingSettings, bio: e.target.value.slice(0, 200) })}
+                        className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-[#c17f59] focus:outline-none transition-colors resize-none"
+                        rows={3}
+                        placeholder="Tell potential clients about your specialty..."
+                      />
+                      <p className="text-xs text-slate-400 mt-1">{bookingSettings.bio.length}/200</p>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-maroon">Show prices on profile</p>
+                        <p className="text-sm text-slate-500">Display service prices publicly</p>
+                      </div>
+                      <Toggle
+                        checked={bookingSettings.showPrices}
+                        onChange={(checked) => setBookingSettings({ ...bookingSettings, showPrices: checked })}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-maroon">Taking new clients</p>
+                        <p className="text-sm text-slate-500">Allow new clients to book with you</p>
+                      </div>
+                      <Toggle
+                        checked={bookingSettings.takingNewClients}
+                        onChange={(checked) => setBookingSettings({ ...bookingSettings, takingNewClients: checked, waitlistMode: checked ? false : bookingSettings.waitlistMode })}
+                      />
+                    </div>
+
+                    {!bookingSettings.takingNewClients && (
+                      <div className="flex items-center justify-between pl-6 border-l-2 border-slate-200">
+                        <div>
+                          <p className="font-medium text-maroon">Enable waitlist</p>
+                          <p className="text-sm text-slate-500">Let people join a waitlist instead</p>
+                        </div>
+                        <Toggle
+                          checked={bookingSettings.waitlistMode}
+                          onChange={(checked) => setBookingSettings({ ...bookingSettings, waitlistMode: checked })}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Booking Settings */}
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                  <div className="px-6 py-4 border-b border-slate-100">
+                    <h3 className="font-bold text-maroon">Booking Settings</h3>
+                  </div>
+                  <div className="p-6 space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-maroon">Require deposit for new clients</p>
+                        <p className="text-sm text-slate-500">Collect payment to hold appointments</p>
+                      </div>
+                      <Toggle
+                        checked={bookingSettings.requireDeposit}
+                        onChange={(checked) => setBookingSettings({ ...bookingSettings, requireDeposit: checked })}
+                      />
+                    </div>
+
+                    {bookingSettings.requireDeposit && (
+                      <div className="pl-6 border-l-2 border-slate-200 space-y-4">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Deposit Amount</label>
+                          <div className="flex gap-2">
+                            <input
+                              type="number"
+                              value={bookingSettings.depositAmount}
+                              onChange={(e) => setBookingSettings({ ...bookingSettings, depositAmount: parseInt(e.target.value) || 0 })}
+                              className="w-24 px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-[#c17f59] focus:outline-none transition-colors"
+                              min="0"
+                            />
+                            <select
+                              value={bookingSettings.depositType}
+                              onChange={(e) => setBookingSettings({ ...bookingSettings, depositType: e.target.value as 'fixed' | 'percentage' })}
+                              className="px-4 py-2 border-2 border-slate-200 rounded-xl focus:border-[#c17f59] focus:outline-none transition-colors bg-white"
+                            >
+                              <option value="fixed">$ (Fixed)</option>
+                              <option value="percentage">% (Percentage)</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Minimum Lead Time</label>
+                      <select
+                        value={bookingSettings.minimumLeadTime}
+                        onChange={(e) => setBookingSettings({ ...bookingSettings, minimumLeadTime: e.target.value as BookingSettings['minimumLeadTime'] })}
+                        className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-[#c17f59] focus:outline-none transition-colors bg-white"
+                      >
+                        <option value="24">24 hours</option>
+                        <option value="48">48 hours</option>
+                        <option value="72">72 hours</option>
+                        <option value="168">1 week</option>
+                      </select>
+                      <p className="text-xs text-slate-400 mt-1">Clients must book at least this far in advance</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Maximum Advance Booking</label>
+                      <select
+                        value={bookingSettings.maximumAdvanceBooking}
+                        onChange={(e) => setBookingSettings({ ...bookingSettings, maximumAdvanceBooking: e.target.value as BookingSettings['maximumAdvanceBooking'] })}
+                        className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-[#c17f59] focus:outline-none transition-colors bg-white"
+                      >
+                        <option value="14">2 weeks</option>
+                        <option value="30">1 month</option>
+                        <option value="60">2 months</option>
+                        <option value="90">3 months</option>
+                      </select>
+                      <p className="text-xs text-slate-400 mt-1">How far out clients can book</p>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-maroon">Auto-confirm existing clients</p>
+                        <p className="text-sm text-slate-500">Skip manual review for returning clients</p>
+                      </div>
+                      <Toggle
+                        checked={bookingSettings.autoConfirmExisting}
+                        onChange={(checked) => setBookingSettings({ ...bookingSettings, autoConfirmExisting: checked })}
+                      />
+                    </div>
+
+                    {/* Save Button */}
+                    <div className="pt-4 border-t border-slate-100">
+                      <button
+                        onClick={handleSave}
+                        className="px-6 py-3 bg-maroon text-white rounded-xl font-bold hover:bg-maroon/90 transition-colors"
+                      >
+                        Save Changes
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1266,6 +1557,12 @@ const TagIcon = () => (
 const RefreshIcon = () => (
   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+  </svg>
+);
+
+const ShareIcon = () => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
   </svg>
 );
 

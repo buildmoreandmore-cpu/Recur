@@ -86,6 +86,9 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
   const [showSquarePreview, setShowSquarePreview] = useState(false);
   const [bookingRequests, setBookingRequests] = useState<BookingRequest[]>(SAMPLE_BOOKING_REQUESTS);
   const [selectedRequest, setSelectedRequest] = useState<BookingRequest | null>(null);
+  const [expandedBriefs, setExpandedBriefs] = useState<Set<string>>(new Set());
+  const [completedClient, setCompletedClient] = useState<Client | null>(null);
+  const [showGapFillerModal, setShowGapFillerModal] = useState(false);
 
   const stats = {
     annualProjected: clients.reduce((sum, c) => sum + c.annualValue, 0),
@@ -152,6 +155,111 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
   };
 
   const comingDueClients = clients.filter(c => isComingDue(c));
+
+  // Today's appointments
+  const getTodaysAppointments = () => {
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    return clients.filter(client => {
+      if (client.nextAppointment) {
+        const aptDate = client.nextAppointment.split('T')[0];
+        return aptDate === todayStr;
+      }
+      return false;
+    });
+  };
+
+  const todaysAppointments = getTodaysAppointments();
+
+  // Get weeks since last visit
+  const getWeeksSinceLastVisit = (client: Client) => {
+    const lastVisit = new Date(client.nextAppointment);
+    lastVisit.setDate(lastVisit.getDate() - (client.rotationWeeks * 7)); // Approximate last visit
+    const today = new Date();
+    const diffMs = today.getTime() - lastVisit.getTime();
+    return Math.round(diffMs / (1000 * 60 * 60 * 24 * 7));
+  };
+
+  // Goal projection calculation
+  const getGoalProjection = () => {
+    if (!profile.annualGoal || profile.annualGoal <= 0) return null;
+
+    const today = new Date();
+    const startOfYear = new Date(today.getFullYear(), 0, 1);
+    const daysSoFar = Math.ceil((today.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24));
+
+    const runRate = daysSoFar > 0 ? stats.confirmed / daysSoFar : 0;
+    const remaining = profile.annualGoal - stats.confirmed;
+
+    if (remaining <= 0) return { onTrack: true, projectedDate: 'Goal reached!' };
+
+    const daysToGoal = runRate > 0 ? Math.ceil(remaining / runRate) : 365;
+    const projectedDate = new Date(today);
+    projectedDate.setDate(projectedDate.getDate() + daysToGoal);
+
+    return {
+      onTrack: projectedDate.getFullYear() === today.getFullYear(),
+      projectedDate: projectedDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+      daysToGoal
+    };
+  };
+
+  const goalProjection = getGoalProjection();
+
+  // Open slots calculation (mock for demo)
+  const getOpenSlots = () => {
+    const slots = [];
+    const today = new Date();
+    const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    // Generate some mock open slots for next 7 days
+    for (let i = 1; i <= 7; i++) {
+      const date = new Date(today);
+      date.setDate(date.getDate() + i);
+      const dayName = daysOfWeek[date.getDay()];
+
+      // Skip Sundays
+      if (date.getDay() === 0) continue;
+
+      // Random chance of having an open slot
+      if (Math.random() > 0.5 || i <= 3) {
+        const times = ['10:00 AM', '2:00 PM', '3:30 PM'];
+        const randomTime = times[Math.floor(Math.random() * times.length)];
+        slots.push({
+          date: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+          time: randomTime,
+          fullDate: date
+        });
+      }
+
+      if (slots.length >= 3) break;
+    }
+    return slots;
+  };
+
+  const openSlots = getOpenSlots();
+
+  // Get days overdue for a client
+  const getDaysOverdue = (client: Client) => {
+    const lastAppointment = new Date(client.nextAppointment);
+    const dueDate = new Date(lastAppointment);
+    dueDate.setDate(dueDate.getDate() + (client.rotationWeeks * 7));
+    const today = new Date();
+    const diffMs = today.getTime() - dueDate.getTime();
+    return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  };
+
+  const toggleBrief = (clientId: string) => {
+    setExpandedBriefs(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(clientId)) {
+        newSet.delete(clientId);
+      } else {
+        newSet.add(clientId);
+      }
+      return newSet;
+    });
+  };
 
   const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase();
   const getAvatarColor = (name: string) => AVATAR_COLORS[name.length % AVATAR_COLORS.length];
@@ -251,19 +359,29 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
           <div className="bg-maroon text-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg">
             {profile.annualGoal && profile.annualGoal > 0 ? (
               <>
-                <div className="text-[10px] font-bold opacity-50 uppercase tracking-wider mb-1 sm:mb-2">Goal Progress</div>
-                <div className="text-2xl sm:text-3xl font-serif number-animate">{formatCurrency(stats.annualProjected)}</div>
+                <div className="text-[10px] font-bold opacity-50 uppercase tracking-wider mb-1 sm:mb-2">
+                  {new Date().getFullYear()} Goal Progress
+                </div>
+                <div className="text-2xl sm:text-3xl font-serif number-animate">{formatCurrency(stats.confirmed)}</div>
                 <div className="mt-2 sm:mt-3">
                   <div className="flex justify-between text-[10px] font-bold opacity-70 mb-1">
                     <span>Goal: {formatCurrency(profile.annualGoal)}</span>
-                    <span>{Math.round((stats.annualProjected / profile.annualGoal) * 100)}%</span>
+                    <span>{Math.round((stats.confirmed / profile.annualGoal) * 100)}%</span>
                   </div>
-                  <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
+                  <div className="h-2 bg-white/20 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-emerald-400 rounded-full transition-all"
-                      style={{ width: `${Math.min((stats.annualProjected / profile.annualGoal) * 100, 100)}%` }}
+                      className="h-full bg-[#c17f59] rounded-full transition-all"
+                      style={{ width: `${Math.min((stats.confirmed / profile.annualGoal) * 100, 100)}%` }}
                     />
                   </div>
+                  {goalProjection && (
+                    <div className={`text-[10px] font-medium mt-2 ${goalProjection.onTrack ? 'text-emerald-300' : 'text-amber-300'}`}>
+                      {goalProjection.projectedDate === 'Goal reached!'
+                        ? '🎉 Goal reached!'
+                        : `On track to hit goal by ${goalProjection.projectedDate}`
+                      }
+                    </div>
+                  )}
                 </div>
               </>
             ) : (
@@ -291,6 +409,161 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
             </div>
           </div>
         </div>
+
+        {/* Today's Appointments - Pre-Appointment Client Briefs */}
+        {todaysAppointments.length > 0 && (
+          <div className="bg-white rounded-2xl border-2 border-emerald-200 shadow-sm mb-6 sm:mb-10 overflow-hidden">
+            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-emerald-200 bg-emerald-50 flex items-center justify-between">
+              <h2 className="font-bold text-emerald-700 flex items-center gap-2 text-sm sm:text-base">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                Today's Appointments
+                <span className="ml-2 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  {todaysAppointments.length}
+                </span>
+              </h2>
+              <span className="text-xs text-emerald-600 font-medium">
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+              </span>
+            </div>
+            <div className="divide-y divide-slate-100">
+              {todaysAppointments.map((client) => {
+                const isExpanded = expandedBriefs.has(client.id);
+                const weeksSince = getWeeksSinceLastVisit(client);
+                return (
+                  <div key={client.id} className="p-4 sm:p-5">
+                    {/* Client Header */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 sm:gap-4">
+                        <div
+                          className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center text-white font-bold text-lg"
+                          style={{ backgroundColor: getAvatarColor(client.name) }}
+                        >
+                          {getInitials(client.name)}
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-maroon text-base sm:text-lg">{client.name}</h4>
+                          <p className="text-sm text-maroon/60">
+                            {client.preferredTime || '10:00 AM'} • {client.baseService?.name} • {formatCurrency(client.baseService?.price || 0)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="px-2 py-1 rounded-md text-[10px] font-bold uppercase text-white"
+                          style={{ backgroundColor: ROTATION_COLORS[client.rotation].hex }}
+                        >
+                          {client.rotation}
+                        </span>
+                        <button
+                          onClick={() => toggleBrief(client.id)}
+                          className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-maroon/60"
+                        >
+                          <svg className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Expandable Client Brief */}
+                    {isExpanded && (
+                      <div className="mt-4 space-y-4">
+                        {/* Client Brief Card */}
+                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                          <h5 className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-3 flex items-center gap-1">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            Client Brief
+                          </h5>
+                          <div className="space-y-2">
+                            <div className="flex items-start gap-2">
+                              <svg className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                <line x1="16" y1="2" x2="16" y2="6"/>
+                                <line x1="8" y1="2" x2="8" y2="6"/>
+                                <line x1="3" y1="10" x2="21" y2="10"/>
+                              </svg>
+                              <span className="text-sm text-maroon">
+                                <span className="font-medium">Last visit:</span> ~{weeksSince} weeks ago
+                              </span>
+                            </div>
+                            {client.goals && (
+                              <div className="flex items-start gap-2">
+                                <svg className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <circle cx="12" cy="12" r="10"/>
+                                  <path d="M12 8v8M8 12h8"/>
+                                </svg>
+                                <span className="text-sm text-maroon">
+                                  <span className="font-medium">Goal:</span> {client.goals}
+                                </span>
+                              </div>
+                            )}
+                            {client.notes && (
+                              <div className="flex items-start gap-2">
+                                <svg className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <span className="text-sm text-maroon">
+                                  <span className="font-medium">Note:</span> {client.notes}
+                                </span>
+                              </div>
+                            )}
+                            {client.upcomingEvent && (
+                              <div className="flex items-start gap-2">
+                                <svg className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                                </svg>
+                                <span className="text-sm text-maroon">
+                                  <span className="font-medium">Event:</span> {client.upcomingEvent}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Suggested Add-ons */}
+                        {client.addOns && client.addOns.length > 0 && (
+                          <div className="bg-[#c17f59]/10 border border-[#c17f59]/30 rounded-xl p-4">
+                            <h5 className="text-xs font-bold text-[#c17f59] uppercase tracking-wider mb-2">
+                              Suggested Add-ons
+                            </h5>
+                            <div className="flex flex-wrap gap-2">
+                              {client.addOns.map((addon, i) => (
+                                <span key={i} className="px-3 py-1 bg-white border border-[#c17f59]/30 rounded-full text-sm text-maroon">
+                                  {addon.service.name} +{formatCurrency(addon.service.price)}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Quick Actions */}
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            onClick={() => onViewClient(client)}
+                            className="flex-1 py-2.5 bg-slate-100 text-maroon font-medium rounded-xl text-sm hover:bg-slate-200 transition-colors"
+                          >
+                            View Profile
+                          </button>
+                          <button
+                            onClick={() => setCompletedClient(client)}
+                            className="flex-1 py-2.5 bg-emerald-500 text-white font-bold rounded-xl text-sm hover:bg-emerald-600 transition-colors"
+                          >
+                            Mark Complete
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Calendar */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm mb-6 sm:mb-10 overflow-hidden">
@@ -689,6 +962,73 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
                 )}
               </div>
             </div>
+
+            {/* Gap Filler / Revenue Recovery */}
+            {(openSlots.length > 0 || overdueClients.length > 0) && (
+              <div className="bg-gradient-to-br from-[#c17f59]/10 to-[#c17f59]/5 rounded-xl sm:rounded-2xl border-2 border-[#c17f59]/30 shadow-sm overflow-hidden">
+                <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-[#c17f59]/20 bg-[#c17f59]/10">
+                  <h2 className="font-bold text-[#c17f59] flex items-center gap-2 text-sm sm:text-base">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                    Fill Your Gaps
+                  </h2>
+                </div>
+                <div className="p-3 sm:p-4 space-y-4">
+                  {/* Open Slots */}
+                  {openSlots.length > 0 && (
+                    <div>
+                      <h4 className="text-xs font-bold text-maroon/60 uppercase tracking-wider mb-2">
+                        Open slots this week
+                      </h4>
+                      <div className="space-y-1.5">
+                        {openSlots.map((slot, i) => (
+                          <div key={i} className="flex items-center gap-2 text-sm text-maroon bg-white/60 px-3 py-2 rounded-lg">
+                            <svg className="w-4 h-4 text-[#c17f59]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                              <line x1="16" y1="2" x2="16" y2="6"/>
+                              <line x1="8" y1="2" x2="8" y2="6"/>
+                              <line x1="3" y1="10" x2="21" y2="10"/>
+                            </svg>
+                            <span>{slot.date}</span>
+                            <span className="text-maroon/50">•</span>
+                            <span className="text-maroon/70">{slot.time}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Overdue Clients for Recovery */}
+                  {overdueClients.length > 0 && (
+                    <div>
+                      <h4 className="text-xs font-bold text-maroon/60 uppercase tracking-wider mb-2">
+                        {overdueClients.length} client{overdueClients.length !== 1 ? 's' : ''} overdue
+                      </h4>
+                      <div className="space-y-1.5">
+                        {overdueClients.slice(0, 3).map((client) => (
+                          <div key={client.id} className="flex items-center justify-between text-sm text-maroon bg-white/60 px-3 py-2 rounded-lg">
+                            <span className="font-medium">{client.name}</span>
+                            <span className="text-xs text-orange-600 font-bold">{getDaysOverdue(client)} days</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* CTA */}
+                  <button
+                    onClick={() => setShowGapFillerModal(true)}
+                    className="w-full py-2.5 bg-[#c17f59] text-white rounded-lg sm:rounded-xl text-xs font-bold hover:bg-[#a86b48] transition-colors flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    Send Availability to Overdue Clients
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* This Month */}
             <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
@@ -1453,6 +1793,186 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
                   className="sm:flex-1 py-3 bg-emerald-500 text-white font-bold rounded-xl hover:bg-emerald-600 transition-colors order-1 sm:order-3"
                 >
                   Confirm Appointment
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rebooking Prompt Modal (After Completing Appointment) */}
+      {completedClient && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={() => setCompletedClient(null)}
+        >
+          <div
+            className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-6 py-5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-center">
+              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="font-bold text-xl mb-1">Appointment Complete!</h3>
+              <p className="text-white/80 text-sm">
+                {completedClient.name} • {completedClient.baseService?.name} • {formatCurrency(completedClient.baseService?.price || 0)}
+              </p>
+            </div>
+
+            <div className="p-6">
+              <h4 className="font-bold text-maroon text-lg mb-4 text-center">
+                Book {completedClient.name.split(' ')[0]}'s next appointment?
+              </h4>
+
+              {/* Suggested Date */}
+              <div className="bg-emerald-50 border-2 border-emerald-200 rounded-xl p-4 mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center text-white">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                      <line x1="16" y1="2" x2="16" y2="6"/>
+                      <line x1="8" y1="2" x2="8" y2="6"/>
+                      <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="font-bold text-emerald-700">
+                      {getNextSuggestedDate(completedClient).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                    </div>
+                    <div className="text-sm text-emerald-600">
+                      {completedClient.rotationWeeks} weeks from today
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="space-y-2">
+                <button
+                  onClick={() => {
+                    const suggestedDate = getNextSuggestedDate(completedClient);
+                    alert(`Demo: Appointment booked for ${completedClient.name} on ${suggestedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}. Confirmation sent to client.`);
+                    setCompletedClient(null);
+                  }}
+                  className="w-full py-3.5 bg-emerald-500 text-white font-bold rounded-xl hover:bg-emerald-600 transition-colors flex items-center justify-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                    <path d="M9 16l2 2 4-4"/>
+                  </svg>
+                  Book {getNextSuggestedDate(completedClient).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </button>
+                <button
+                  onClick={() => {
+                    setCompletedClient(null);
+                    setBookingClient(completedClient);
+                  }}
+                  className="w-full py-3 border-2 border-slate-200 text-maroon font-bold rounded-xl hover:bg-slate-50 transition-colors"
+                >
+                  Pick Different Date
+                </button>
+                <button
+                  onClick={() => {
+                    alert('Demo: Appointment marked complete. Client was not rebooked.');
+                    setCompletedClient(null);
+                  }}
+                  className="w-full py-3 text-slate-400 font-medium rounded-xl hover:text-maroon hover:bg-slate-50 transition-colors text-sm"
+                >
+                  Skip for Now
+                </button>
+              </div>
+
+              {/* Checkbox */}
+              <label className="flex items-center gap-2 mt-4 text-sm text-maroon/70 cursor-pointer">
+                <input type="checkbox" defaultChecked className="w-4 h-4 rounded border-slate-300 text-emerald-500 focus:ring-emerald-500" />
+                <span>Send confirmation to client</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Gap Filler Confirmation Modal */}
+      {showGapFillerModal && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowGapFillerModal(false)}
+        >
+          <div
+            className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-6 py-5 bg-gradient-to-r from-[#c17f59] to-[#a86b48] text-white">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg">Send Availability</h3>
+                  <p className="text-white/80 text-sm">Reach out to overdue clients</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6">
+              <p className="text-maroon/70 mb-4">
+                Send a message to <span className="font-bold text-maroon">{overdueClients.length} overdue client{overdueClients.length !== 1 ? 's' : ''}</span> with your available slots this week?
+              </p>
+
+              {/* Preview */}
+              <div className="bg-slate-50 rounded-xl p-4 mb-4 border border-slate-200">
+                <p className="text-xs text-slate-400 uppercase tracking-wider font-bold mb-2">Message Preview</p>
+                <p className="text-sm text-maroon italic">
+                  "Hi [Name]! I have some openings this week and wanted to check if you're ready to book your next appointment. Let me know what works for you!"
+                </p>
+              </div>
+
+              {/* Client list */}
+              <div className="mb-4">
+                <p className="text-xs text-slate-400 uppercase tracking-wider font-bold mb-2">Recipients</p>
+                <div className="space-y-1">
+                  {overdueClients.slice(0, 5).map((client) => (
+                    <div key={client.id} className="flex items-center gap-2 text-sm">
+                      <div className="w-2 h-2 bg-[#c17f59] rounded-full"></div>
+                      <span className="text-maroon">{client.name}</span>
+                      <span className="text-slate-400">({getDaysOverdue(client)} days overdue)</span>
+                    </div>
+                  ))}
+                  {overdueClients.length > 5 && (
+                    <p className="text-xs text-slate-400 pl-4">+{overdueClients.length - 5} more</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowGapFillerModal(false)}
+                  className="flex-1 py-3 border-2 border-slate-200 text-maroon font-bold rounded-xl hover:bg-slate-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    alert(`Demo: In production, ${overdueClients.length} clients would receive your availability via text/email.`);
+                    setShowGapFillerModal(false);
+                  }}
+                  className="flex-1 py-3 bg-[#c17f59] text-white font-bold rounded-xl hover:bg-[#a86b48] transition-colors flex items-center justify-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                  Send Messages
                 </button>
               </div>
             </div>

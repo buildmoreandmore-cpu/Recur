@@ -1199,7 +1199,7 @@ const App: React.FC = () => {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {/* Card 1: Pre-filled appointments */}
               <div className="scroll-reveal delay-1 card-hover p-6 sm:p-8 rounded-2xl sm:rounded-[28px] bg-white border-2 border-slate-100 shadow-sm">
                 <div className="card-icon w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center mb-4 sm:mb-6" style={{ backgroundColor: '#C17F5915' }}>
@@ -1237,6 +1237,19 @@ const App: React.FC = () => {
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold text-maroon mb-2">Overdue alerts</h3>
                 <p className="text-sm sm:text-base text-maroon/70">When a client misses their rotation window, Recur flags them so you can follow up.</p>
+              </div>
+
+              {/* Card 4: Accept payments */}
+              <div className="scroll-reveal delay-3 card-hover p-6 sm:p-8 rounded-2xl sm:rounded-[28px] bg-white border-2 border-slate-100 shadow-sm relative">
+                <span className="absolute top-4 right-4 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded bg-[#C4B5A4]/30 text-maroon/70">Coming Soon</span>
+                <div className="card-icon w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center mb-4 sm:mb-6" style={{ backgroundColor: '#C4B5A415' }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C4B5A4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                    <line x1="1" y1="10" x2="23" y2="10"/>
+                  </svg>
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-maroon mb-2">Accept payments</h3>
+                <p className="text-sm sm:text-base text-maroon/70">Connect Square to send invoices and collect deposits — without leaving Recur.</p>
               </div>
             </div>
 

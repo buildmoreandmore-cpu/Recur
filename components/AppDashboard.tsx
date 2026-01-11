@@ -24,6 +24,8 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<{ day: number; appointments: Client[] } | null>(null);
   const [bookingClient, setBookingClient] = useState<Client | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showSquarePreview, setShowSquarePreview] = useState(false);
 
   const stats = {
     annualProjected: clients.reduce((sum, c) => sum + c.annualValue, 0),
@@ -137,6 +139,16 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
             </div>
           </button>
           <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              onClick={() => setShowSettings(true)}
+              className="p-2 text-maroon/60 hover:text-maroon hover:bg-slate-100 rounded-xl transition-all"
+              title="Settings"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
             <button
               onClick={onExitDemo || onBack}
               className="px-3 sm:px-4 py-2 text-maroon/70 hover:text-maroon hover:bg-slate-100 rounded-xl text-xs sm:text-sm font-medium transition-all"
@@ -829,6 +841,29 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
                 </p>
               </div>
 
+              {/* Payment Collection (Demo Preview) */}
+              <div className="border border-slate-200 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Payment Collection</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#C4B5A4]/30 text-maroon/70">Coming Soon</span>
+                </div>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-3 opacity-50 cursor-not-allowed">
+                    <input type="radio" disabled className="w-4 h-4 text-slate-300" />
+                    <span className="text-sm text-slate-400">Require deposit</span>
+                  </label>
+                  <label className="flex items-center gap-3 opacity-50 cursor-not-allowed">
+                    <input type="radio" disabled className="w-4 h-4 text-slate-300" />
+                    <span className="text-sm text-slate-400">Send invoice after appointment</span>
+                  </label>
+                  <label className="flex items-center gap-3">
+                    <input type="radio" checked readOnly className="w-4 h-4 text-maroon" />
+                    <span className="text-sm text-maroon">No payment through Recur</span>
+                  </label>
+                </div>
+                <p className="text-xs text-slate-400 mt-3">Connect Square in settings to enable payment collection.</p>
+              </div>
+
               {/* Actions */}
               <div className="flex gap-3 pt-2">
                 <button
@@ -848,6 +883,199 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   Confirm Booking
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+          onClick={() => setShowSettings(false)}
+        >
+          <div
+            className="bg-white w-full sm:w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="px-4 sm:px-6 py-4 border-b border-slate-100 bg-cream flex items-center justify-between">
+              <h3 className="font-bold text-maroon text-lg">Settings</h3>
+              <button
+                onClick={() => setShowSettings(false)}
+                className="p-2 hover:bg-slate-100 rounded-full transition-colors text-maroon/60"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="overflow-y-auto max-h-[70vh] p-4 sm:p-6 space-y-6">
+              {/* Payment Integration Section */}
+              <div>
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Payment Integration</h4>
+                <div className="bg-white border-2 border-slate-200 rounded-xl p-4">
+                  <div className="flex items-center gap-4">
+                    {/* Square Logo */}
+                    <div className="w-12 h-12 bg-black rounded-xl flex items-center justify-center flex-shrink-0">
+                      <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M3 3h18v18H3V3zm16 16V5H5v14h14z"/>
+                        <path d="M7 7h10v10H7V7zm8 8V9H9v6h6z"/>
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-bold text-maroon">Square</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#C4B5A4]/30 text-maroon/70">Coming Soon</span>
+                      </div>
+                      <p className="text-sm text-slate-500">Send invoices and collect payments from your clients.</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowSettings(false);
+                      setShowSquarePreview(true);
+                    }}
+                    className="mt-4 w-full py-2.5 bg-maroon text-white font-bold text-sm rounded-xl hover:bg-maroon/90 transition-colors"
+                  >
+                    Connect Square
+                  </button>
+                </div>
+              </div>
+
+              {/* Future Integrations */}
+              <div>
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">More Integrations</h4>
+                <div className="space-y-3">
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center gap-4 opacity-60">
+                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-slate-200">
+                      <svg className="w-5 h-5 text-[#4285F4]" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19.5 22h-15A2.5 2.5 0 012 19.5v-15A2.5 2.5 0 014.5 2h15A2.5 2.5 0 0122 4.5v15a2.5 2.5 0 01-2.5 2.5zM8 7v10h2v-4h4v4h2V7h-2v4h-4V7H8z"/>
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-maroon">Google Calendar</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-200 text-slate-500">Coming Soon</span>
+                      </div>
+                      <p className="text-xs text-slate-400">Sync appointments automatically</p>
+                    </div>
+                  </div>
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center gap-4 opacity-60">
+                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-slate-200">
+                      <svg className="w-5 h-5 text-[#635BFF]" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.591-7.305z"/>
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-maroon">Stripe</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-200 text-slate-500">Coming Soon</span>
+                      </div>
+                      <p className="text-xs text-slate-400">Alternative payment processing</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Account Settings Placeholder */}
+              <div>
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Account</h4>
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                  <p className="text-sm text-slate-500 text-center">
+                    Account settings will be available when you create an account.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Square Preview Modal */}
+      {showSquarePreview && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowSquarePreview(false)}
+        >
+          <div
+            className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="px-6 py-5 bg-gradient-to-r from-black to-gray-800 text-white">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 3h18v18H3V3zm16 16V5H5v14h14z"/>
+                    <path d="M7 7h10v10H7V7zm8 8V9H9v6h6z"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg">Square Integration</h3>
+                  <span className="text-xs text-white/60 uppercase tracking-wider">Preview</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6">
+              <p className="text-maroon/70 mb-6">
+                When this feature launches, you'll be able to:
+              </p>
+              <ul className="space-y-3 mb-6">
+                <li className="flex items-center gap-3">
+                  <div className="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="text-maroon">Connect your Square account securely</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <div className="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="text-maroon">Send invoices to clients after appointments</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <div className="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="text-maroon">Collect deposits when booking</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <div className="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="text-maroon">Track payments in client profiles</span>
+                </li>
+              </ul>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowSquarePreview(false)}
+                  className="flex-1 py-3 border-2 border-slate-200 text-maroon font-bold rounded-xl hover:bg-slate-50 transition-colors"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    setShowSquarePreview(false);
+                    // Scroll to waitlist or show waitlist modal
+                    alert('Thanks for your interest! You\'ll be notified when Square integration launches.');
+                  }}
+                  className="flex-1 py-3 bg-maroon text-white font-bold rounded-xl hover:bg-maroon/90 transition-colors"
+                >
+                  Join Waitlist
                 </button>
               </div>
             </div>

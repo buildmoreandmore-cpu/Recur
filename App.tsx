@@ -1426,6 +1426,7 @@ const App: React.FC = () => {
                   'Unlimited clients',
                   'Full income dashboard',
                   'Client profiles and intake',
+                  'Shareable booking link',
                   'Rotation tracking',
                   'Smart reminders',
                   'Export your data anytime',

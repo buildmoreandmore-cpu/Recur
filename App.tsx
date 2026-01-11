@@ -1187,7 +1187,66 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* SECTION 6: Pricing */}
+        {/* SECTION 6: Scheduling */}
+        <section className="py-12 sm:py-24 px-4 sm:px-6 bg-cream">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-8 sm:mb-16">
+              <h2 className="scroll-reveal text-2xl sm:text-3xl lg:text-4xl font-serif text-maroon mb-3 sm:mb-4">
+                Scheduling that remembers for you
+              </h2>
+              <p className="scroll-reveal delay-1 text-base sm:text-lg text-maroon/60 max-w-2xl mx-auto px-2">
+                Recur pre-fills appointments based on each client's rotation, preferences, and services — so you're not starting from scratch every time.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+              {/* Card 1: Pre-filled appointments */}
+              <div className="scroll-reveal delay-1 card-hover p-6 sm:p-8 rounded-2xl sm:rounded-[28px] bg-white border-2 border-slate-100 shadow-sm">
+                <div className="card-icon w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center mb-4 sm:mb-6" style={{ backgroundColor: '#C17F5915' }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C17F59" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                    <path d="M9 16l2 2 4-4"/>
+                  </svg>
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-maroon mb-2">Pre-filled appointments</h3>
+                <p className="text-sm sm:text-base text-maroon/70">Next visit date is calculated from their rotation plan. No manual math, no guessing.</p>
+              </div>
+
+              {/* Card 2: Preferences remembered */}
+              <div className="scroll-reveal delay-2 card-hover p-6 sm:p-8 rounded-2xl sm:rounded-[28px] bg-white border-2 border-slate-100 shadow-sm">
+                <div className="card-icon w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center mb-4 sm:mb-6" style={{ backgroundColor: '#8B9A7D15' }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8B9A7D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-maroon mb-2">Preferences remembered</h3>
+                <p className="text-sm sm:text-base text-maroon/70">Their preferred day, time, and services are pre-selected. Just confirm and book.</p>
+              </div>
+
+              {/* Card 3: Overdue alerts */}
+              <div className="scroll-reveal delay-3 card-hover p-6 sm:p-8 rounded-2xl sm:rounded-[28px] bg-white border-2 border-slate-100 shadow-sm">
+                <div className="card-icon w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center mb-4 sm:mb-6" style={{ backgroundColor: '#2A242015' }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2A2420" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                  </svg>
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-maroon mb-2">Overdue alerts</h3>
+                <p className="text-sm sm:text-base text-maroon/70">When a client misses their rotation window, Recur flags them so you can follow up.</p>
+              </div>
+            </div>
+
+            <p className="scroll-reveal delay-3 text-center text-base sm:text-lg text-maroon/60 mt-8 sm:mt-12 italic">
+              You set it up once. Recur handles the rest.
+            </p>
+          </div>
+        </section>
+
+        {/* SECTION 7: Pricing */}
         <section className="py-12 sm:py-24 px-4 sm:px-6 bg-cream" id="pricing">
           <div className="max-w-xl mx-auto text-center">
             <h2 className="scroll-reveal text-2xl sm:text-3xl lg:text-4xl font-serif text-maroon mb-8 sm:mb-12">

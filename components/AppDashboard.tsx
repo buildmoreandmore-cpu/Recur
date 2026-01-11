@@ -863,7 +863,7 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
                             <div
                               key={client.id}
                               onClick={() => onViewClient(client)}
-                              className="flex items-center justify-between text-sm bg-blue-50 px-3 py-2 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors"
+                              className="flex items-center justify-between text-sm bg-blue-50 px-3 py-3 rounded-lg cursor-pointer hover:bg-blue-100 active:bg-blue-200 transition-colors"
                             >
                               <span className="font-medium text-maroon">{client.name}</span>
                               <span className="text-xs text-blue-600 font-bold">
@@ -888,7 +888,7 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
                           <div
                             key={client.id}
                             onClick={() => onViewClient(client)}
-                            className="flex items-center justify-between text-sm bg-orange-50 px-3 py-2 rounded-lg cursor-pointer hover:bg-orange-100 transition-colors"
+                            className="flex items-center justify-between text-sm bg-orange-50 px-3 py-3 rounded-lg cursor-pointer hover:bg-orange-100 active:bg-orange-200 transition-colors"
                           >
                             <span className="font-medium text-maroon">{client.name}</span>
                             <span className="text-xs text-orange-600 font-bold">{getDaysOverdue(client)} days overdue</span>
@@ -909,7 +909,7 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
                   {overdueClients.length > 0 && (
                     <button
                       onClick={() => setShowGapFillerModal(true)}
-                      className="w-full py-2.5 bg-maroon text-white rounded-lg sm:rounded-xl text-xs font-bold hover:bg-maroon/90 transition-colors"
+                      className="w-full py-3 bg-maroon text-white rounded-xl text-sm font-bold hover:bg-maroon/90 active:bg-maroon/80 transition-colors"
                     >
                       Reach Out to {overdueClients.length} Overdue Client{overdueClients.length !== 1 ? 's' : ''}
                     </button>

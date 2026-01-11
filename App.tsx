@@ -1355,6 +1355,61 @@ const App: React.FC = () => {
           </div>
         </section>
 
+        {/* SECTION 6.5: Client Self-Onboarding */}
+        <section className="py-12 sm:py-24 px-4 sm:px-6 bg-white">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-8 sm:mb-16">
+              <h2 className="scroll-reveal text-2xl sm:text-3xl lg:text-4xl font-serif text-maroon mb-3 sm:mb-4">
+                Get new clients without the back-and-forth
+              </h2>
+              <p className="scroll-reveal delay-1 text-base sm:text-lg text-maroon/60 max-w-2xl mx-auto px-2">
+                Share your booking link. Clients fill out your intake form, request an appointment, and add payment — before you ever respond.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+              {/* Card 1: Shareable booking page */}
+              <div className="scroll-reveal delay-1 card-hover p-6 sm:p-8 rounded-2xl sm:rounded-[28px] border-2 shadow-sm" style={{ backgroundColor: '#C17F5910', borderColor: '#C17F5930' }}>
+                <div className="card-icon w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center mb-4 sm:mb-6" style={{ backgroundColor: '#C17F5920' }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C17F59" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                  </svg>
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-maroon mb-2">Shareable booking page</h3>
+                <p className="text-sm sm:text-base text-maroon/70">Your own branded profile page with services, availability, and a "Book Now" button. Share it anywhere.</p>
+              </div>
+
+              {/* Card 2: Client fills out intake */}
+              <div className="scroll-reveal delay-2 card-hover p-6 sm:p-8 rounded-2xl sm:rounded-[28px] border-2 shadow-sm" style={{ backgroundColor: '#8B9A7D10', borderColor: '#8B9A7D30' }}>
+                <div className="card-icon w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center mb-4 sm:mb-6" style={{ backgroundColor: '#8B9A7D20' }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8B9A7D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                    <polyline points="10 9 9 9 8 9"/>
+                  </svg>
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-maroon mb-2">Client fills out intake</h3>
+                <p className="text-sm sm:text-base text-maroon/70">New clients answer your consultation questions, select services, and pick their preferred time — all before you lift a finger.</p>
+              </div>
+
+              {/* Card 3: You confirm on your terms */}
+              <div className="scroll-reveal delay-3 card-hover p-6 sm:p-8 rounded-2xl sm:rounded-[28px] border-2 shadow-sm" style={{ backgroundColor: '#2A242008', borderColor: '#2A242020' }}>
+                <div className="card-icon w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center mb-4 sm:mb-6" style={{ backgroundColor: '#2A242015' }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2A2420" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                  </svg>
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-maroon mb-2">You confirm on your terms</h3>
+                <p className="text-sm sm:text-base text-maroon/70">Review requests in your dashboard, approve or decline, and the client is added to your book instantly. No phone tag required.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* SECTION 7: Pricing */}
         <section className="py-12 sm:py-24 px-4 sm:px-6 bg-cream" id="pricing">
           <div className="max-w-xl mx-auto text-center">

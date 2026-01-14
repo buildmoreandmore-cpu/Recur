@@ -92,7 +92,7 @@ export interface DashboardStats {
   attentionNeeded: number;
 }
 
-export type AppScreen = 'landing' | 'onboarding' | 'dashboard' | 'client-intake' | 'client-profile' | 'settings' | 'public-profile' | 'client-booking';
+export type AppScreen = 'landing' | 'onboarding' | 'guided-demo' | 'dashboard' | 'client-intake' | 'client-profile' | 'settings' | 'public-profile' | 'client-booking';
 
 export interface RotationTier {
   type: RotationType;

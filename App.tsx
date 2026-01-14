@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Onboarding } from './components/Onboarding';
+import { GuidedDemo } from './components/GuidedDemo';
 import { AppDashboard } from './components/AppDashboard';
 import { ClientIntake } from './components/ClientIntake';
 import { ClientProfile } from './components/ClientProfile';
@@ -470,8 +471,16 @@ const App: React.FC = () => {
     if (hasOnboarded) {
       navigateTo('dashboard');
     } else {
-      navigateTo('onboarding');
+      navigateTo('guided-demo');
     }
+  };
+
+  const handleGuidedDemoComplete = (newProfile: StylistProfile, demoClients: Client[], newBookingSettings: BookingSettings) => {
+    setProfile(newProfile);
+    setClients(demoClients);
+    setBookingSettings(newBookingSettings);
+    setHasOnboarded(true);
+    navigateTo('dashboard');
   };
 
   const handleOnboardingComplete = (newProfile: StylistProfile) => {
@@ -510,6 +519,18 @@ const App: React.FC = () => {
       <Onboarding
         onComplete={handleOnboardingComplete}
         onBack={goBack}
+      />
+    );
+  }
+
+  if (screen === 'guided-demo') {
+    return (
+      <GuidedDemo
+        onComplete={handleGuidedDemoComplete}
+        onExit={() => {
+          setScreenHistory(['landing']);
+          setScreen('landing');
+        }}
       />
     );
   }

@@ -1,11 +1,49 @@
 import React, { useState } from 'react';
 import { IndustryType, StylistProfile, Service, Client, RotationType, BookingSettings } from '../types';
-import { LOGOS } from '../constants';
+import { LOGOS, INDUSTRY_SAMPLE_CLIENTS } from '../constants';
+
+// SVG Icons for industries
+const INDUSTRY_ICONS: Record<IndustryType, React.FC<{ className?: string }>> = {
+  'hair-stylist': ({ className }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z" />
+    </svg>
+  ),
+  'personal-trainer': ({ className }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 6h18M3 6v12a2 2 0 002 2h14a2 2 0 002-2V6M3 6l3-3h12l3 3M12 10v6m-3-3h6" />
+    </svg>
+  ),
+  'massage-therapist': ({ className }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+    </svg>
+  ),
+  'esthetician': ({ className }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+    </svg>
+  ),
+  'therapist-counselor': ({ className }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+    </svg>
+  ),
+  'consultant-coach': ({ className }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+    </svg>
+  ),
+  'other': ({ className }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+    </svg>
+  ),
+};
 
 // Industry-specific demo data
 const INDUSTRY_DATA: Record<IndustryType, {
   label: string;
-  icon: string;
   services: Service[];
   suggestedGoal: number;
   rotations: { priority: number; standard: number; flex: number };
@@ -23,10 +61,10 @@ const INDUSTRY_DATA: Record<IndustryType, {
   };
   specialties: string[];
   bio: string;
+  intakeQuestions: { question: string; answer: string }[];
 }> = {
   'hair-stylist': {
     label: 'Hair Stylist',
-    icon: '💇',
     services: [
       { id: 'color-cut', name: 'Color + Cut', price: 185, category: 'base' },
       { id: 'cut-style', name: 'Cut + Style', price: 85, category: 'base' },
@@ -52,10 +90,17 @@ const INDUSTRY_DATA: Record<IndustryType, {
     },
     specialties: ['Balayage', 'Color Correction', 'Curly Hair', 'Bridal'],
     bio: 'Creating personalized color and cuts that fit your lifestyle.',
+    intakeQuestions: [
+      { question: 'What is your natural hair color?', answer: 'Dark brown' },
+      { question: 'Current hair color/treatment?', answer: 'Warm brunette with highlights' },
+      { question: 'How often do you style with heat?', answer: 'Few times a week' },
+      { question: 'Any allergies or sensitivities?', answer: 'Sensitive scalp - gentle products only' },
+      { question: 'What hair goal are you working toward?', answer: 'Go lighter for summer, cover grays' },
+      { question: 'How much time for morning styling?', answer: '15 minutes' },
+    ],
   },
   'personal-trainer': {
     label: 'Personal Trainer',
-    icon: '💪',
     services: [
       { id: '1on1', name: '1:1 Training Session', price: 120, category: 'base' },
       { id: 'pairs', name: 'Pairs Training', price: 90, category: 'base' },
@@ -79,10 +124,17 @@ const INDUSTRY_DATA: Record<IndustryType, {
     },
     specialties: ['Weight Loss', 'Strength Training', 'Injury Rehab', 'HIIT'],
     bio: 'Helping you build strength and confidence, one session at a time.',
+    intakeQuestions: [
+      { question: 'Current fitness level?', answer: 'Beginner - desk job, minimal activity' },
+      { question: 'Any injuries or limitations?', answer: 'Previous knee injury - avoid high impact' },
+      { question: 'Primary fitness goal?', answer: 'Lose 20 lbs, build core strength' },
+      { question: 'Preferred workout time?', answer: 'Mornings before work' },
+      { question: 'Access to equipment?', answer: 'Full gym access' },
+      { question: 'Dietary restrictions?', answer: 'None' },
+    ],
   },
   'massage-therapist': {
     label: 'Massage Therapist',
-    icon: '💆',
     services: [
       { id: 'deep-tissue-60', name: 'Deep Tissue 60min', price: 120, category: 'base' },
       { id: 'deep-tissue-90', name: 'Deep Tissue 90min', price: 150, category: 'base' },
@@ -106,10 +158,17 @@ const INDUSTRY_DATA: Record<IndustryType, {
     },
     specialties: ['Sports Massage', 'Chronic Pain', 'Prenatal', 'Relaxation'],
     bio: 'Therapeutic massage tailored to your body and goals.',
+    intakeQuestions: [
+      { question: 'Primary areas of concern?', answer: 'Lower back, shoulders' },
+      { question: 'Pressure preference?', answer: 'Firm to deep' },
+      { question: 'Any medical conditions?', answer: 'None' },
+      { question: 'Recent injuries or surgeries?', answer: 'No' },
+      { question: 'How often do you get massages?', answer: 'Monthly' },
+      { question: 'Goals for this session?', answer: 'Pain relief and stress reduction' },
+    ],
   },
   'esthetician': {
     label: 'Esthetician',
-    icon: '✨',
     services: [
       { id: 'facial-signature', name: 'Signature Facial', price: 150, category: 'base' },
       { id: 'facial-express', name: 'Express Facial', price: 85, category: 'base' },
@@ -134,10 +193,17 @@ const INDUSTRY_DATA: Record<IndustryType, {
     },
     specialties: ['Acne Treatment', 'Anti-Aging', 'Sensitive Skin', 'Peels'],
     bio: 'Customized skincare treatments for healthy, glowing skin.',
+    intakeQuestions: [
+      { question: 'Skin type?', answer: 'Combination - oily T-zone' },
+      { question: 'Primary skin concerns?', answer: 'Adult acne, early signs of aging' },
+      { question: 'Current skincare routine?', answer: 'Basic cleanser and moisturizer' },
+      { question: 'Any allergies or sensitivities?', answer: 'Sensitive to fragrances' },
+      { question: 'Sun exposure habits?', answer: 'Moderate, wears SPF daily' },
+      { question: 'Previous treatments?', answer: 'Occasional facials' },
+    ],
   },
   'therapist-counselor': {
     label: 'Therapist',
-    icon: '🧠',
     services: [
       { id: 'individual-50', name: 'Individual Session 50min', price: 180, category: 'base' },
       { id: 'individual-80', name: 'Extended Session 80min', price: 260, category: 'base' },
@@ -160,10 +226,17 @@ const INDUSTRY_DATA: Record<IndustryType, {
     },
     specialties: ['Anxiety', 'Depression', 'Career Transitions', 'CBT'],
     bio: 'A safe space to explore, heal, and grow.',
+    intakeQuestions: [
+      { question: 'What brings you to therapy?', answer: 'Work-related anxiety and stress' },
+      { question: 'Previous therapy experience?', answer: 'Brief counseling in college' },
+      { question: 'Current stressors?', answer: 'Job transition, work-life balance' },
+      { question: 'Support system?', answer: 'Partner, close friends' },
+      { question: 'Goals for therapy?', answer: 'Better stress management, career clarity' },
+      { question: 'Preferred session format?', answer: 'Evening, virtual preferred' },
+    ],
   },
   'consultant-coach': {
     label: 'Consultant/Coach',
-    icon: '📈',
     services: [
       { id: 'coaching-60', name: 'Coaching Session 60min', price: 200, category: 'base' },
       { id: 'strategy', name: 'Strategy Session 90min', price: 350, category: 'base' },
@@ -186,10 +259,17 @@ const INDUSTRY_DATA: Record<IndustryType, {
     },
     specialties: ['Business Strategy', 'Leadership', 'Scaling', 'Mindset'],
     bio: 'Helping ambitious professionals achieve breakthrough results.',
+    intakeQuestions: [
+      { question: 'Current business stage?', answer: 'Growth - $500K revenue, scaling' },
+      { question: 'Team size?', answer: '5 employees, hiring 2 more' },
+      { question: 'Biggest challenge?', answer: 'Delegation and letting go of control' },
+      { question: 'Revenue goal?', answer: '$1M in 12 months' },
+      { question: 'Leadership style?', answer: 'Hands-on, learning to delegate' },
+      { question: 'Accountability needs?', answer: 'Weekly check-ins, direct feedback' },
+    ],
   },
   'other': {
     label: 'Other Professional',
-    icon: '🎯',
     services: [
       { id: 'session-60', name: 'Session 60min', price: 100, category: 'base' },
       { id: 'session-90', name: 'Session 90min', price: 140, category: 'base' },
@@ -211,6 +291,14 @@ const INDUSTRY_DATA: Record<IndustryType, {
     },
     specialties: [],
     bio: 'Professional services tailored to your needs.',
+    intakeQuestions: [
+      { question: 'How often do you currently use this service?', answer: 'Monthly' },
+      { question: 'What outcome are you hoping for?', answer: 'Consistent, reliable service' },
+      { question: 'Preferred communication method?', answer: 'Text or email' },
+      { question: 'Any scheduling preferences?', answer: 'Tuesday or Thursday afternoons' },
+      { question: 'Anything else we should know?', answer: 'Appreciate punctuality' },
+      { question: 'How did you hear about us?', answer: 'Referral from a friend' },
+    ],
   },
 };
 
@@ -223,6 +311,7 @@ const STEPS = [
   { id: 'booking', title: 'Booking Link', subtitle: 'Get new clients online' },
   { id: 'preview-public', title: 'Your Public Page', subtitle: 'What clients will see' },
   { id: 'add-client', title: 'Add a Client', subtitle: 'See the client intelligence' },
+  { id: 'intake-questions', title: 'Intake Questions', subtitle: 'Capture what matters' },
   { id: 'schedule', title: 'Schedule Appointment', subtitle: 'Intelligent booking in action' },
   { id: 'rebook-preview', title: 'Rebooking Flow', subtitle: 'The automation magic' },
   { id: 'dashboard', title: 'Dashboard', subtitle: 'Your business at a glance' },
@@ -289,10 +378,9 @@ export const GuidedDemo: React.FC<GuidedDemoProps> = ({ onComplete, onExit }) =>
 
   const handleNext = () => {
     if (currentStep === STEPS.length - 1) {
-      // Final step - complete demo
-      if (demoClient) {
-        onComplete(profile, [demoClient], bookingSettings);
-      }
+      // Final step - complete demo with ALL industry sample clients
+      const allClients = selectedIndustry ? INDUSTRY_SAMPLE_CLIENTS[selectedIndustry] : [];
+      onComplete(profile, allClients, bookingSettings);
     } else {
       // Special handling for add-client step
       if (STEPS[currentStep].id === 'add-client' && industryData && !demoClient) {
@@ -354,6 +442,7 @@ export const GuidedDemo: React.FC<GuidedDemoProps> = ({ onComplete, onExit }) =>
               {(Object.keys(INDUSTRY_DATA) as IndustryType[]).filter(k => k !== 'other').map((industry) => {
                 const data = INDUSTRY_DATA[industry];
                 const isSelected = selectedIndustry === industry;
+                const IconComponent = INDUSTRY_ICONS[industry];
                 return (
                   <button
                     key={industry}
@@ -364,7 +453,9 @@ export const GuidedDemo: React.FC<GuidedDemoProps> = ({ onComplete, onExit }) =>
                         : 'border-slate-200 hover:border-maroon/50 hover:bg-slate-50'
                     }`}
                   >
-                    <div className="text-2xl sm:text-3xl mb-2">{data.icon}</div>
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 mb-2 text-maroon">
+                      <IconComponent className="w-full h-full" />
+                    </div>
                     <div className="font-bold text-maroon text-sm sm:text-base">{data.label}</div>
                   </button>
                 );
@@ -767,6 +858,69 @@ export const GuidedDemo: React.FC<GuidedDemoProps> = ({ onComplete, onExit }) =>
           </div>
         );
 
+      case 'intake-questions':
+        const intakeQuestions = industryData?.intakeQuestions || [];
+        return (
+          <div className="space-y-6 max-w-2xl mx-auto">
+            <div className="text-center mb-6 sm:mb-8">
+              <h2 className="text-2xl sm:text-3xl font-serif text-maroon mb-2">Intake questions walkthrough</h2>
+              <p className="text-maroon/60 text-sm sm:text-base">Industry-specific questions capture exactly what you need to know.</p>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+              <div className="px-4 sm:px-6 py-4 bg-gradient-to-r from-[#c17f59] to-[#a66b4a] text-white">
+                <div className="flex items-center gap-3">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <div>
+                    <div className="text-white/80 text-xs font-medium">Intake Form</div>
+                    <div className="font-bold">{industryData?.label} Questions</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 sm:p-6 space-y-4">
+                {intakeQuestions.map((q, i) => (
+                  <div key={i} className="border-b border-slate-100 pb-4 last:border-0 last:pb-0">
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 bg-[#c17f59]/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-xs font-bold text-[#c17f59]">{i + 1}</span>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-maroon mb-1">{q.question}</p>
+                        <div className="bg-slate-50 rounded-lg px-3 py-2">
+                          <p className="text-sm text-slate-600 italic">"{q.answer}"</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="font-bold text-emerald-700 text-sm mb-1">Customized for your industry</p>
+                  <p className="text-sm text-emerald-600">
+                    These questions are tailored to {industryData?.label.toLowerCase()}s. New clients answer them when booking through your public page.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <p className="text-center text-sm text-slate-400">
+              Every client arrives with context. No more consultation guesswork.
+            </p>
+          </div>
+        );
+
       case 'schedule':
         const service = profile.services.find(s => s.category === 'base');
         const suggestedDate = new Date();
@@ -920,32 +1074,38 @@ export const GuidedDemo: React.FC<GuidedDemoProps> = ({ onComplete, onExit }) =>
         );
 
       case 'dashboard':
+        // Calculate totals from ALL industry sample clients
+        const allDemoClients = selectedIndustry ? INDUSTRY_SAMPLE_CLIENTS[selectedIndustry] : [];
+        const totalAnnualValue = allDemoClients.reduce((sum, c) => sum + c.annualValue, 0);
+        const clientCount = allDemoClients.length;
+        const confirmedCount = allDemoClients.filter(c => c.status === 'confirmed').length;
+
         return (
           <div className="space-y-6 max-w-2xl mx-auto text-center">
             <div className="mb-6 sm:mb-8">
               <h2 className="text-2xl sm:text-3xl font-serif text-maroon mb-2">You're all set!</h2>
-              <p className="text-maroon/60 text-sm sm:text-base">Let's see your dashboard with everything you've set up.</p>
+              <p className="text-maroon/60 text-sm sm:text-base">Let's see your dashboard with sample clients loaded.</p>
             </div>
 
             <div className="bg-maroon text-white rounded-2xl p-6 sm:p-8">
               <div className="text-white/60 text-xs sm:text-sm mb-2">Your {new Date().getFullYear()} Forecast</div>
-              <div className="text-3xl sm:text-5xl font-serif mb-3 sm:mb-4">{formatCurrency(demoClient?.annualValue || 0)}</div>
+              <div className="text-3xl sm:text-5xl font-serif mb-3 sm:mb-4">{formatCurrency(totalAnnualValue)}</div>
               <p className="text-white/70 text-xs sm:text-sm">
-                Starting with 1 client. Add more to grow your forecast.
+                {clientCount} sample clients on rotation
               </p>
             </div>
 
             <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
               <div className="bg-white rounded-xl p-3 sm:p-4 border border-slate-200">
-                <div className="text-xl sm:text-2xl font-serif text-maroon">1</div>
-                <div className="text-[10px] sm:text-xs text-slate-400">Client</div>
+                <div className="text-xl sm:text-2xl font-serif text-maroon">{clientCount}</div>
+                <div className="text-[10px] sm:text-xs text-slate-400">Clients</div>
               </div>
               <div className="bg-white rounded-xl p-3 sm:p-4 border border-slate-200">
-                <div className="text-xl sm:text-2xl font-serif text-maroon">{industryData?.rotations.standard || 8}wk</div>
-                <div className="text-[10px] sm:text-xs text-slate-400">Rotation</div>
+                <div className="text-xl sm:text-2xl font-serif text-emerald-600">{confirmedCount}</div>
+                <div className="text-[10px] sm:text-xs text-slate-400">Confirmed</div>
               </div>
               <div className="bg-white rounded-xl p-3 sm:p-4 border border-slate-200">
-                <div className="text-lg sm:text-2xl font-serif text-emerald-600">{formatCurrency(profile.annualGoal)}</div>
+                <div className="text-lg sm:text-2xl font-serif text-[#c17f59]">{formatCurrency(profile.annualGoal)}</div>
                 <div className="text-[10px] sm:text-xs text-slate-400">Goal</div>
               </div>
             </div>

@@ -376,9 +376,9 @@ export const GuidedDemo: React.FC<GuidedDemoProps> = ({ onComplete, onExit }) =>
       case 'profile':
         return (
           <div className="space-y-6 max-w-lg mx-auto">
-            <div className="text-center mb-8">
+            <div className="text-center mb-6 sm:mb-8">
               <h2 className="text-2xl sm:text-3xl font-serif text-maroon mb-2">Set up your profile</h2>
-              <p className="text-maroon/60">This appears on your public booking page.</p>
+              <p className="text-maroon/60 text-sm sm:text-base">This appears on your public booking page.</p>
             </div>
             <div className="space-y-4">
               <div>
@@ -438,9 +438,9 @@ export const GuidedDemo: React.FC<GuidedDemoProps> = ({ onComplete, onExit }) =>
       case 'services':
         return (
           <div className="space-y-6 max-w-2xl mx-auto">
-            <div className="text-center mb-8">
+            <div className="text-center mb-6 sm:mb-8">
               <h2 className="text-2xl sm:text-3xl font-serif text-maroon mb-2">Your service menu</h2>
-              <p className="text-maroon/60">Pre-filled based on your industry. You can customize these anytime.</p>
+              <p className="text-maroon/60 text-sm sm:text-base">Pre-filled based on your industry. You can customize these anytime.</p>
             </div>
 
             <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
@@ -481,53 +481,53 @@ export const GuidedDemo: React.FC<GuidedDemoProps> = ({ onComplete, onExit }) =>
 
       case 'rotations':
         return (
-          <div className="space-y-6 max-w-2xl mx-auto">
-            <div className="text-center mb-8">
+          <div className="space-y-4 sm:space-y-6 max-w-2xl mx-auto">
+            <div className="text-center mb-6 sm:mb-8">
               <h2 className="text-2xl sm:text-3xl font-serif text-maroon mb-2">The rotation system</h2>
-              <p className="text-maroon/60">This is the magic of Recur. Clients are categorized by how often they should return.</p>
+              <p className="text-maroon/60 text-sm sm:text-base">This is the magic of Recur. Clients are categorized by how often they should return.</p>
             </div>
 
-            <div className="bg-[#c17f59]/10 border-2 border-[#c17f59]/30 rounded-2xl p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-[#c17f59] rounded-xl flex items-center justify-center">
+            <div className="bg-[#c17f59]/10 border-2 border-[#c17f59]/30 rounded-xl sm:rounded-2xl p-4 sm:p-6">
+              <div className="flex items-center gap-3 mb-3 sm:mb-4">
+                <div className="w-10 h-10 bg-[#c17f59] rounded-xl flex items-center justify-center flex-shrink-0">
                   <span className="text-white font-bold">{industryData?.rotations.priority || 6}</span>
                 </div>
                 <div>
-                  <h3 className="font-bold text-[#c17f59]">Priority Rotation</h3>
-                  <p className="text-sm text-maroon/60">{industryData?.rotations.priority || 6} weeks - Your most frequent clients</p>
+                  <h3 className="font-bold text-[#c17f59] text-sm sm:text-base">Priority Rotation</h3>
+                  <p className="text-xs sm:text-sm text-maroon/60">{industryData?.rotations.priority || 6} weeks - Your most frequent clients</p>
                 </div>
               </div>
-              <p className="text-sm text-maroon/70">
+              <p className="text-xs sm:text-sm text-maroon/70">
                 These clients need regular appointments to maintain their results. They're your bread and butter.
               </p>
             </div>
 
-            <div className="bg-[#7c9a7e]/10 border-2 border-[#7c9a7e]/30 rounded-2xl p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-[#7c9a7e] rounded-xl flex items-center justify-center">
+            <div className="bg-[#7c9a7e]/10 border-2 border-[#7c9a7e]/30 rounded-xl sm:rounded-2xl p-4 sm:p-6">
+              <div className="flex items-center gap-3 mb-3 sm:mb-4">
+                <div className="w-10 h-10 bg-[#7c9a7e] rounded-xl flex items-center justify-center flex-shrink-0">
                   <span className="text-white font-bold">{industryData?.rotations.standard || 8}</span>
                 </div>
                 <div>
-                  <h3 className="font-bold text-[#7c9a7e]">Standard Rotation</h3>
-                  <p className="text-sm text-maroon/60">{industryData?.rotations.standard || 8} weeks - Your typical client</p>
+                  <h3 className="font-bold text-[#7c9a7e] text-sm sm:text-base">Standard Rotation</h3>
+                  <p className="text-xs sm:text-sm text-maroon/60">{industryData?.rotations.standard || 8} weeks - Your typical client</p>
                 </div>
               </div>
-              <p className="text-sm text-maroon/70">
+              <p className="text-xs sm:text-sm text-maroon/70">
                 Most clients fall here. They book on a regular schedule with some flexibility.
               </p>
             </div>
 
-            <div className="bg-[#b5a078]/10 border-2 border-[#b5a078]/30 rounded-2xl p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-[#b5a078] rounded-xl flex items-center justify-center">
+            <div className="bg-[#b5a078]/10 border-2 border-[#b5a078]/30 rounded-xl sm:rounded-2xl p-4 sm:p-6">
+              <div className="flex items-center gap-3 mb-3 sm:mb-4">
+                <div className="w-10 h-10 bg-[#b5a078] rounded-xl flex items-center justify-center flex-shrink-0">
                   <span className="text-white font-bold">{industryData?.rotations.flex || 12}</span>
                 </div>
                 <div>
-                  <h3 className="font-bold text-[#b5a078]">Flex Rotation</h3>
-                  <p className="text-sm text-maroon/60">{industryData?.rotations.flex || 12} weeks - Occasional clients</p>
+                  <h3 className="font-bold text-[#b5a078] text-sm sm:text-base">Flex Rotation</h3>
+                  <p className="text-xs sm:text-sm text-maroon/60">{industryData?.rotations.flex || 12} weeks - Occasional clients</p>
                 </div>
               </div>
-              <p className="text-sm text-maroon/70">
+              <p className="text-xs sm:text-sm text-maroon/70">
                 Seasonal or occasional clients. They still matter - and Recur tracks when they're due back.
               </p>
             </div>
@@ -543,14 +543,14 @@ export const GuidedDemo: React.FC<GuidedDemoProps> = ({ onComplete, onExit }) =>
       case 'goal':
         return (
           <div className="space-y-6 max-w-lg mx-auto">
-            <div className="text-center mb-8">
+            <div className="text-center mb-6 sm:mb-8">
               <h2 className="text-2xl sm:text-3xl font-serif text-maroon mb-2">Set your annual goal</h2>
-              <p className="text-maroon/60">Recur will track your progress and project when you'll hit it.</p>
+              <p className="text-maroon/60 text-sm sm:text-base">Recur will track your progress and project when you'll hit it.</p>
             </div>
 
             <div className="bg-maroon text-white rounded-2xl p-6 text-center">
-              <div className="text-5xl font-serif mb-2">{formatCurrency(profile.annualGoal || 0)}</div>
-              <div className="text-white/60 text-sm">{new Date().getFullYear()} Income Goal</div>
+              <div className="text-4xl sm:text-5xl font-serif mb-2">{formatCurrency(profile.annualGoal || 0)}</div>
+              <div className="text-white/60 text-xs sm:text-sm">{new Date().getFullYear()} Income Goal</div>
             </div>
 
             <div>
@@ -581,9 +581,9 @@ export const GuidedDemo: React.FC<GuidedDemoProps> = ({ onComplete, onExit }) =>
       case 'booking':
         return (
           <div className="space-y-6 max-w-lg mx-auto">
-            <div className="text-center mb-8">
+            <div className="text-center mb-6 sm:mb-8">
               <h2 className="text-2xl sm:text-3xl font-serif text-maroon mb-2">Your booking link</h2>
-              <p className="text-maroon/60">Share this link to get new clients without the back-and-forth.</p>
+              <p className="text-maroon/60 text-sm sm:text-base">Share this link to get new clients without the back-and-forth.</p>
             </div>
 
             <div className="bg-slate-100 rounded-xl p-4">
@@ -634,7 +634,7 @@ export const GuidedDemo: React.FC<GuidedDemoProps> = ({ onComplete, onExit }) =>
           <div className="space-y-6 max-w-md mx-auto">
             <div className="text-center mb-4">
               <h2 className="text-2xl sm:text-3xl font-serif text-maroon mb-2">Your public booking page</h2>
-              <p className="text-maroon/60">This is what potential clients will see.</p>
+              <p className="text-maroon/60 text-sm sm:text-base">This is what potential clients will see.</p>
             </div>
 
             {/* Mini preview of public page */}
@@ -683,9 +683,9 @@ export const GuidedDemo: React.FC<GuidedDemoProps> = ({ onComplete, onExit }) =>
         const sampleClient = industryData?.sampleClient;
         return (
           <div className="space-y-6 max-w-2xl mx-auto">
-            <div className="text-center mb-8">
+            <div className="text-center mb-6 sm:mb-8">
               <h2 className="text-2xl sm:text-3xl font-serif text-maroon mb-2">Meet your first client</h2>
-              <p className="text-maroon/60">See how Recur captures client intelligence.</p>
+              <p className="text-maroon/60 text-sm sm:text-base">See how Recur captures client intelligence.</p>
             </div>
 
             {sampleClient && (
@@ -743,10 +743,10 @@ export const GuidedDemo: React.FC<GuidedDemoProps> = ({ onComplete, onExit }) =>
                   )}
 
                   {/* Preferences */}
-                  <div className="flex gap-4">
-                    <div>
+                  <div className="flex flex-wrap gap-4">
+                    <div className="flex-1 min-w-[120px]">
                       <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Preferred Days</p>
-                      <div className="flex gap-1">
+                      <div className="flex flex-wrap gap-1">
                         {sampleClient.preferredDays.map(day => (
                           <span key={day} className="px-2 py-1 bg-slate-100 rounded text-xs font-medium text-maroon">{day}</span>
                         ))}
@@ -777,18 +777,18 @@ export const GuidedDemo: React.FC<GuidedDemoProps> = ({ onComplete, onExit }) =>
 
         return (
           <div className="space-y-6 max-w-lg mx-auto">
-            <div className="text-center mb-8">
+            <div className="text-center mb-6 sm:mb-8">
               <h2 className="text-2xl sm:text-3xl font-serif text-maroon mb-2">Intelligent scheduling</h2>
-              <p className="text-maroon/60">Recur pre-fills everything based on client data.</p>
+              <p className="text-maroon/60 text-sm sm:text-base">Recur pre-fills everything based on client data.</p>
             </div>
 
             <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
-              <div className="px-6 py-4 bg-gradient-to-r from-[#7c9a7e] to-[#6b8a6d] text-white">
+              <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-[#7c9a7e] to-[#6b8a6d] text-white">
                 <div className="text-white/80 text-xs font-medium mb-1">Smart Scheduling</div>
-                <h3 className="font-bold text-lg">Book {industryData?.sampleClient.name.split(' ')[0]}'s Appointment</h3>
+                <h3 className="font-bold text-base sm:text-lg">Book {industryData?.sampleClient.name.split(' ')[0]}'s Appointment</h3>
               </div>
 
-              <div className="p-6 space-y-5">
+              <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
                 {/* Pre-calculated Date */}
                 <div className="bg-emerald-50 border-2 border-emerald-200 rounded-xl p-4">
                   <div className="flex items-center gap-3">
@@ -852,27 +852,27 @@ export const GuidedDemo: React.FC<GuidedDemoProps> = ({ onComplete, onExit }) =>
       case 'rebook-preview':
         return (
           <div className="space-y-6 max-w-md mx-auto">
-            <div className="text-center mb-8">
+            <div className="text-center mb-6 sm:mb-8">
               <h2 className="text-2xl sm:text-3xl font-serif text-maroon mb-2">The rebooking flow</h2>
-              <p className="text-maroon/60">After each appointment, Recur prompts you to book the next one.</p>
+              <p className="text-maroon/60 text-sm sm:text-base">After each appointment, Recur prompts you to book the next one.</p>
             </div>
 
             {/* Mock completion modal */}
             <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
-              <div className="px-6 py-5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-center">
-                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="px-4 sm:px-6 py-4 sm:py-5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-center">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <h3 className="font-bold text-xl mb-1">Appointment Complete!</h3>
-                <p className="text-white/80 text-sm">
+                <h3 className="font-bold text-lg sm:text-xl mb-1">Appointment Complete!</h3>
+                <p className="text-white/80 text-xs sm:text-sm">
                   {industryData?.sampleClient.name} • {profile.services.find(s => s.category === 'base')?.name}
                 </p>
               </div>
 
-              <div className="p-6">
-                <h4 className="font-bold text-maroon text-lg mb-4 text-center">
+              <div className="p-4 sm:p-6">
+                <h4 className="font-bold text-maroon text-base sm:text-lg mb-4 text-center">
                   Book {industryData?.sampleClient.name.split(' ')[0]}'s next appointment?
                 </h4>
 
@@ -922,36 +922,36 @@ export const GuidedDemo: React.FC<GuidedDemoProps> = ({ onComplete, onExit }) =>
       case 'dashboard':
         return (
           <div className="space-y-6 max-w-2xl mx-auto text-center">
-            <div className="mb-8">
+            <div className="mb-6 sm:mb-8">
               <h2 className="text-2xl sm:text-3xl font-serif text-maroon mb-2">You're all set!</h2>
-              <p className="text-maroon/60">Let's see your dashboard with everything you've set up.</p>
+              <p className="text-maroon/60 text-sm sm:text-base">Let's see your dashboard with everything you've set up.</p>
             </div>
 
-            <div className="bg-maroon text-white rounded-2xl p-8">
-              <div className="text-white/60 text-sm mb-2">Your {new Date().getFullYear()} Forecast</div>
-              <div className="text-5xl font-serif mb-4">{formatCurrency(demoClient?.annualValue || 0)}</div>
-              <p className="text-white/70 text-sm">
+            <div className="bg-maroon text-white rounded-2xl p-6 sm:p-8">
+              <div className="text-white/60 text-xs sm:text-sm mb-2">Your {new Date().getFullYear()} Forecast</div>
+              <div className="text-3xl sm:text-5xl font-serif mb-3 sm:mb-4">{formatCurrency(demoClient?.annualValue || 0)}</div>
+              <p className="text-white/70 text-xs sm:text-sm">
                 Starting with 1 client. Add more to grow your forecast.
               </p>
             </div>
 
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div className="bg-white rounded-xl p-4 border border-slate-200">
-                <div className="text-2xl font-serif text-maroon">1</div>
-                <div className="text-xs text-slate-400">Client</div>
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
+              <div className="bg-white rounded-xl p-3 sm:p-4 border border-slate-200">
+                <div className="text-xl sm:text-2xl font-serif text-maroon">1</div>
+                <div className="text-[10px] sm:text-xs text-slate-400">Client</div>
               </div>
-              <div className="bg-white rounded-xl p-4 border border-slate-200">
-                <div className="text-2xl font-serif text-maroon">{industryData?.rotations.standard || 8}wk</div>
-                <div className="text-xs text-slate-400">Rotation</div>
+              <div className="bg-white rounded-xl p-3 sm:p-4 border border-slate-200">
+                <div className="text-xl sm:text-2xl font-serif text-maroon">{industryData?.rotations.standard || 8}wk</div>
+                <div className="text-[10px] sm:text-xs text-slate-400">Rotation</div>
               </div>
-              <div className="bg-white rounded-xl p-4 border border-slate-200">
-                <div className="text-2xl font-serif text-emerald-600">{formatCurrency(profile.annualGoal)}</div>
-                <div className="text-xs text-slate-400">Goal</div>
+              <div className="bg-white rounded-xl p-3 sm:p-4 border border-slate-200">
+                <div className="text-lg sm:text-2xl font-serif text-emerald-600">{formatCurrency(profile.annualGoal)}</div>
+                <div className="text-[10px] sm:text-xs text-slate-400">Goal</div>
               </div>
             </div>
 
-            <p className="text-slate-400">
-              Click "Enter Dashboard" to explore the full experience.
+            <p className="text-slate-400 text-sm">
+              Tap "Enter Dashboard" to explore the full experience.
             </p>
           </div>
         );
@@ -1007,19 +1007,19 @@ export const GuidedDemo: React.FC<GuidedDemoProps> = ({ onComplete, onExit }) =>
       </div>
 
       {/* Content */}
-      <main className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
+      <main className="max-w-4xl mx-auto px-4 py-6 sm:py-12 pb-24 sm:pb-28">
         {renderStepContent()}
       </main>
 
       {/* Footer Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 p-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 p-3 sm:p-4 safe-area-bottom">
+        <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
           <button
             onClick={handleBack}
-            className={`px-6 py-3 rounded-xl font-bold transition-colors ${
+            className={`px-4 sm:px-6 py-3 rounded-xl font-bold transition-colors ${
               currentStep === 0
                 ? 'text-slate-300 cursor-not-allowed'
-                : 'text-maroon hover:bg-slate-100'
+                : 'text-maroon hover:bg-slate-100 active:bg-slate-200'
             }`}
             disabled={currentStep === 0}
           >
@@ -1028,9 +1028,9 @@ export const GuidedDemo: React.FC<GuidedDemoProps> = ({ onComplete, onExit }) =>
           <button
             onClick={handleNext}
             disabled={!canProceed()}
-            className={`px-8 py-3 rounded-xl font-bold transition-colors ${
+            className={`flex-1 sm:flex-none px-6 sm:px-8 py-3 rounded-xl font-bold transition-colors text-center ${
               canProceed()
-                ? 'bg-maroon text-white hover:bg-maroon/90'
+                ? 'bg-maroon text-white hover:bg-maroon/90 active:bg-maroon/80'
                 : 'bg-slate-200 text-slate-400 cursor-not-allowed'
             }`}
           >

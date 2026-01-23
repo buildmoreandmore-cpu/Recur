@@ -64,15 +64,25 @@ const INDUSTRY_DATA: Record<IndustryType, {
   intakeQuestions: { question: string; answer: string }[];
 }> = {
   'hair-stylist': {
-    label: 'Hair Stylist',
+    label: 'Hair Stylist / Barber',
     services: [
+      // Salon Services
       { id: 'color-cut', name: 'Color + Cut', price: 185, category: 'base' },
       { id: 'cut-style', name: 'Cut + Style', price: 85, category: 'base' },
       { id: 'color-only', name: 'Full Color', price: 120, category: 'base' },
       { id: 'highlights', name: 'Highlights', price: 200, category: 'base' },
+      { id: 'silk-press', name: 'Silk Press', price: 95, category: 'base' },
+      // Barber Services
+      { id: 'fade', name: 'Fade', price: 35, category: 'base' },
+      { id: 'lineup', name: 'Lineup / Edge Up', price: 20, category: 'base' },
+      { id: 'beard-trim', name: 'Beard Trim', price: 25, category: 'base' },
+      { id: 'hot-towel-shave', name: 'Hot Towel Shave', price: 40, category: 'base' },
+      { id: 'kids-cut', name: 'Kids Cut', price: 25, category: 'base' },
+      // Add-ons
       { id: 'treatment', name: 'Deep Treatment', price: 35, category: 'addon' },
       { id: 'gloss', name: 'Gloss Refresh', price: 45, category: 'addon' },
       { id: 'blowout', name: 'Blowout', price: 55, category: 'addon' },
+      { id: 'beard-oil', name: 'Beard Oil Treatment', price: 15, category: 'addon' },
     ],
     suggestedGoal: 120000,
     rotations: { priority: 6, standard: 8, flex: 12 },
@@ -88,8 +98,8 @@ const INDUSTRY_DATA: Record<IndustryType, {
       preferredDays: ['Tue', 'Sat'],
       preferredTime: 'Morning',
     },
-    specialties: ['Balayage', 'Color Correction', 'Curly Hair', 'Bridal'],
-    bio: 'Creating personalized color and cuts that fit your lifestyle.',
+    specialties: ['Balayage', 'Color Correction', 'Curly Hair', 'Bridal', 'Fades', 'Beard Styling'],
+    bio: 'Creating personalized cuts and styles that fit your lifestyle.',
     intakeQuestions: [
       { question: 'What is your natural hair color?', answer: 'Dark brown' },
       { question: 'Current hair color/treatment?', answer: 'Warm brunette with highlights' },
@@ -731,8 +741,13 @@ export const GuidedDemo: React.FC<GuidedDemoProps> = ({ onComplete, onExit }) =>
             {/* Mini preview of public page */}
             <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
               <div className="bg-gradient-to-br from-maroon to-[#1a1512] px-6 py-8 text-center text-white">
-                <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-3 text-xl font-bold">
-                  {getInitials(profile.name || 'YN')}
+                {/* Placeholder profile photo for demo */}
+                <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3 overflow-hidden border-2 border-white/30">
+                  <img
+                    src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop&crop=face"
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <h3 className="text-xl font-serif mb-1">{profile.name || 'Your Name'}</h3>
                 {profile.businessName && <p className="text-white/70 text-sm">{profile.businessName}</p>}
@@ -747,9 +762,17 @@ export const GuidedDemo: React.FC<GuidedDemoProps> = ({ onComplete, onExit }) =>
                 </div>
               </div>
               <div className="p-6">
-                {bookingSettings.bio && (
-                  <p className="text-maroon/70 text-center text-sm italic mb-4">"{bookingSettings.bio}"</p>
-                )}
+                {/* Editable bio/caption */}
+                <div className="mb-4">
+                  <textarea
+                    value={bookingSettings.bio}
+                    onChange={(e) => setBookingSettings(prev => ({ ...prev, bio: e.target.value }))}
+                    placeholder="Add a tagline or bio..."
+                    rows={2}
+                    className="w-full text-maroon/70 text-center text-sm italic bg-transparent border border-dashed border-slate-200 rounded-lg p-2 focus:border-maroon focus:outline-none resize-none hover:border-slate-300 transition-colors"
+                  />
+                  <p className="text-xs text-slate-400 text-center mt-1">Click to edit your tagline</p>
+                </div>
                 <div className="space-y-2 mb-4">
                   {profile.services.filter(s => s.category === 'base').slice(0, 3).map((service) => (
                     <div key={service.id} className="flex justify-between p-3 bg-slate-50 rounded-lg text-sm">

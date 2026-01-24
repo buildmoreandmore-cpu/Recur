@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { StylistProfile, Service, IndustryType, RotationType, UserPreferences, BillingInfo, BookingSettings } from '../types';
 import { LOGOS } from '../constants';
+import { StripeConnectSection } from './StripeConnectSection';
+import { createCheckoutSession, createCustomerPortalSession } from '../lib/stripe';
 
 interface SettingsProps {
   profile: StylistProfile;
@@ -42,6 +44,153 @@ const DEFAULT_BILLING: BillingInfo = {
     { date: '2025-12-11', description: 'Recur Pro — Monthly', amount: 29, status: 'paid' },
     { date: '2025-11-11', description: 'Recur Pro — Monthly', amount: 29, status: 'paid' },
   ],
+};
+
+// Billing Section Component
+const BillingSection: React.FC<{
+  subscriptionStatus?: string;
+  subscriptionCurrentPeriodEnd?: string;
+}> = ({ subscriptionStatus, subscriptionCurrentPeriodEnd }) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubscribe = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { url, error: checkoutError } = await createCheckoutSession();
+      if (checkoutError) {
+        setError(checkoutError);
+        return;
+      }
+      if (url) {
+        window.location.href = url;
+      }
+    } catch (err) {
+      setError('Failed to start checkout');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleManageBilling = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { url, error: portalError } = await createCustomerPortalSession();
+      if (portalError) {
+        setError(portalError);
+        return;
+      }
+      if (url) {
+        window.location.href = url;
+      }
+    } catch (err) {
+      setError('Failed to open billing portal');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const isActive = subscriptionStatus === 'active' || subscriptionStatus === 'trialing';
+  const isPastDue = subscriptionStatus === 'past_due';
+
+  const formatPeriodEnd = (dateStr?: string) => {
+    if (!dateStr) return 'N/A';
+    return new Date(dateStr).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-100">
+          <h2 className="text-xl font-serif text-maroon">Billing & Subscription</h2>
+        </div>
+        <div className="p-6">
+          {/* Active Subscription */}
+          {isActive && (
+            <div className="flex items-center justify-between p-4 bg-emerald-50 border-2 border-emerald-200 rounded-xl mb-6">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-bold text-maroon">Recur Pro</h3>
+                  <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-wider rounded-full">
+                    Active
+                  </span>
+                </div>
+                <p className="text-2xl font-serif text-maroon">$29<span className="text-sm font-normal text-maroon/60">/month</span></p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-slate-500">Renews on</p>
+                <p className="font-medium text-maroon">{formatPeriodEnd(subscriptionCurrentPeriodEnd)}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Past Due */}
+          {isPastDue && (
+            <div className="flex items-center justify-between p-4 bg-amber-50 border-2 border-amber-200 rounded-xl mb-6">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-bold text-maroon">Recur Pro</h3>
+                  <span className="px-2 py-0.5 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider rounded-full">
+                    Past Due
+                  </span>
+                </div>
+                <p className="text-sm text-amber-700">Please update your payment method to continue using Recur.</p>
+              </div>
+            </div>
+          )}
+
+          {/* No Subscription */}
+          {!isActive && !isPastDue && (
+            <div className="text-center py-8">
+              <div className="w-16 h-16 bg-maroon/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-maroon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-serif text-maroon mb-2">Subscribe to Recur Pro</h3>
+              <p className="text-maroon/60 mb-6 max-w-sm mx-auto">
+                Get full access to client management, booking links, revenue forecasting, and more.
+              </p>
+              <div className="mb-6">
+                <p className="text-3xl font-serif text-maroon">$29<span className="text-lg font-normal text-maroon/60">/month</span></p>
+              </div>
+              <button
+                onClick={handleSubscribe}
+                disabled={isLoading}
+                className="px-8 py-3 bg-maroon text-white rounded-xl font-bold hover:bg-maroon/90 transition-colors disabled:opacity-50"
+              >
+                {isLoading ? 'Loading...' : 'Subscribe Now'}
+              </button>
+            </div>
+          )}
+
+          {error && (
+            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
+          {/* Manage Billing Button */}
+          {(isActive || isPastDue) && (
+            <div className="mt-6 pt-6 border-t border-slate-100">
+              <button
+                onClick={handleManageBilling}
+                disabled={isLoading}
+                className="px-4 py-2 bg-slate-100 text-maroon rounded-xl font-medium text-sm hover:bg-slate-200 transition-colors disabled:opacity-50"
+              >
+                {isLoading ? 'Loading...' : 'Manage Billing & Invoices'}
+              </button>
+              <p className="text-xs text-slate-400 mt-2">
+                Update payment method, view invoices, or cancel subscription
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 const DEFAULT_BOOKING_SETTINGS: BookingSettings = {
@@ -944,130 +1093,18 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onBack, onUpdatePro
                     </div>
                   </div>
 
-                  {/* Stripe */}
-                  <div className="p-4 border-2 border-slate-200 rounded-xl opacity-60">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-white border-2 border-slate-200 rounded-xl flex items-center justify-center flex-shrink-0">
-                        <svg className="w-6 h-6 text-[#635BFF]" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.591-7.305z"/>
-                        </svg>
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-bold text-maroon">Stripe</h4>
-                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-200 text-slate-500">Coming Soon</span>
-                        </div>
-                        <p className="text-sm text-slate-500">Alternative payment processing.</p>
-                      </div>
-                      <button
-                        disabled
-                        className="px-4 py-2 bg-slate-100 text-slate-400 rounded-xl font-medium text-sm cursor-not-allowed"
-                      >
-                        Join Waitlist
-                      </button>
-                    </div>
-                  </div>
+                  {/* Stripe Connect */}
+                  <StripeConnectSection />
                 </div>
               </div>
             )}
 
             {/* Billing Section */}
             {activeTab === 'billing' && (
-              <div className="space-y-6">
-                {/* Current Plan */}
-                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                  <div className="px-6 py-4 border-b border-slate-100">
-                    <h2 className="text-xl font-serif text-maroon">Billing & Subscription</h2>
-                  </div>
-                  <div className="p-6">
-                    <div className="flex items-center justify-between p-4 bg-emerald-50 border-2 border-emerald-200 rounded-xl mb-6">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-bold text-maroon">{billing.plan}</h3>
-                          <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-wider rounded-full">
-                            {billing.status}
-                          </span>
-                          <span className="px-2 py-0.5 bg-slate-200 text-maroon/60 text-[10px] font-bold uppercase tracking-wider rounded-full">
-                            Demo
-                          </span>
-                        </div>
-                        <p className="text-2xl font-serif text-maroon">$29<span className="text-sm font-normal text-maroon/60">/month</span></p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs text-slate-500">Next billing date</p>
-                        <p className="font-medium text-maroon">{formatDate(billing.nextBillingDate)}</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-xs text-slate-400 uppercase tracking-wider">Payment Method</p>
-                          <p className="font-medium text-maroon">{billing.paymentMethod}</p>
-                        </div>
-                        <button className="text-[#c17f59] font-medium text-sm hover:underline">
-                          Update
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="mt-6 pt-6 border-t border-slate-100 flex gap-3">
-                      <button className="px-4 py-2 bg-slate-100 text-maroon rounded-xl font-medium text-sm hover:bg-slate-200 transition-colors">
-                        Update Payment Method
-                      </button>
-                      <button
-                        onClick={() => setShowCancelConfirm(true)}
-                        className="px-4 py-2 text-red-500 hover:bg-red-50 rounded-xl font-medium text-sm transition-colors"
-                      >
-                        Cancel Subscription
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Billing History */}
-                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                  <div className="px-6 py-4 border-b border-slate-100">
-                    <h3 className="font-bold text-maroon">Billing History</h3>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="bg-slate-50">
-                          <th className="px-6 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Date</th>
-                          <th className="px-6 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Description</th>
-                          <th className="px-6 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Amount</th>
-                          <th className="px-6 py-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
-                          <th className="px-6 py-3 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {billing.invoices.map((invoice, i) => (
-                          <tr key={i}>
-                            <td className="px-6 py-4 text-sm text-maroon">{formatDate(invoice.date)}</td>
-                            <td className="px-6 py-4 text-sm text-maroon">{invoice.description}</td>
-                            <td className="px-6 py-4 text-sm font-medium text-maroon">{formatCurrency(invoice.amount)}</td>
-                            <td className="px-6 py-4">
-                              <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full ${
-                                invoice.status === 'paid' ? 'bg-emerald-100 text-emerald-600' :
-                                invoice.status === 'pending' ? 'bg-amber-100 text-amber-600' :
-                                'bg-red-100 text-red-600'
-                              }`}>
-                                {invoice.status}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 text-right">
-                              <button className="text-[#c17f59] font-medium text-sm hover:underline">
-                                Download
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
+              <BillingSection
+                subscriptionStatus={profile.subscriptionStatus}
+                subscriptionCurrentPeriodEnd={profile.subscriptionCurrentPeriodEnd}
+              />
             )}
 
             {/* Preferences Section */}

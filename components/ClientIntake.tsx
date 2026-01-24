@@ -62,9 +62,16 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, industry, o
 
   const [eventName, setEventName] = useState('');
   const [eventDate, setEventDate] = useState('');
-  const [selectedAddOns, setSelectedAddOns] = useState<{ service: Service; frequency: string }[]>(
-    () => clientToEdit?.addOns || []
-  );
+  // Selected services (simplified - just a list of services)
+  const [selectedServices, setSelectedServices] = useState<Service[]>(() => {
+    if (clientToEdit) {
+      const services: Service[] = [];
+      if (clientToEdit.baseService) services.push(clientToEdit.baseService);
+      clientToEdit.addOns?.forEach(a => services.push(a.service));
+      return services;
+    }
+    return [];
+  });
 
   // First appointment scheduling
   const [firstAppointmentDate, setFirstAppointmentDate] = useState(
@@ -75,9 +82,21 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, industry, o
   const [firstAppointmentSpecificTime, setFirstAppointmentSpecificTime] = useState('10:00');
   const [repeatSameDayTime, setRepeatSameDayTime] = useState(true);
 
-  const baseServices = profile.services.filter(s => s.category === 'base');
-  const addonServices = profile.services.filter(s => s.category === 'addon');
+  // All services combined (no category distinction for selection)
+  const allServices = profile.services.filter(s => s.category === 'base' || s.category === 'addon');
   const eventServices = profile.services.filter(s => s.category === 'event');
+
+  // Toggle service selection
+  const toggleService = (service: Service) => {
+    setSelectedServices(prev => {
+      const isSelected = prev.some(s => s.id === service.id);
+      if (isSelected) {
+        return prev.filter(s => s.id !== service.id);
+      } else {
+        return [...prev, service];
+      }
+    });
+  };
 
   // Calculate annual value
   useEffect(() => {
@@ -85,17 +104,9 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, industry, o
     const rotationWeeks = client.rotationWeeks || 10;
     const visitsPerYear = 52 / rotationWeeks;
 
-    // Base service
-    if (client.baseService) {
-      annual += client.baseService.price * visitsPerYear;
-    }
-
-    // Add-ons
-    selectedAddOns.forEach(addon => {
-      let frequency = visitsPerYear;
-      if (addon.frequency === 'Every other visit') frequency = visitsPerYear / 2;
-      if (addon.frequency === 'Occasionally') frequency = visitsPerYear / 4;
-      annual += addon.service.price * frequency;
+    // All selected services
+    selectedServices.forEach(service => {
+      annual += service.price * visitsPerYear;
     });
 
     // Events
@@ -105,8 +116,12 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, industry, o
       }
     });
 
-    setClient(prev => ({ ...prev, annualValue: Math.round(annual), addOns: selectedAddOns }));
-  }, [client.baseService, client.rotationWeeks, selectedAddOns, client.events]);
+    // Store first selected service as baseService for compatibility, rest as addOns
+    const baseService = selectedServices[0] || null;
+    const addOns = selectedServices.slice(1).map(s => ({ service: s, frequency: 'Every visit' }));
+
+    setClient(prev => ({ ...prev, annualValue: Math.round(annual), baseService, addOns }));
+  }, [selectedServices, client.rotationWeeks, client.events]);
 
   const handleNext = () => {
     if (step < 4) {
@@ -165,7 +180,6 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, industry, o
       onSave({
         ...client,
         appointments,
-        addOns: selectedAddOns,
         nextAppointment: firstAppointmentDate,
         preferredTime: useSpecificTime ? firstAppointmentSpecificTime : firstAppointmentTimeSlot,
       } as Client);
@@ -179,21 +193,6 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, industry, o
     } else {
       setClient({ ...client, preferredDays: [...days, day] });
     }
-  };
-
-  const toggleAddOn = (service: Service) => {
-    const existing = selectedAddOns.find(a => a.service.id === service.id);
-    if (existing) {
-      setSelectedAddOns(selectedAddOns.filter(a => a.service.id !== service.id));
-    } else {
-      setSelectedAddOns([...selectedAddOns, { service, frequency: 'Every visit' }]);
-    }
-  };
-
-  const updateAddOnFrequency = (serviceId: string, frequency: string) => {
-    setSelectedAddOns(selectedAddOns.map(a =>
-      a.service.id === serviceId ? { ...a, frequency } : a
-    ));
   };
 
   const addEvent = () => {
@@ -561,70 +560,47 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, industry, o
             </div>
 
             <div className="space-y-6">
-              {/* Base Service */}
+              {/* Services - Simple multi-select */}
               <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-slate-100">
-                <h3 className="text-lg font-bold text-maroon mb-4">Base Service</h3>
-                {baseServices.length === 0 ? (
-                  <p className="text-slate-400">No base services set up. Go back to add services.</p>
+                <h3 className="text-lg font-bold text-maroon mb-4">Services</h3>
+                <p className="text-maroon/60 text-sm mb-4">Select all services this client gets each visit</p>
+                {allServices.length === 0 ? (
+                  <p className="text-slate-400">No services set up. Add services in Settings.</p>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {baseServices.map((service) => (
-                      <button
-                        key={service.id}
-                        onClick={() => setClient({ ...client, baseService: service })}
-                        className={`p-4 rounded-xl text-left transition-all ${
-                          client.baseService?.id === service.id
-                            ? 'bg-maroon text-white'
-                            : 'bg-slate-50 text-maroon hover:bg-slate-100'
-                        }`}
-                      >
-                        <div className="font-bold">{service.name}</div>
-                        <div className={client.baseService?.id === service.id ? 'text-white/70' : 'text-slate-400'}>
-                          {formatCurrency(service.price)}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Add-Ons */}
-              {addonServices.length > 0 && (
-                <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-slate-100">
-                  <h3 className="text-lg font-bold text-maroon mb-4">Regular Add-Ons</h3>
-                  <div className="space-y-3">
-                    {addonServices.map((service) => {
-                      const isSelected = selectedAddOns.some(a => a.service.id === service.id);
-                      const addon = selectedAddOns.find(a => a.service.id === service.id);
+                    {allServices.map((service) => {
+                      const isSelected = selectedServices.some(s => s.id === service.id);
                       return (
-                        <div key={service.id} className="flex items-center justify-between gap-4 p-4 bg-slate-50 rounded-xl">
-                          <label className="flex items-center gap-3 cursor-pointer flex-1">
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={() => toggleAddOn(service)}
-                              className="w-5 h-5 rounded border-slate-300 text-maroon focus:ring-[#c17f59]"
-                            />
-                            <span className="font-medium text-maroon">{service.name}</span>
-                            <span className="text-slate-400">{formatCurrency(service.price)}</span>
-                          </label>
-                          {isSelected && (
-                            <select
-                              value={addon?.frequency || 'Every visit'}
-                              onChange={(e) => updateAddOnFrequency(service.id, e.target.value)}
-                              className="px-3 py-2 rounded-lg border border-slate-200 text-sm bg-white"
-                            >
-                              <option>Every visit</option>
-                              <option>Every other visit</option>
-                              <option>Occasionally</option>
-                            </select>
-                          )}
-                        </div>
+                        <button
+                          key={service.id}
+                          onClick={() => toggleService(service)}
+                          className={`p-4 rounded-xl text-left transition-all flex items-center gap-3 ${
+                            isSelected
+                              ? 'bg-maroon text-white'
+                              : 'bg-slate-50 text-maroon hover:bg-slate-100'
+                          }`}
+                        >
+                          <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
+                            isSelected ? 'bg-white border-white' : 'border-slate-300'
+                          }`}>
+                            {isSelected && (
+                              <svg className="w-3 h-3 text-maroon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                              </svg>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-bold">{service.name}</div>
+                            <div className={isSelected ? 'text-white/70' : 'text-slate-400'}>
+                              {formatCurrency(service.price)}
+                            </div>
+                          </div>
+                        </button>
                       );
                     })}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
 
               {/* Events */}
               {client.events && client.events.length > 0 && eventServices.length > 0 && (
@@ -811,20 +787,12 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, industry, o
               <div className="bg-maroon text-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg">
                 <h3 className="text-xs font-bold uppercase tracking-wider opacity-60 mb-4">Annual Projection</h3>
                 <div className="space-y-3 mb-6">
-                  {client.baseService && (
-                    <div className="flex justify-between">
-                      <span className="text-white/70">{client.baseService.name} × {Math.round(52 / (client.rotationWeeks || 10))} visits</span>
-                      <span className="font-bold">{formatCurrency(client.baseService.price * Math.round(52 / (client.rotationWeeks || 10)))}</span>
-                    </div>
-                  )}
-                  {selectedAddOns.map(addon => {
-                    const visits = addon.frequency === 'Every visit' ? 52 / (client.rotationWeeks || 10) :
-                                   addon.frequency === 'Every other visit' ? 52 / (client.rotationWeeks || 10) / 2 :
-                                   52 / (client.rotationWeeks || 10) / 4;
+                  {selectedServices.map(service => {
+                    const visits = Math.round(52 / (client.rotationWeeks || 10));
                     return (
-                      <div key={addon.service.id} className="flex justify-between">
-                        <span className="text-white/70">{addon.service.name} × {Math.round(visits)}</span>
-                        <span className="font-bold">{formatCurrency(addon.service.price * Math.round(visits))}</span>
+                      <div key={service.id} className="flex justify-between">
+                        <span className="text-white/70">{service.name} × {visits} visits</span>
+                        <span className="font-bold">{formatCurrency(service.price * visits)}</span>
                       </div>
                     );
                   })}

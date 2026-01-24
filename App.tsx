@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Onboarding } from './components/Onboarding';
 import { GuidedDemo } from './components/GuidedDemo';
 import { AppDashboard } from './components/AppDashboard';
@@ -7,8 +7,21 @@ import { ClientProfile } from './components/ClientProfile';
 import { Settings } from './components/Settings';
 import { PublicProfile } from './components/PublicProfile';
 import { ClientBookingFlow } from './components/ClientBookingFlow';
+import { AuthModal } from './components/AuthModal';
+import { TrialBanner, Paywall } from './components/TrialBanner';
+import { createCheckoutSession } from './lib/stripe';
 import { Client, StylistProfile, RotationType, AppScreen, Service, BookingSettings, BookingRequest } from './types';
 import { ICONS, LOGOS, INDUSTRY_SAMPLE_CLIENTS } from './constants';
+import { useAuth } from './lib/auth';
+import {
+  fetchProfile,
+  saveProfile,
+  fetchClients,
+  saveClient as saveClientToDb,
+  deleteClient as deleteClientFromDb,
+  fetchBookingSettings,
+  saveBookingSettings as saveBookingSettingsToDb
+} from './lib/api';
 
 // Sample clients for demo
 const SAMPLE_CLIENTS: Client[] = [
@@ -354,6 +367,12 @@ const DEFAULT_PROFILE: StylistProfile = {
 };
 
 const App: React.FC = () => {
+  // Auth state
+  const { user, loading: authLoading, isConfigured: isSupabaseConfigured } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [dataLoading, setDataLoading] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
+
   const [screen, setScreen] = useState<AppScreen>('landing');
   const [screenHistory, setScreenHistory] = useState<AppScreen[]>(['landing']);
   const [profile, setProfile] = useState<StylistProfile>(DEFAULT_PROFILE);
@@ -365,6 +384,7 @@ const App: React.FC = () => {
   const [waitlistSubmitted, setWaitlistSubmitted] = useState(false);
   const [waitlistLoading, setWaitlistLoading] = useState(false);
   const [waitlistError, setWaitlistError] = useState('');
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   // Booking modal state
   const [showBookingModal, setShowBookingModal] = useState(false);
@@ -389,23 +409,82 @@ const App: React.FC = () => {
   });
 
   // Navigate to a new screen (adds to history)
-  const navigateTo = (newScreen: AppScreen) => {
+  const navigateTo = useCallback((newScreen: AppScreen) => {
     setScreenHistory(prev => [...prev, newScreen]);
     setScreen(newScreen);
-  };
+  }, []);
 
   // Go back to previous screen
-  const goBack = () => {
+  const goBack = useCallback(() => {
     if (screenHistory.length > 1) {
       const newHistory = [...screenHistory];
-      newHistory.pop(); // Remove current screen
+      newHistory.pop();
       const previousScreen = newHistory[newHistory.length - 1];
       setScreenHistory(newHistory);
       setScreen(previousScreen);
     } else {
       setScreen('landing');
     }
-  };
+  }, [screenHistory]);
+
+  // Load user data from Supabase when authenticated
+  const loadUserData = useCallback(async () => {
+    if (!user || !isSupabaseConfigured) return;
+
+    setDataLoading(true);
+    try {
+      const [loadedProfile, loadedClients, loadedBookingSettings] = await Promise.all([
+        fetchProfile(),
+        fetchClients(),
+        fetchBookingSettings(),
+      ]);
+
+      if (loadedProfile && loadedProfile.services.length > 0) {
+        // User has completed onboarding - load their data
+        setProfile(loadedProfile);
+        setHasOnboarded(true);
+
+        if (loadedClients.length > 0) {
+          setClients(loadedClients);
+        }
+
+        if (loadedBookingSettings) {
+          setBookingSettings(loadedBookingSettings);
+        }
+
+        // Go to dashboard if on landing page
+        if (screen === 'landing') {
+          navigateTo('dashboard');
+        }
+      } else {
+        // New user - needs to complete onboarding
+        setHasOnboarded(false);
+        if (screen === 'landing') {
+          navigateTo('onboarding');
+        }
+      }
+
+      setDataLoaded(true);
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    } finally {
+      setDataLoading(false);
+    }
+  }, [user, isSupabaseConfigured, screen, navigateTo]);
+
+  // Load data when user logs in
+  useEffect(() => {
+    if (user && !dataLoaded && !dataLoading) {
+      loadUserData();
+    }
+  }, [user, dataLoaded, dataLoading, loadUserData]);
+
+  // Reset data loaded state when user logs out
+  useEffect(() => {
+    if (!user) {
+      setDataLoaded(false);
+    }
+  }, [user]);
 
   // Go back to landing (resets history)
   const goToLanding = () => {
@@ -475,24 +554,55 @@ const App: React.FC = () => {
     }
   };
 
-  const handleGuidedDemoComplete = (newProfile: StylistProfile, demoClients: Client[], newBookingSettings: BookingSettings) => {
+  const handleGuidedDemoComplete = async (newProfile: StylistProfile, demoClients: Client[], newBookingSettings: BookingSettings) => {
     setProfile(newProfile);
     setClients(demoClients);
     setBookingSettings(newBookingSettings);
     setHasOnboarded(true);
+
+    // Persist to Supabase if user is authenticated
+    if (user && isSupabaseConfigured) {
+      const { error, profileId } = await saveProfile(newProfile);
+      if (error) {
+        console.error('Error saving profile:', error);
+      } else if (profileId) {
+        // Save clients and booking settings
+        for (const client of demoClients) {
+          await saveClientToDb(client);
+        }
+        await saveBookingSettingsToDb(newBookingSettings);
+      }
+    }
+
     navigateTo('dashboard');
   };
 
-  const handleOnboardingComplete = (newProfile: StylistProfile) => {
+  const handleOnboardingComplete = async (newProfile: StylistProfile) => {
     setProfile(newProfile);
+
     // Load industry-specific sample clients based on selected industry
     const industry = newProfile.industry || 'hair-stylist';
-    setClients(INDUSTRY_SAMPLE_CLIENTS[industry] || SAMPLE_CLIENTS);
+    const sampleClients = INDUSTRY_SAMPLE_CLIENTS[industry] || SAMPLE_CLIENTS;
+    setClients(sampleClients);
     setHasOnboarded(true);
+
+    // Persist to Supabase if user is authenticated
+    if (user && isSupabaseConfigured) {
+      const { error, profileId } = await saveProfile(newProfile);
+      if (error) {
+        console.error('Error saving profile:', error);
+      } else if (profileId) {
+        // Save sample clients to database
+        for (const client of sampleClients) {
+          await saveClientToDb(client);
+        }
+      }
+    }
+
     navigateTo('dashboard');
   };
 
-  const handleSaveClient = (client: Client) => {
+  const handleSaveClient = async (client: Client) => {
     // Check if this is an existing client (update) or new client (add)
     const existingIndex = clients.findIndex(c => c.id === client.id);
     if (existingIndex >= 0) {
@@ -505,6 +615,15 @@ const App: React.FC = () => {
       // Add new client
       setClients([client, ...clients]);
     }
+
+    // Persist to Supabase if user is authenticated
+    if (user && isSupabaseConfigured) {
+      const { error } = await saveClientToDb(client);
+      if (error) {
+        console.error('Error saving client:', error);
+      }
+    }
+
     goBack(); // Go back to previous screen
   };
 
@@ -513,11 +632,37 @@ const App: React.FC = () => {
     navigateTo('client-profile');
   };
 
+  // Save profile without navigating (used in onboarding before Stripe redirect)
+  const handleSaveProfile = async (newProfile: StylistProfile) => {
+    setProfile(newProfile);
+    setHasOnboarded(true);
+
+    // Load industry-specific sample clients
+    const industry = newProfile.industry || 'hair-stylist';
+    const sampleClients = INDUSTRY_SAMPLE_CLIENTS[industry] || SAMPLE_CLIENTS;
+    setClients(sampleClients);
+
+    // Persist to Supabase if user is authenticated
+    if (user && isSupabaseConfigured) {
+      const { error, profileId } = await saveProfile(newProfile);
+      if (error) {
+        console.error('Error saving profile:', error);
+      } else if (profileId) {
+        // Save sample clients to database
+        for (const client of sampleClients) {
+          await saveClientToDb(client);
+        }
+        await saveBookingSettingsToDb(bookingSettings);
+      }
+    }
+  };
+
   // Render based on screen
   if (screen === 'onboarding') {
     return (
       <Onboarding
         onComplete={handleOnboardingComplete}
+        onSaveProfile={handleSaveProfile}
         onBack={goBack}
       />
     );
@@ -535,9 +680,52 @@ const App: React.FC = () => {
     );
   }
 
+  // Check trial/subscription status
+  const isTrialExpired = () => {
+    if (!profile.trialEndsAt) return false;
+    return new Date(profile.trialEndsAt) < new Date();
+  };
+
+  const hasActiveSubscription = () => {
+    return profile.subscriptionStatus === 'active' || profile.subscriptionStatus === 'trialing';
+  };
+
+  const handleSubscribeFromPaywall = async () => {
+    setCheckoutLoading(true);
+    try {
+      const { url, error } = await createCheckoutSession();
+      if (error) {
+        console.error('Checkout error:', error);
+        return;
+      }
+      if (url) {
+        window.location.href = url;
+      }
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
+
+  // Show paywall if trial expired and no active subscription
+  if (screen === 'dashboard' && user && isTrialExpired() && !hasActiveSubscription()) {
+    return (
+      <Paywall
+        onSubscribe={handleSubscribeFromPaywall}
+        isLoading={checkoutLoading}
+      />
+    );
+  }
+
   if (screen === 'dashboard') {
     return (
       <>
+        {/* Trial Banner */}
+        {user && !hasActiveSubscription() && profile.trialEndsAt && (
+          <TrialBanner
+            trialEndsAt={profile.trialEndsAt}
+            subscriptionStatus={profile.subscriptionStatus}
+          />
+        )}
         <AppDashboard
           profile={profile}
           clients={clients}
@@ -642,7 +830,13 @@ const App: React.FC = () => {
       <Settings
         profile={profile}
         onBack={goBack}
-        onUpdateProfile={(updatedProfile) => setProfile(updatedProfile)}
+        onUpdateProfile={async (updatedProfile) => {
+          setProfile(updatedProfile);
+          // Persist to Supabase
+          if (user && isSupabaseConfigured) {
+            await saveProfile(updatedProfile);
+          }
+        }}
         onLogoClick={() => {
           setScreenHistory(['landing']);
           setScreen('landing');
@@ -718,7 +912,7 @@ const App: React.FC = () => {
       setShowBookingModal(true);
     };
 
-    const handleConfirmBooking = () => {
+    const handleConfirmBooking = async () => {
       if (!bookingService) return;
 
       const addOnTotal = bookingAddOns.reduce((sum, addon) => sum + addon.price, 0);
@@ -741,18 +935,34 @@ const App: React.FC = () => {
       setClients(clients.map(c => c.id === selectedClient.id ? updatedClient : c));
       setSelectedClient(updatedClient);
       setShowBookingModal(false);
+
+      // Persist to Supabase
+      if (user && isSupabaseConfigured) {
+        await saveClientToDb(updatedClient);
+      }
     };
 
-    const handleMarkOverdue = () => {
-      const updatedClient = { ...selectedClient, status: 'overdue' as const };
+    const handleMarkOverdue = async () => {
+      const updatedClient = { ...selectedClient, status: 'at-risk' as const };
       setClients(clients.map(c => c.id === selectedClient.id ? updatedClient : c));
       setSelectedClient(updatedClient);
-      alert(`${selectedClient.name} marked as overdue`);
+      alert(`${selectedClient.name} marked as at-risk`);
+
+      // Persist to Supabase
+      if (user && isSupabaseConfigured) {
+        await saveClientToDb(updatedClient);
+      }
     };
 
-    const handleArchive = () => {
+    const handleArchive = async () => {
       if (confirm(`Archive ${selectedClient.name}? They will be removed from your active clients.`)) {
         setClients(clients.filter(c => c.id !== selectedClient.id));
+
+        // Delete from Supabase
+        if (user && isSupabaseConfigured) {
+          await deleteClientFromDb(selectedClient.id);
+        }
+
         setSelectedClient(null);
         goBack();
       }
@@ -979,12 +1189,29 @@ const App: React.FC = () => {
           >
             Demo
           </button>
-          <button
-            onClick={() => setShowWaitlist(true)}
-            className="btn-primary px-4 sm:px-5 py-2 sm:py-2.5 bg-maroon text-white rounded-xl text-sm sm:text-[15px] font-bold shadow-sm"
-          >
-            Join Waitlist
-          </button>
+          {user ? (
+            <button
+              onClick={() => navigateTo('dashboard')}
+              className="btn-primary px-4 sm:px-5 py-2 sm:py-2.5 bg-maroon text-white rounded-xl text-sm sm:text-[15px] font-bold shadow-sm"
+            >
+              Dashboard
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="px-3 sm:px-5 py-2 sm:py-2.5 text-sm sm:text-[15px] font-medium text-maroon hover:opacity-70"
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => setShowWaitlist(true)}
+                className="btn-primary px-4 sm:px-5 py-2 sm:py-2.5 bg-maroon text-white rounded-xl text-sm sm:text-[15px] font-bold shadow-sm"
+              >
+                Join Waitlist
+              </button>
+            </>
+          )}
         </div>
       </nav>
 
@@ -1590,6 +1817,16 @@ const App: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onSuccess={() => {
+          setDataLoaded(false);
+          loadUserData();
+        }}
+      />
     </div>
   );
 };

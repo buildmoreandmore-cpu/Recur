@@ -82,6 +82,12 @@ export interface StylistProfile {
   annualGoal: number;
   monthlyGoal: number;
   industry?: IndustryType;
+  // Subscription fields
+  stripeCustomerId?: string;
+  subscriptionId?: string;
+  subscriptionStatus?: 'none' | 'active' | 'past_due' | 'canceled' | 'trialing' | 'incomplete';
+  subscriptionCurrentPeriodEnd?: string;
+  trialEndsAt?: string;
 }
 
 export interface DashboardStats {
@@ -185,4 +191,51 @@ export interface WaitlistEntry {
   serviceInterested: string;
   dateAdded: string;
   notes?: string;
+}
+
+// Stripe Connect Types
+export interface StripeAccountStatus {
+  isConnected: boolean;
+  accountId?: string;
+  chargesEnabled: boolean;
+  payoutsEnabled: boolean;
+  detailsSubmitted: boolean;
+}
+
+export interface StripeAccount {
+  id: string;
+  professionalId: string;
+  stripeAccountId: string;
+  chargesEnabled: boolean;
+  payoutsEnabled: boolean;
+  detailsSubmitted: boolean;
+  createdAt: string;
+}
+
+export interface Payment {
+  id: string;
+  bookingRequestId?: string;
+  professionalId: string;
+  stripePaymentIntentId: string;
+  amount: number;
+  currency: string;
+  status: 'pending' | 'succeeded' | 'failed' | 'canceled';
+  paymentType: 'deposit' | 'full';
+  clientEmail?: string;
+  cardLast4?: string;
+  cardBrand?: string;
+  createdAt: string;
+}
+
+export interface CreatePaymentIntentRequest {
+  amount: number;
+  professionalId: string;
+  clientEmail: string;
+  bookingRequestId?: string;
+  paymentType?: 'deposit' | 'full';
+}
+
+export interface CreatePaymentIntentResponse {
+  clientSecret: string;
+  paymentIntentId: string;
 }

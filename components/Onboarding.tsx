@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { StylistProfile, Service, IndustryType } from '../types';
 import { ICONS, INDUSTRY_TEMPLATES } from '../constants';
+import { createCheckoutSession } from '../lib/stripe';
 
 interface OnboardingProps {
   onComplete: (profile: StylistProfile) => void;
+  onSaveProfile: (profile: StylistProfile) => Promise<void>;
   onBack: () => void;
 }
 
@@ -115,9 +117,11 @@ const INDUSTRY_ICONS: Record<IndustryType, { icon: React.ReactNode; color: strin
   }
 };
 
-export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) => {
+export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onSaveProfile, onBack }) => {
   const [step, setStep] = useState(1);
   const [selectedIndustry, setSelectedIndustry] = useState<IndustryType | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
   const [profile, setProfile] = useState<Partial<StylistProfile>>({
     name: '',
     businessName: '',
@@ -189,17 +193,47 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step < 5) {
       setStep(step + 1);
-    } else {
-      // Compile services
-      const allServices: Service[] = [
-        ...baseServices.filter(s => s.price > 0).map((s, i) => ({ id: `base-${i}`, name: s.name, price: s.price, category: 'base' as const })),
-        ...addonServices.filter(s => s.price > 0).map((s, i) => ({ id: `addon-${i}`, name: s.name, price: s.price, category: 'addon' as const })),
-        ...eventServices.filter(s => s.price > 0).map((s, i) => ({ id: `event-${i}`, name: s.name, price: s.price, category: 'event' as const })),
-      ];
-      onComplete({ ...profile, services: allServices } as StylistProfile);
+    } else if (step === 5) {
+      // Save profile first, then go to payment step
+      setIsLoading(true);
+      try {
+        const allServices: Service[] = [
+          ...baseServices.filter(s => s.price > 0).map((s, i) => ({ id: `base-${i}`, name: s.name, price: s.price, category: 'base' as const })),
+          ...addonServices.filter(s => s.price > 0).map((s, i) => ({ id: `addon-${i}`, name: s.name, price: s.price, category: 'addon' as const })),
+          ...eventServices.filter(s => s.price > 0).map((s, i) => ({ id: `event-${i}`, name: s.name, price: s.price, category: 'event' as const })),
+        ];
+        await onSaveProfile({ ...profile, services: allServices } as StylistProfile);
+        setStep(6);
+      } catch (err) {
+        console.error('Error saving profile:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    } else if (step === 6) {
+      // Redirect to Stripe Checkout with 14-day trial
+      setIsLoading(true);
+      setPaymentError(null);
+      try {
+        const { url, error } = await createCheckoutSession(
+          14, // 14-day trial
+          `${window.location.origin}/?onboarding=complete`,
+          `${window.location.origin}/?onboarding=payment`
+        );
+        if (error) {
+          setPaymentError(error);
+          return;
+        }
+        if (url) {
+          window.location.href = url;
+        }
+      } catch (err) {
+        setPaymentError('Failed to start checkout');
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -222,7 +256,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
           <button onClick={onBack} className="text-maroon/60 hover:text-maroon flex items-center gap-2 text-sm font-medium">
             ← Back
           </button>
-          <span className="text-sm font-bold text-maroon">Step {step} of 5</span>
+          <span className="text-sm font-bold text-maroon">Step {step} of 6</span>
         </div>
       </div>
 
@@ -231,7 +265,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
         <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
           <div
             className="h-full bg-maroon rounded-full transition-all duration-500"
-            style={{ width: `${(step / 5) * 100}%` }}
+            style={{ width: `${(step / 6) * 100}%` }}
           />
         </div>
       </div>
@@ -655,15 +689,83 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onBack }) =>
           </div>
         )}
 
+        {step === 6 && (
+          <div className="space-y-8">
+            <div className="text-center">
+              <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg className="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h1 className="text-3xl font-serif text-maroon mb-2">You're Almost Done!</h1>
+              <p className="text-maroon/60">Start your 14-day free trial to access all features.</p>
+            </div>
+
+            <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-100 max-w-md mx-auto">
+              <div className="text-center mb-6">
+                <p className="text-4xl font-serif text-maroon mb-1">$29<span className="text-lg font-normal text-maroon/60">/month</span></p>
+                <p className="text-emerald-600 font-medium">14 days free, cancel anytime</p>
+              </div>
+
+              <ul className="space-y-3 mb-6">
+                <li className="flex items-center gap-3 text-maroon">
+                  <svg className="w-5 h-5 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Unlimited clients & bookings
+                </li>
+                <li className="flex items-center gap-3 text-maroon">
+                  <svg className="w-5 h-5 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Public booking page
+                </li>
+                <li className="flex items-center gap-3 text-maroon">
+                  <svg className="w-5 h-5 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Revenue forecasting
+                </li>
+                <li className="flex items-center gap-3 text-maroon">
+                  <svg className="w-5 h-5 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Collect deposits with Stripe
+                </li>
+              </ul>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm text-blue-700 text-center">
+                You won't be charged until your trial ends
+              </div>
+
+              {paymentError && (
+                <div className="mt-4 bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700 text-center">
+                  {paymentError}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Continue Button */}
         <div className="mt-8 flex justify-end">
           <button
             onClick={handleNext}
-            disabled={step === 1 && !selectedIndustry}
+            disabled={(step === 1 && !selectedIndustry) || isLoading}
             className="btn-primary px-8 py-4 bg-maroon text-white rounded-xl font-bold text-lg shadow-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {step === 5 ? 'Complete Setup' : 'Continue'}
-            <span>→</span>
+            {isLoading ? (
+              <>
+                <div className="animate-spin w-5 h-5 border-2 border-white/30 border-t-white rounded-full" />
+                {step === 6 ? 'Redirecting...' : 'Saving...'}
+              </>
+            ) : step === 6 ? (
+              'Start Free Trial'
+            ) : step === 5 ? (
+              <>Continue<span>→</span></>
+            ) : (
+              <>Continue<span>→</span></>
+            )}
           </button>
         </div>
       </div>

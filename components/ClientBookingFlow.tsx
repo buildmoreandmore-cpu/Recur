@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StylistProfile, BookingSettings, BookingRequest, Service, IndustryType } from '../types';
 import { LOGOS } from '../constants';
+import { StripePaymentForm } from './StripePaymentForm';
+import { getProfessionalStripeStatus } from '../lib/stripe';
 
 interface ClientBookingFlowProps {
   profile: StylistProfile;
   bookingSettings: BookingSettings;
+  professionalId: string;
   onSubmit: (request: BookingRequest) => void;
   onBack: () => void;
 }
@@ -26,12 +29,27 @@ const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 export const ClientBookingFlow: React.FC<ClientBookingFlowProps> = ({
   profile,
   bookingSettings,
+  professionalId,
   onSubmit,
   onBack,
 }) => {
   const [currentStep, setCurrentStep] = useState<BookingStep>('about');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedRequest, setSubmittedRequest] = useState<BookingRequest | null>(null);
+  const [canAcceptPayments, setCanAcceptPayments] = useState(false);
+  const [stripeAccountId, setStripeAccountId] = useState<string | undefined>();
+
+  // Check if professional can accept Stripe payments
+  useEffect(() => {
+    const checkStripeStatus = async () => {
+      if (bookingSettings.requireDeposit && professionalId) {
+        const status = await getProfessionalStripeStatus(professionalId);
+        setCanAcceptPayments(status.canAcceptPayments);
+        setStripeAccountId(status.stripeAccountId);
+      }
+    };
+    checkStripeStatus();
+  }, [professionalId, bookingSettings.requireDeposit]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -64,16 +82,20 @@ export const ClientBookingFlow: React.FC<ClientBookingFlowProps> = ({
     cardExpiry: '',
     cardCvc: '',
     cardZip: '',
+    cardLast4: '',
     saveCard: true,
     payDeposit: false,
   });
+
+  // Only show payment step if deposit is required AND professional can accept payments
+  const showPaymentStep = bookingSettings.requireDeposit && canAcceptPayments;
 
   const steps: { id: BookingStep; label: string; number: number }[] = [
     { id: 'about', label: 'About You', number: 1 },
     { id: 'lifestyle', label: 'Your Lifestyle', number: 2 },
     { id: 'goals', label: 'Your Goals', number: 3 },
     { id: 'appointment', label: 'Appointment', number: 4 },
-    ...(bookingSettings.requireDeposit
+    ...(showPaymentStep
       ? [{ id: 'payment' as BookingStep, label: 'Payment', number: 5 }]
       : []),
   ];
@@ -123,7 +145,7 @@ export const ClientBookingFlow: React.FC<ClientBookingFlowProps> = ({
 
   const nextStep = () => {
     const stepOrder: BookingStep[] = ['about', 'lifestyle', 'goals', 'appointment'];
-    if (bookingSettings.requireDeposit) stepOrder.push('payment');
+    if (showPaymentStep) stepOrder.push('payment');
     const currentIndex = stepOrder.indexOf(currentStep);
     if (currentIndex < stepOrder.length - 1) {
       setCurrentStep(stepOrder[currentIndex + 1]);
@@ -134,7 +156,7 @@ export const ClientBookingFlow: React.FC<ClientBookingFlowProps> = ({
 
   const prevStep = () => {
     const stepOrder: BookingStep[] = ['about', 'lifestyle', 'goals', 'appointment'];
-    if (bookingSettings.requireDeposit) stepOrder.push('payment');
+    if (showPaymentStep) stepOrder.push('payment');
     const currentIndex = stepOrder.indexOf(currentStep);
     if (currentIndex > 0) {
       setCurrentStep(stepOrder[currentIndex - 1]);
@@ -845,105 +867,60 @@ export const ClientBookingFlow: React.FC<ClientBookingFlowProps> = ({
           <div className="space-y-6">
             <div className="text-center mb-8">
               <h1 className="text-2xl font-serif text-maroon mb-2">Secure Your Appointment</h1>
-              <p className="text-maroon/60">Add a card to hold your appointment</p>
+              <p className="text-maroon/60">Pay the deposit to hold your appointment</p>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-700">
-              <p>You won't be charged until your appointment is confirmed.</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-maroon mb-2">
-                Card Number
-              </label>
-              <input
-                type="text"
-                value={formData.cardNumber}
-                onChange={(e) => updateFormData('cardNumber', e.target.value.replace(/\D/g, '').slice(0, 16))}
-                className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-maroon focus:outline-none transition-colors"
-                placeholder="1234 5678 9012 3456"
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-bold text-maroon mb-2">Exp</label>
-                <input
-                  type="text"
-                  value={formData.cardExpiry}
-                  onChange={(e) => updateFormData('cardExpiry', e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-maroon focus:outline-none transition-colors"
-                  placeholder="MM/YY"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-maroon mb-2">CVC</label>
-                <input
-                  type="text"
-                  value={formData.cardCvc}
-                  onChange={(e) => updateFormData('cardCvc', e.target.value.replace(/\D/g, '').slice(0, 4))}
-                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-maroon focus:outline-none transition-colors"
-                  placeholder="123"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-maroon mb-2">ZIP</label>
-                <input
-                  type="text"
-                  value={formData.cardZip}
-                  onChange={(e) => updateFormData('cardZip', e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-maroon focus:outline-none transition-colors"
-                  placeholder="12345"
-                />
-              </div>
-            </div>
-
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={formData.saveCard}
-                onChange={(e) => updateFormData('saveCard', e.target.checked)}
-                className="w-5 h-5 rounded border-slate-300 text-maroon focus:ring-maroon"
-              />
-              <span className="text-maroon">Save card for future visits</span>
-            </label>
-
-            {bookingSettings.requireDeposit && (
-              <div className="space-y-3 pt-4 border-t border-slate-100">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="depositOption"
-                    checked={formData.payDeposit}
-                    onChange={() => updateFormData('payDeposit', true)}
-                    className="w-5 h-5 border-slate-300 text-maroon focus:ring-maroon"
-                  />
-                  <span className="text-maroon">
-                    Pay deposit now ({formatCurrency(bookingSettings.depositAmount)})
-                  </span>
-                </label>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="depositOption"
-                    checked={!formData.payDeposit}
-                    onChange={() => updateFormData('payDeposit', false)}
-                    className="w-5 h-5 border-slate-300 text-maroon focus:ring-maroon"
-                  />
-                  <span className="text-maroon">Pay after appointment</span>
-                </label>
-              </div>
-            )}
-
-            <button
-              onClick={() => {
-                // Skip payment
+            <StripePaymentForm
+              professionalId={professionalId}
+              amount={bookingSettings.depositAmount}
+              clientEmail={formData.email}
+              paymentType="deposit"
+              onSuccess={(paymentIntentId, cardLast4) => {
+                updateFormData('payDeposit', true);
+                updateFormData('cardLast4', cardLast4 || '');
+                // Submit the booking request after successful payment
+                setIsSubmitting(true);
+                const request: BookingRequest = {
+                  id: `req-${Date.now()}`,
+                  status: 'pending',
+                  createdAt: new Date().toISOString(),
+                  clientName: formData.name,
+                  clientPhone: formData.phone,
+                  clientEmail: formData.email,
+                  referralSource: formData.referralSource,
+                  contactMethod: formData.contactMethod,
+                  preferredDays: formData.preferredDays,
+                  preferredTime: formData.preferredTime,
+                  occupation: formData.occupation,
+                  upcomingEvents: formData.upcomingEvents,
+                  morningTime: formData.morningTime,
+                  serviceGoal: formData.serviceGoal,
+                  maintenanceLevel: formData.maintenanceLevel,
+                  concerns: formData.concerns,
+                  naturalColor: formData.naturalColor,
+                  currentColor: formData.currentColor,
+                  requestedService: formData.requestedService,
+                  requestedAddOns: formData.requestedAddOns,
+                  requestedDate: formData.requestedDate,
+                  requestedTimeSlot: formData.requestedTimeSlot,
+                  additionalNotes: formData.additionalNotes,
+                  hasCardOnFile: true,
+                  depositPaid: true,
+                  cardLast4: cardLast4,
+                };
+                setSubmittedRequest(request);
+                setCurrentStep('confirmation');
+                setIsSubmitting(false);
+                onSubmit(request);
+              }}
+              onError={(error) => {
+                console.error('Payment failed:', error);
+              }}
+              onSkip={() => {
+                // Allow skipping payment
                 handleSubmit();
               }}
-              className="w-full py-3 text-maroon/60 hover:text-maroon font-medium text-sm"
-            >
-              Skip for Now
-            </button>
+            />
           </div>
         )}
 

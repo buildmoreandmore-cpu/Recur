@@ -69,7 +69,47 @@ interface AppDashboardProps {
   onLogoClick?: () => void;
   onNavigateToSettings?: () => void;
   onLogout?: () => void;
+  showTutorial?: boolean;
+  onTutorialComplete?: () => void;
 }
+
+const TUTORIAL_STEPS = [
+  {
+    title: "Welcome to Your Dashboard!",
+    description: "This is your command center for managing clients and tracking revenue. Let's take a quick tour.",
+    highlight: null,
+  },
+  {
+    title: "Financial Forecast",
+    description: "See your projected annual revenue at a glance. Track confirmed bookings vs. pending income.",
+    highlight: "forecast",
+  },
+  {
+    title: "Client Rotation Calendar",
+    description: "Visual overview of your schedule. Click any day to see appointments and manage bookings.",
+    highlight: "calendar",
+  },
+  {
+    title: "Needs Attention",
+    description: "Clients who are overdue or at risk of churning appear here. Stay proactive with your follow-ups.",
+    highlight: "attention",
+  },
+  {
+    title: "Booking Requests",
+    description: "New booking requests from your public profile appear here. Review and confirm with one click.",
+    highlight: "requests",
+  },
+  {
+    title: "Add Clients",
+    description: "Build your roster by adding clients. Track their preferences, visit history, and revenue.",
+    highlight: "add-client",
+  },
+  {
+    title: "You're All Set!",
+    description: "Explore your dashboard and start building your recurring revenue. You can access Settings anytime from the gear icon.",
+    highlight: null,
+  },
+];
 
 const ROTATION_COLORS = {
   [RotationType.PRIORITY]: { bg: 'bg-[#c17f59]/10', text: 'text-[#c17f59]', badge: 'bg-[#c17f59]', hex: '#c17f59' },
@@ -79,7 +119,7 @@ const ROTATION_COLORS = {
 
 const AVATAR_COLORS = ['#c17f59', '#7c9a7e', '#b5a078', '#6b7c91', '#a67c8e'];
 
-export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, onAddClient, onViewClient, onBack, onExitDemo, onLogoClick, onNavigateToSettings, onLogout }) => {
+export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, onAddClient, onViewClient, onBack, onExitDemo, onLogoClick, onNavigateToSettings, onLogout, showTutorial, onTutorialComplete }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<{ day: number; appointments: Client[] } | null>(null);
   const [bookingClient, setBookingClient] = useState<Client | null>(null);
@@ -90,6 +130,22 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
   const [expandedBriefs, setExpandedBriefs] = useState<Set<string>>(new Set());
   const [completedClient, setCompletedClient] = useState<Client | null>(null);
   const [showGapFillerModal, setShowGapFillerModal] = useState(false);
+  const [tutorialStep, setTutorialStep] = useState(0);
+  const [isTutorialActive, setIsTutorialActive] = useState(showTutorial || false);
+
+  const handleNextStep = () => {
+    if (tutorialStep < TUTORIAL_STEPS.length - 1) {
+      setTutorialStep(tutorialStep + 1);
+    } else {
+      setIsTutorialActive(false);
+      onTutorialComplete?.();
+    }
+  };
+
+  const handleSkipTutorial = () => {
+    setIsTutorialActive(false);
+    onTutorialComplete?.();
+  };
 
   const stats = {
     annualProjected: clients.reduce((sum, c) => sum + c.annualValue, 0),
@@ -1873,6 +1929,77 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
                   Send Messages
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tutorial Overlay */}
+      {isTutorialActive && (
+        <div className="fixed inset-0 z-50">
+          {/* Dark overlay */}
+          <div className="absolute inset-0 bg-black/60" />
+
+          {/* Tutorial Card */}
+          <div className="absolute inset-0 flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 relative">
+              {/* Progress dots */}
+              <div className="flex justify-center gap-2 mb-6">
+                {TUTORIAL_STEPS.map((_, i) => (
+                  <div
+                    key={i}
+                    className={`w-2 h-2 rounded-full transition-colors ${
+                      i === tutorialStep ? 'bg-maroon' : i < tutorialStep ? 'bg-maroon/40' : 'bg-slate-200'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              {/* Icon */}
+              <div className="w-16 h-16 bg-maroon/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                {tutorialStep === 0 ? (
+                  <span className="text-3xl">👋</span>
+                ) : tutorialStep === TUTORIAL_STEPS.length - 1 ? (
+                  <span className="text-3xl">🎉</span>
+                ) : (
+                  <span className="text-3xl">
+                    {tutorialStep === 1 && '📊'}
+                    {tutorialStep === 2 && '📅'}
+                    {tutorialStep === 3 && '⚠️'}
+                    {tutorialStep === 4 && '📬'}
+                    {tutorialStep === 5 && '👥'}
+                  </span>
+                )}
+              </div>
+
+              {/* Content */}
+              <h3 className="text-xl font-serif text-maroon text-center mb-2">
+                {TUTORIAL_STEPS[tutorialStep].title}
+              </h3>
+              <p className="text-maroon/70 text-center mb-8 leading-relaxed">
+                {TUTORIAL_STEPS[tutorialStep].description}
+              </p>
+
+              {/* Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={handleSkipTutorial}
+                  className="flex-1 py-3 text-maroon/60 hover:text-maroon font-medium rounded-xl transition-colors"
+                >
+                  Skip Tour
+                </button>
+                <button
+                  onClick={handleNextStep}
+                  className="flex-1 py-3 bg-maroon text-white font-bold rounded-xl hover:bg-maroon/90 transition-colors"
+                >
+                  {tutorialStep === TUTORIAL_STEPS.length - 1 ? "Let's Go!" : 'Next'}
+                </button>
+              </div>
+
+              {/* Step counter */}
+              <p className="text-center text-xs text-slate-400 mt-4">
+                {tutorialStep + 1} of {TUTORIAL_STEPS.length}
+              </p>
             </div>
           </div>
         </div>

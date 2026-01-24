@@ -386,6 +386,7 @@ const App: React.FC = () => {
   const [waitlistLoading, setWaitlistLoading] = useState(false);
   const [waitlistError, setWaitlistError] = useState('');
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [showDashboardTutorial, setShowDashboardTutorial] = useState(false);
 
   // Booking modal state
   const [showBookingModal, setShowBookingModal] = useState(false);
@@ -493,10 +494,11 @@ const App: React.FC = () => {
     const onboardingStatus = params.get('onboarding');
 
     if (onboardingStatus === 'complete' && user) {
-      // Payment successful - go to dashboard
+      // Payment successful - go to dashboard with tutorial
       setHasOnboarded(true);
       setScreen('dashboard');
       setScreenHistory(['dashboard']);
+      setShowDashboardTutorial(true);
       // Clean up URL
       window.history.replaceState({}, '', window.location.pathname);
     } else if (onboardingStatus === 'payment') {
@@ -779,6 +781,8 @@ const App: React.FC = () => {
             setScreen('landing');
             setHasOnboarded(false);
           } : undefined}
+          showTutorial={showDashboardTutorial}
+          onTutorialComplete={() => setShowDashboardTutorial(false)}
         />
 
         {/* Waitlist Modal for Dashboard */}

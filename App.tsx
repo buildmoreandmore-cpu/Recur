@@ -635,17 +635,23 @@ const App: React.FC = () => {
 
   // Save profile without navigating (used in onboarding before Stripe redirect)
   const handleSaveProfile = async (newProfile: StylistProfile) => {
-    setProfile(newProfile);
+    // Ensure email is set from auth if not provided
+    const profileWithEmail = {
+      ...newProfile,
+      email: newProfile.email || user?.email || '',
+    };
+
+    setProfile(profileWithEmail);
     setHasOnboarded(true);
 
     // Load industry-specific sample clients
-    const industry = newProfile.industry || 'hair-stylist';
+    const industry = profileWithEmail.industry || 'hair-stylist';
     const sampleClients = INDUSTRY_SAMPLE_CLIENTS[industry] || SAMPLE_CLIENTS;
     setClients(sampleClients);
 
     // Persist to Supabase if user is authenticated
     if (user && isSupabaseConfigured) {
-      const { error, profileId } = await saveProfile(newProfile);
+      const { error, profileId } = await saveProfile(profileWithEmail);
       if (error) {
         console.error('Error saving profile:', error);
       } else if (profileId) {

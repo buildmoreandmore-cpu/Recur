@@ -45,7 +45,7 @@ export async function saveProfile(profile: StylistProfile): Promise<{ error: Err
     user_id: user.id,
     name: profile.name,
     business_name: profile.businessName || null,
-    email: profile.email,
+    email: profile.email || user.email || '',
     phone: profile.phone || null,
     location: profile.location || null,
     years_in_business: profile.yearsInBusiness,

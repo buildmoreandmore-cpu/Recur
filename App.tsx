@@ -487,6 +487,25 @@ const App: React.FC = () => {
     }
   }, [user]);
 
+  // Handle URL parameters (e.g., after Stripe redirect)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const onboardingStatus = params.get('onboarding');
+
+    if (onboardingStatus === 'complete' && user) {
+      // Payment successful - go to dashboard
+      setHasOnboarded(true);
+      setScreen('dashboard');
+      setScreenHistory(['dashboard']);
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (onboardingStatus === 'payment') {
+      // Payment was cancelled - stay on onboarding step 6
+      setScreen('onboarding');
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [user]);
+
   // Go back to landing (resets history)
   const goToLanding = () => {
     setScreenHistory(['landing']);

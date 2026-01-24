@@ -118,6 +118,7 @@ const INDUSTRY_ICONS: Record<IndustryType, { icon: React.ReactNode; color: strin
 };
 
 export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onSaveProfile, onBack }) => {
+  const [showWelcome, setShowWelcome] = useState(true);
   const [step, setStep] = useState(1);
   const [selectedIndustry, setSelectedIndustry] = useState<IndustryType | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -250,6 +251,32 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onSaveProfil
 
   return (
     <div className="min-h-screen bg-cream">
+      {/* Welcome Modal */}
+      {showWelcome && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden">
+            <div className="p-8 text-center">
+              <div className="w-20 h-20 bg-maroon/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg className="w-10 h-10 text-maroon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-serif text-maroon mb-3">Welcome to Recur!</h2>
+              <p className="text-maroon/60 mb-8 leading-relaxed">
+                Let's set up your profile in 5 quick steps. You'll be ready to manage clients and forecast your income in minutes.
+              </p>
+              <button
+                onClick={() => setShowWelcome(false)}
+                className="w-full py-4 bg-maroon text-white rounded-2xl font-bold text-lg hover:bg-maroon/90 transition-colors"
+              >
+                Get Started
+              </button>
+              <p className="text-xs text-slate-400 mt-4">Takes about 2 minutes</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-white border-b border-slate-100">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">

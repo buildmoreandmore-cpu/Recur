@@ -252,15 +252,26 @@ export async function createCheckoutSession(
   }
 
   try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
+    // Refresh session to ensure valid token
+    const { data: { session }, error: sessionError } = await supabase.auth.refreshSession();
+    if (sessionError || !session) {
+      // Fallback to getting current session
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      if (!currentSession) {
+        console.error('No session found:', sessionError);
+        return { url: null, error: 'Not authenticated - please sign in again' };
+      }
+    }
+
+    const activeSession = session || (await supabase.auth.getSession()).data.session;
+    if (!activeSession) {
       return { url: null, error: 'Not authenticated' };
     }
 
     const response = await fetch(`${getSupabaseUrl()}/functions/v1/stripe-create-checkout`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${session.access_token}`,
+        'Authorization': `Bearer ${activeSession.access_token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

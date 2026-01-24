@@ -370,6 +370,7 @@ const App: React.FC = () => {
   // Auth state
   const { user, loading: authLoading, isConfigured: isSupabaseConfigured } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('login');
   const [dataLoading, setDataLoading] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
 
@@ -1199,16 +1200,22 @@ const App: React.FC = () => {
           ) : (
             <>
               <button
-                onClick={() => setShowAuthModal(true)}
+                onClick={() => {
+                  setAuthModalMode('login');
+                  setShowAuthModal(true);
+                }}
                 className="px-3 sm:px-5 py-2 sm:py-2.5 text-sm sm:text-[15px] font-medium text-maroon hover:opacity-70"
               >
                 Sign In
               </button>
               <button
-                onClick={() => setShowWaitlist(true)}
+                onClick={() => {
+                  setAuthModalMode('signup');
+                  setShowAuthModal(true);
+                }}
                 className="btn-primary px-4 sm:px-5 py-2 sm:py-2.5 bg-maroon text-white rounded-xl text-sm sm:text-[15px] font-bold shadow-sm"
               >
-                Join Waitlist
+                Sign Up
               </button>
             </>
           )}
@@ -1232,10 +1239,13 @@ const App: React.FC = () => {
 
             <div className="hero-animate hero-animate-delay-4 flex flex-col items-center gap-4">
               <button
-                onClick={() => setShowWaitlist(true)}
+                onClick={() => {
+                  setAuthModalMode('signup');
+                  setShowAuthModal(true);
+                }}
                 className="btn-primary inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-maroon text-white rounded-full text-base sm:text-lg font-bold shadow-xl"
               >
-                Join the Waitlist
+                Get Started Free
               </button>
               <button
                 onClick={handleStartDemo}
@@ -1822,6 +1832,7 @@ const App: React.FC = () => {
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
+        initialMode={authModalMode}
         onSuccess={() => {
           setDataLoaded(false);
           loadUserData();

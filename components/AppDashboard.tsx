@@ -68,6 +68,7 @@ interface AppDashboardProps {
   onExitDemo?: () => void;
   onLogoClick?: () => void;
   onNavigateToSettings?: () => void;
+  onLogout?: () => void;
 }
 
 const ROTATION_COLORS = {
@@ -78,7 +79,7 @@ const ROTATION_COLORS = {
 
 const AVATAR_COLORS = ['#c17f59', '#7c9a7e', '#b5a078', '#6b7c91', '#a67c8e'];
 
-export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, onAddClient, onViewClient, onBack, onExitDemo, onLogoClick, onNavigateToSettings }) => {
+export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, onAddClient, onViewClient, onBack, onExitDemo, onLogoClick, onNavigateToSettings, onLogout }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<{ day: number; appointments: Client[] } | null>(null);
   const [bookingClient, setBookingClient] = useState<Client | null>(null);
@@ -331,12 +332,21 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </button>
-            <button
-              onClick={onExitDemo || onBack}
-              className="px-3 sm:px-4 py-2 text-maroon/70 hover:text-maroon hover:bg-slate-100 rounded-xl text-xs sm:text-sm font-medium transition-all"
-            >
-              Exit Demo
-            </button>
+            {onLogout ? (
+              <button
+                onClick={onLogout}
+                className="px-3 sm:px-4 py-2 text-maroon/70 hover:text-maroon hover:bg-slate-100 rounded-xl text-xs sm:text-sm font-medium transition-all"
+              >
+                Sign Out
+              </button>
+            ) : (
+              <button
+                onClick={onExitDemo || onBack}
+                className="px-3 sm:px-4 py-2 text-maroon/70 hover:text-maroon hover:bg-slate-100 rounded-xl text-xs sm:text-sm font-medium transition-all"
+              >
+                Exit Demo
+              </button>
+            )}
             <button
               onClick={onAddClient}
               className="btn-primary px-3 sm:px-5 py-2 sm:py-2.5 bg-maroon text-white rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1 sm:gap-2"

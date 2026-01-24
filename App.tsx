@@ -368,7 +368,7 @@ const DEFAULT_PROFILE: StylistProfile = {
 
 const App: React.FC = () => {
   // Auth state
-  const { user, loading: authLoading, isConfigured: isSupabaseConfigured } = useAuth();
+  const { user, loading: authLoading, isConfigured: isSupabaseConfigured, signOut } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('login');
   const [dataLoading, setDataLoading] = useState(false);
@@ -736,12 +736,18 @@ const App: React.FC = () => {
           }}
           onViewClient={handleViewClient}
           onBack={goBack}
-          onExitDemo={() => setShowWaitlist(true)}
+          onExitDemo={user ? undefined : () => setShowWaitlist(true)}
           onLogoClick={() => {
             setScreenHistory(['landing']);
             setScreen('landing');
           }}
           onNavigateToSettings={() => navigateTo('settings')}
+          onLogout={user ? async () => {
+            await signOut();
+            setScreenHistory(['landing']);
+            setScreen('landing');
+            setHasOnboarded(false);
+          } : undefined}
         />
 
         {/* Waitlist Modal for Dashboard */}
@@ -843,6 +849,12 @@ const App: React.FC = () => {
           setScreen('landing');
         }}
         onPreviewProfile={() => navigateTo('public-profile')}
+        onLogout={user ? async () => {
+          await signOut();
+          setScreenHistory(['landing']);
+          setScreen('landing');
+          setHasOnboarded(false);
+        } : undefined}
       />
     );
   }

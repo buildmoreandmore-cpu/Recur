@@ -665,6 +665,12 @@ const App: React.FC = () => {
         onComplete={handleOnboardingComplete}
         onSaveProfile={handleSaveProfile}
         onBack={goBack}
+        onLogout={user ? async () => {
+          await signOut();
+          setScreenHistory(['landing']);
+          setScreen('landing');
+          setHasOnboarded(false);
+        } : undefined}
       />
     );
   }

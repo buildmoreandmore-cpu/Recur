@@ -7,6 +7,7 @@ interface OnboardingProps {
   onComplete: (profile: StylistProfile) => void;
   onSaveProfile: (profile: StylistProfile) => Promise<void>;
   onBack: () => void;
+  onLogout?: () => void;
 }
 
 const DEFAULT_BASE_SERVICES = [
@@ -117,7 +118,7 @@ const INDUSTRY_ICONS: Record<IndustryType, { icon: React.ReactNode; color: strin
   }
 };
 
-export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onSaveProfile, onBack }) => {
+export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onSaveProfile, onBack, onLogout }) => {
   const [showWelcome, setShowWelcome] = useState(true);
   const [step, setStep] = useState(1);
   const [selectedIndustry, setSelectedIndustry] = useState<IndustryType | null>(null);
@@ -282,6 +283,11 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onSaveProfil
             ← Back
           </button>
           <span className="text-sm font-bold text-maroon">Step {step} of 6</span>
+          {onLogout && (
+            <button onClick={onLogout} className="text-maroon/60 hover:text-maroon text-sm font-medium">
+              Sign Out
+            </button>
+          )}
         </div>
       </div>
 

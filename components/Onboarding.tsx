@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StylistProfile, Service, IndustryType } from '../types';
-import { ICONS, INDUSTRY_TEMPLATES } from '../constants';
+import { ICONS, INDUSTRY_TEMPLATES, LOGOS } from '../constants';
 import { createCheckoutSession } from '../lib/stripe';
 
 interface OnboardingProps {
@@ -256,10 +256,8 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onSaveProfil
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden">
             <div className="p-8 text-center">
-              <div className="w-20 h-20 bg-maroon/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-10 h-10 text-maroon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
+              <div className="w-20 h-20 bg-maroon/10 rounded-full flex items-center justify-center mx-auto mb-6 text-maroon">
+                <LOGOS.RMark size={48} />
               </div>
               <h2 className="text-2xl sm:text-3xl font-serif text-maroon mb-3">Welcome to Recur!</h2>
               <p className="text-maroon/60 mb-8 leading-relaxed">

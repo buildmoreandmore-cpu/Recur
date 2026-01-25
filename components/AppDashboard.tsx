@@ -159,10 +159,15 @@ const TUTORIAL_STEPS = [
   },
 ];
 
-const ROTATION_COLORS = {
+const ROTATION_COLORS: Record<string, { bg: string; text: string; badge: string; hex: string }> = {
   [RotationType.PRIORITY]: { bg: 'bg-[#c17f59]/10', text: 'text-[#c17f59]', badge: 'bg-[#c17f59]', hex: '#c17f59' },
   [RotationType.STANDARD]: { bg: 'bg-[#7c9a7e]/10', text: 'text-[#7c9a7e]', badge: 'bg-[#7c9a7e]', hex: '#7c9a7e' },
   [RotationType.FLEX]: { bg: 'bg-[#b5a078]/10', text: 'text-[#b5a078]', badge: 'bg-[#b5a078]', hex: '#b5a078' },
+  [RotationType.CUSTOM]: { bg: 'bg-[#6b7c91]/10', text: 'text-[#6b7c91]', badge: 'bg-[#6b7c91]', hex: '#6b7c91' },
+};
+
+const getRotationColor = (rotation: RotationType | string) => {
+  return ROTATION_COLORS[rotation] || ROTATION_COLORS[RotationType.STANDARD];
 };
 
 const AVATAR_COLORS = ['#c17f59', '#7c9a7e', '#b5a078', '#6b7c91', '#a67c8e'];
@@ -717,7 +722,7 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bo
                       <div className="flex items-center gap-2">
                         <span
                           className="px-2 py-1 rounded-md text-[10px] font-bold uppercase text-white"
-                          style={{ backgroundColor: ROTATION_COLORS[client.rotation].hex }}
+                          style={{ backgroundColor: getRotationColor(client.rotation).hex }}
                         >
                           {client.rotation}
                         </span>
@@ -911,7 +916,7 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bo
                             <div
                               key={client.id}
                               className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full"
-                              style={{ backgroundColor: ROTATION_COLORS[client.rotation].hex }}
+                              style={{ backgroundColor: getRotationColor(client.rotation).hex }}
                               title={client.name}
                             />
                           ))}
@@ -1001,7 +1006,7 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bo
                           <div>
                             <div className="font-bold text-maroon group-hover:text-[#c17f59] transition-colors text-sm sm:text-base">{client.name}</div>
                             <div className="flex items-center gap-2 sm:gap-3 mt-0.5 sm:mt-1">
-                              <span className={`px-1.5 sm:px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-white ${ROTATION_COLORS[client.rotation].badge}`}>
+                              <span className={`px-1.5 sm:px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-white ${getRotationColor(client.rotation).badge}`}>
                                 {client.rotation}
                               </span>
                               {clientOverdue ? (
@@ -1302,7 +1307,7 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bo
                       <div className="flex items-center gap-2 mt-1">
                         <span
                           className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase text-white"
-                          style={{ backgroundColor: ROTATION_COLORS[client.rotation].hex }}
+                          style={{ backgroundColor: getRotationColor(client.rotation).hex }}
                         >
                           {client.rotation}
                         </span>

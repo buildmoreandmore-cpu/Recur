@@ -16,10 +16,15 @@ interface ClientProfileProps {
   onUpdateAppointment?: (appointmentDate: string, updates: Partial<Appointment>) => void;
 }
 
-const ROTATION_COLORS = {
+const ROTATION_COLORS: Record<string, { bg: string; text: string; badge: string }> = {
   [RotationType.PRIORITY]: { bg: 'bg-[#c17f59]/10', text: 'text-[#c17f59]', badge: 'bg-[#c17f59]' },
   [RotationType.STANDARD]: { bg: 'bg-[#7c9a7e]/10', text: 'text-[#7c9a7e]', badge: 'bg-[#7c9a7e]' },
   [RotationType.FLEX]: { bg: 'bg-[#b5a078]/10', text: 'text-[#b5a078]', badge: 'bg-[#b5a078]' },
+  [RotationType.CUSTOM]: { bg: 'bg-[#6b7c91]/10', text: 'text-[#6b7c91]', badge: 'bg-[#6b7c91]' },
+};
+
+const getRotationColor = (rotation: RotationType | string) => {
+  return ROTATION_COLORS[rotation] || ROTATION_COLORS[RotationType.STANDARD];
 };
 
 const AVATAR_COLORS = ['#c17f59', '#7c9a7e', '#b5a078', '#6b7c91', '#a67c8e'];
@@ -183,7 +188,7 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client, industry, 
             <div className="flex-1">
               <div className="flex flex-wrap items-center gap-3 mb-2">
                 <h1 className="text-3xl font-serif text-maroon">{client.name}</h1>
-                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-white ${ROTATION_COLORS[client.rotation].badge}`}>
+                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-white ${getRotationColor(client.rotation).badge}`}>
                   {client.rotation}
                 </span>
               </div>

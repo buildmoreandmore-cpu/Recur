@@ -43,7 +43,7 @@ CREATE TABLE clients (
   email TEXT,
   notes TEXT,
   status TEXT CHECK (status IN ('confirmed', 'pending', 'at-risk')) DEFAULT 'confirmed',
-  rotation TEXT CHECK (rotation IN ('PRIORITY', 'STANDARD', 'FLEX')) DEFAULT 'STANDARD',
+  rotation TEXT CHECK (rotation IN ('PRIORITY', 'STANDARD', 'FLEX', 'CUSTOM')) DEFAULT 'STANDARD',
   rotation_weeks INTEGER DEFAULT 10,
   annual_value NUMERIC DEFAULT 0,
   base_service_id UUID REFERENCES services(id) ON DELETE SET NULL,

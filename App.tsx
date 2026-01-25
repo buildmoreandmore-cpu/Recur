@@ -987,6 +987,7 @@ const App: React.FC = () => {
           profile={profile}
           clients={clients}
           bookingRequests={bookingRequests}
+          bookingSettings={bookingSettings}
           onAddClient={() => {
             setSelectedClient(null);
             navigateTo('client-intake');

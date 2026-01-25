@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Client, RotationType, StylistProfile, BookingRequest, Appointment, PaymentMethod, MissedReason } from '../types';
+import { Client, RotationType, StylistProfile, BookingRequest, Appointment, PaymentMethod, MissedReason, BookingSettings } from '../types';
 import { ICONS, LOGOS, PAYMENT_METHODS, MISSED_REASONS } from '../constants';
 import { GettingStartedChecklist } from './GettingStartedChecklist';
 
@@ -105,6 +105,7 @@ interface AppDashboardProps {
   profile: StylistProfile;
   clients: Client[];
   bookingRequests?: BookingRequest[];
+  bookingSettings?: BookingSettings;
   onAddClient: () => void;
   onViewClient: (client: Client) => void;
   onBack: () => void;
@@ -166,12 +167,25 @@ const ROTATION_COLORS = {
 
 const AVATAR_COLORS = ['#c17f59', '#7c9a7e', '#b5a078', '#6b7c91', '#a67c8e'];
 
-export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bookingRequests: bookingRequestsProp, onAddClient, onViewClient, onBack, onExitDemo, onLogoClick, onNavigateToSettings, onLogout, showTutorial, onTutorialComplete, onUpdateBookingRequest, onCompleteAppointment, onMissedAppointment }) => {
+export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bookingRequests: bookingRequestsProp, bookingSettings, onAddClient, onViewClient, onBack, onExitDemo, onLogoClick, onNavigateToSettings, onLogout, showTutorial, onTutorialComplete, onUpdateBookingRequest, onCompleteAppointment, onMissedAppointment }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<{ day: number; appointments: Client[] } | null>(null);
   const [bookingClient, setBookingClient] = useState<Client | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showSquarePreview, setShowSquarePreview] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+
+  const bookingUrl = bookingSettings?.profileSlug
+    ? `bookrecur.com/book/${bookingSettings.profileSlug}`
+    : null;
+
+  const copyBookingLink = () => {
+    if (bookingUrl) {
+      navigator.clipboard.writeText(`https://${bookingUrl}`);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    }
+  };
   // Use prop if provided, otherwise use sample data for demo users
   const [bookingRequests, setBookingRequests] = useState<BookingRequest[]>(
     bookingRequestsProp || (onExitDemo ? SAMPLE_BOOKING_REQUESTS : [])
@@ -507,6 +521,23 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bo
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </button>
+            {bookingUrl && (
+              <Tooltip text="Your booking link - click to copy" position="bottom">
+                <button
+                  onClick={copyBookingLink}
+                  className={`hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                    linkCopied
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-slate-100 text-maroon/70 hover:bg-slate-200 hover:text-maroon'
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                  </svg>
+                  {linkCopied ? 'Copied!' : bookingUrl}
+                </button>
+              </Tooltip>
+            )}
             {onLogout ? (
               <button
                 onClick={onLogout}

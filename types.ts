@@ -1,7 +1,8 @@
 export enum RotationType {
   PRIORITY = 'Priority',
   STANDARD = 'Standard',
-  FLEX = 'Flex'
+  FLEX = 'Flex',
+  CUSTOM = 'Custom'
 }
 
 export interface Service {
@@ -9,6 +10,32 @@ export interface Service {
   name: string;
   price: number;
   category: 'base' | 'addon' | 'event';
+}
+
+// Payment method types for appointment tracking
+export type PaymentMethod = 'stripe' | 'cash' | 'cashapp' | 'zelle' | 'venmo' | 'check' | 'card' | 'other' | 'unpaid';
+
+// Appointment status types (expanded)
+export type AppointmentStatus = 'completed' | 'upcoming' | 'scheduled' | 'event' | 'no-show' | 'cancelled' | 'late-cancel';
+
+// Missed appointment reason types
+export type MissedReason = 'no-show' | 'late-cancel' | 'cancelled' | 'rescheduled';
+
+// Appointment with payment tracking
+export interface Appointment {
+  id?: string;
+  date: string;
+  service: string;
+  price: number;
+  status: AppointmentStatus;
+  // Payment tracking (new fields)
+  completedAt?: string;        // When marked complete
+  paymentMethod?: PaymentMethod;
+  paymentAmount?: number;      // Actual amount paid (could differ from price)
+  paymentNote?: string;        // "Tipped $20", "Paid via Venmo @username"
+  missedReason?: MissedReason; // For no-shows/cancellations
+  updatedAt?: string;          // Audit trail
+  updatedBy?: string;          // Who made the update
 }
 
 export interface Client {
@@ -49,24 +76,27 @@ export interface Client {
   maintenanceLevel: string; // Preference level / secondary choice
   additionalNotes: string; // Tertiary question response
   industryData?: Record<string, string>; // Flexible storage for industry-specific data
-  // Service History
-  appointments: {
-    date: string;
-    service: string;
-    price: number;
-    status: 'completed' | 'upcoming' | 'scheduled' | 'event';
-  }[];
+  // Service History (updated to use Appointment interface)
+  appointments: Appointment[];
   notes: string;
   status: 'confirmed' | 'pending' | 'at-risk';
+  // Payment tracking per client
+  preferredPaymentMethod?: PaymentMethod; // Most recently used
 }
 
 export type IndustryType =
   | 'hair-stylist'
+  | 'barber'
   | 'personal-trainer'
   | 'massage-therapist'
-  | 'therapist-counselor'
   | 'esthetician'
+  | 'lash-technician'
+  | 'nail-technician'
+  | 'tattoo-artist'
+  | 'pet-groomer'
+  | 'therapist-counselor'
   | 'consultant-coach'
+  | 'auto-detailer'
   | 'other';
 
 export interface StylistProfile {
@@ -82,6 +112,7 @@ export interface StylistProfile {
   annualGoal: number;
   monthlyGoal: number;
   industry?: IndustryType;
+  profilePhoto?: string;
   // Subscription fields
   stripeCustomerId?: string;
   subscriptionId?: string;
@@ -96,9 +127,15 @@ export interface DashboardStats {
   pending: number;
   clientCount: number;
   attentionNeeded: number;
+  // Actual revenue tracking (new fields)
+  actualYTD: number;           // Sum of completed appointments this year
+  missedYTD: number;           // Revenue lost to no-shows/cancels
+  collectionRate: number;      // actualYTD / (actualYTD + missedYTD) as percentage
+  completedCount: number;      // Number of completed appointments YTD
+  missedCount: number;         // Number of missed appointments YTD
 }
 
-export type AppScreen = 'landing' | 'onboarding' | 'guided-demo' | 'dashboard' | 'client-intake' | 'client-profile' | 'settings' | 'public-profile' | 'client-booking';
+export type AppScreen = 'landing' | 'onboarding' | 'guided-demo' | 'dashboard' | 'client-intake' | 'client-profile' | 'settings' | 'public-profile' | 'client-booking' | 'about';
 
 export interface RotationTier {
   type: RotationType;

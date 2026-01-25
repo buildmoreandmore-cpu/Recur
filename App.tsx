@@ -14,7 +14,6 @@ import { ComparisonPage, COMPARISON_CONFIGS } from './components/seo/ComparisonP
 import { LearnPage, LEARN_ARTICLES } from './components/seo/LearnPage';
 import { AuthModal } from './components/AuthModal';
 import { TrialBanner, Paywall } from './components/TrialBanner';
-import { Testimonials } from './components/Testimonials';
 import { createCheckoutSession } from './lib/stripe';
 import { Client, StylistProfile, RotationType, AppScreen, Service, BookingSettings, BookingRequest, PaymentMethod, MissedReason, Appointment } from './types';
 import { ICONS, LOGOS, INDUSTRY_SAMPLE_CLIENTS } from './constants';
@@ -2331,9 +2330,6 @@ const App: React.FC = () => {
             </div>
           </div>
         </section>
-
-        {/* SECTION: Testimonials */}
-        <Testimonials />
 
         {/* SECTION 7: Pricing */}
         <section className="py-12 sm:py-24 px-4 sm:px-6 bg-cream" id="pricing">

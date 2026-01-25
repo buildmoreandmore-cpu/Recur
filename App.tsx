@@ -768,10 +768,35 @@ const App: React.FC = () => {
     if (clientIndex < 0) return;
 
     const updatedClient = { ...clients[clientIndex] };
-    updatedClient.appointments = updatedClient.appointments.map(apt => {
-      if (apt.date === appointmentDate) {
-        return {
-          ...apt,
+
+    // Check if appointment exists for this date
+    const existingAppointment = updatedClient.appointments.find(apt => apt.date === appointmentDate);
+
+    if (existingAppointment) {
+      // Update existing appointment
+      updatedClient.appointments = updatedClient.appointments.map(apt => {
+        if (apt.date === appointmentDate) {
+          return {
+            ...apt,
+            status: 'completed' as const,
+            completedAt: new Date().toISOString(),
+            paymentMethod,
+            paymentAmount,
+            paymentNote,
+            arrivedLate: arrivedLate || false,
+            updatedAt: new Date().toISOString(),
+          };
+        }
+        return apt;
+      });
+    } else {
+      // Create new completed appointment if none exists for this date
+      updatedClient.appointments = [
+        ...updatedClient.appointments,
+        {
+          date: appointmentDate,
+          service: updatedClient.baseService?.name || 'Service',
+          price: updatedClient.baseService?.price || 0,
           status: 'completed' as const,
           completedAt: new Date().toISOString(),
           paymentMethod,
@@ -779,10 +804,9 @@ const App: React.FC = () => {
           paymentNote,
           arrivedLate: arrivedLate || false,
           updatedAt: new Date().toISOString(),
-        };
-      }
-      return apt;
-    });
+        }
+      ];
+    }
     // Remember preferred payment method for this client
     updatedClient.preferredPaymentMethod = paymentMethod;
 

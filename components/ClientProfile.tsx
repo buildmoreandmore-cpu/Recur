@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
-import { Client, RotationType, IndustryType } from '../types';
-import { ICONS } from '../constants';
+import { Client, RotationType, IndustryType, StylistProfile, Appointment, PaymentMethod, MissedReason } from '../types';
+import { ICONS, PAYMENT_METHODS, MISSED_REASONS } from '../constants';
+import { generateClientAppointmentsICS, downloadICS } from '../lib/calendar';
 
 interface ClientProfileProps {
   client: Client;
   industry: IndustryType;
+  professional?: StylistProfile;
   onBack: () => void;
   onEdit?: () => void;
   onBookAppointment?: () => void;
   onMarkOverdue?: () => void;
   onArchive?: () => void;
+  // New appointment management handlers
+  onUpdateAppointment?: (appointmentDate: string, updates: Partial<Appointment>) => void;
 }
 
 const ROTATION_COLORS = {
@@ -20,8 +24,23 @@ const ROTATION_COLORS = {
 
 const AVATAR_COLORS = ['#c17f59', '#7c9a7e', '#b5a078', '#6b7c91', '#a67c8e'];
 
-export const ClientProfile: React.FC<ClientProfileProps> = ({ client, industry, onBack, onEdit, onBookAppointment, onMarkOverdue, onArchive }) => {
+export const ClientProfile: React.FC<ClientProfileProps> = ({ client, industry, professional, onBack, onEdit, onBookAppointment, onMarkOverdue, onArchive, onUpdateAppointment }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [calendarExporting, setCalendarExporting] = useState(false);
+
+  // Edit appointment modal state
+  const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
+  const [editPaymentMethod, setEditPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [editPaymentAmount, setEditPaymentAmount] = useState<string>('');
+  const [editPaymentNote, setEditPaymentNote] = useState<string>('');
+  const [editStatus, setEditStatus] = useState<Appointment['status']>('completed');
+
+  // Toast notification state
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   const isHairIndustry = industry === 'hair-stylist';
   const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -53,9 +72,21 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client, industry, 
         return <span className="text-slate-400">○</span>;
       case 'event':
         return <span className="text-[#fff38a]">★</span>;
+      case 'no-show':
+        return <span className="text-red-500">✗</span>;
+      case 'cancelled':
+        return <span className="text-slate-400">⊘</span>;
+      case 'late-cancel':
+        return <span className="text-amber-500">⏰</span>;
       default:
         return <span className="text-slate-400">○</span>;
     }
+  };
+
+  const getPaymentMethodLabel = (method?: PaymentMethod) => {
+    if (!method) return null;
+    const pm = PAYMENT_METHODS.find(m => m.id === method);
+    return pm ? `${pm.icon} ${pm.label}` : method;
   };
 
   // Calendar helpers
@@ -322,13 +353,67 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client, industry, 
 
             {/* Service Roadmap */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-              <div className="px-4 sm:px-6 py-4 border-b border-slate-100">
+              <div className="px-4 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                 <h2 className="font-bold text-maroon">Service Roadmap</h2>
+                {client.appointments && client.appointments.length > 0 && (
+                  <button
+                    onClick={() => {
+                      setCalendarExporting(true);
+                      try {
+                        const defaultProfile: StylistProfile = {
+                          name: '',
+                          businessName: 'Recur',
+                          phone: '',
+                          email: '',
+                          location: '',
+                          yearsInBusiness: 0,
+                          specialties: [],
+                          services: [],
+                          defaultRotation: 8,
+                          annualGoal: 0,
+                          monthlyGoal: 0,
+                        };
+                        const icsContent = generateClientAppointmentsICS(client, professional || defaultProfile);
+                        if (icsContent) {
+                          const filename = `${client.name.replace(/\s+/g, '-').toLowerCase()}-appointments.ics`;
+                          downloadICS(icsContent, filename);
+                        }
+                      } catch (err) {
+                        console.error('Failed to generate calendar file:', err);
+                      }
+                      setCalendarExporting(false);
+                    }}
+                    disabled={calendarExporting}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-[#7c9a7e] hover:bg-[#7c9a7e]/10 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" strokeWidth={2}/>
+                      <line x1="16" y1="2" x2="16" y2="6" strokeWidth={2}/>
+                      <line x1="8" y1="2" x2="8" y2="6" strokeWidth={2}/>
+                      <line x1="3" y1="10" x2="21" y2="10" strokeWidth={2}/>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14v4m0 0l-2-2m2 2l2-2" />
+                    </svg>
+                    {calendarExporting ? 'Exporting...' : 'Add to Calendar'}
+                  </button>
+                )}
               </div>
               <div className="divide-y divide-slate-50">
                 {client.appointments && client.appointments.length > 0 ? (
                   client.appointments.map((apt, i) => (
-                    <div key={i} className={`px-4 sm:px-6 py-4 flex items-center justify-between ${apt.status === 'completed' ? 'bg-slate-50/50' : ''}`}>
+                    <div
+                      key={i}
+                      className={`px-4 sm:px-6 py-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors ${
+                        apt.status === 'completed' ? 'bg-slate-50/50' :
+                        apt.status === 'no-show' || apt.status === 'cancelled' || apt.status === 'late-cancel' ? 'bg-red-50/30' : ''
+                      }`}
+                      onClick={() => {
+                        setEditingAppointment(apt);
+                        setEditPaymentMethod(apt.paymentMethod || null);
+                        setEditPaymentAmount((apt.paymentAmount ?? apt.price).toString());
+                        setEditPaymentNote(apt.paymentNote || '');
+                        setEditStatus(apt.status);
+                      }}
+                    >
                       <div className="flex items-center gap-4">
                         <div className="w-8 text-center">
                           {getStatusIcon(apt.status)}
@@ -336,18 +421,41 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client, industry, 
                         <div>
                           <div className="font-bold text-maroon">{formatShortDate(apt.date)}</div>
                           <div className="text-sm text-slate-500">{apt.service}</div>
+                          {/* Show payment method for completed appointments */}
+                          {apt.status === 'completed' && apt.paymentMethod && (
+                            <div className="text-xs text-emerald-600 mt-0.5">
+                              Paid: {getPaymentMethodLabel(apt.paymentMethod)}
+                              {apt.paymentNote && <span className="text-slate-400"> ({apt.paymentNote})</span>}
+                            </div>
+                          )}
+                          {/* Show missed reason for no-shows */}
+                          {(apt.status === 'no-show' || apt.status === 'cancelled' || apt.status === 'late-cancel') && (
+                            <div className="text-xs text-red-500 mt-0.5">
+                              {MISSED_REASONS.find(r => r.id === apt.missedReason)?.label || apt.status}
+                            </div>
+                          )}
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="font-bold text-maroon">{formatCurrency(apt.price)}</div>
-                        <div className={`text-[10px] font-bold uppercase tracking-wider ${
-                          apt.status === 'completed' ? 'text-emerald-500' :
-                          apt.status === 'upcoming' ? 'text-[#c17f59]' :
-                          apt.status === 'event' ? 'text-amber-500' :
-                          'text-slate-400'
-                        }`}>
-                          {apt.status === 'event' ? 'Event' : apt.status}
+                      <div className="text-right flex items-center gap-3">
+                        <div>
+                          <div className={`font-bold ${
+                            apt.status === 'no-show' || apt.status === 'cancelled' ? 'text-slate-400 line-through' : 'text-maroon'
+                          }`}>
+                            {formatCurrency(apt.paymentAmount ?? apt.price)}
+                          </div>
+                          <div className={`text-[10px] font-bold uppercase tracking-wider ${
+                            apt.status === 'completed' ? 'text-emerald-500' :
+                            apt.status === 'upcoming' ? 'text-[#c17f59]' :
+                            apt.status === 'event' ? 'text-amber-500' :
+                            apt.status === 'no-show' || apt.status === 'cancelled' || apt.status === 'late-cancel' ? 'text-red-500' :
+                            'text-slate-400'
+                          }`}>
+                            {apt.status === 'event' ? 'Event' : apt.status}
+                          </div>
                         </div>
+                        <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
                       </div>
                     </div>
                   ))
@@ -599,6 +707,177 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client, industry, 
           </div>
         </div>
       </main>
+
+      {/* Edit Appointment Modal */}
+      {editingAppointment && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={() => setEditingAppointment(null)}
+        >
+          <div
+            className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-6 py-5 bg-gradient-to-r from-slate-600 to-slate-700 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-xl">Edit Appointment</h3>
+                  <p className="text-white/80 text-sm">
+                    {formatDate(editingAppointment.date)} • {editingAppointment.service}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setEditingAppointment(null)}
+                  className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6">
+              {/* Status Selection */}
+              <div className="mb-6">
+                <h4 className="font-bold text-maroon text-sm mb-3">Status</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {[
+                    { id: 'completed', label: 'Completed', icon: '✓', color: 'emerald' },
+                    { id: 'no-show', label: 'No-Show', icon: '✗', color: 'red' },
+                    { id: 'cancelled', label: 'Cancelled', icon: '⊘', color: 'slate' },
+                  ].map(s => (
+                    <button
+                      key={s.id}
+                      onClick={() => setEditStatus(s.id as Appointment['status'])}
+                      className={`p-3 rounded-xl border-2 flex flex-col items-center gap-1 transition-all ${
+                        editStatus === s.id
+                          ? `border-${s.color}-500 bg-${s.color}-50`
+                          : 'border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      <span className="text-xl">{s.icon}</span>
+                      <span className="text-xs font-medium text-maroon">{s.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Payment Method Selection (only for completed) */}
+              {editStatus === 'completed' && (
+                <div className="mb-6">
+                  <h4 className="font-bold text-maroon text-sm mb-3">Payment Method</h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {PAYMENT_METHODS.map(method => (
+                      <button
+                        key={method.id}
+                        onClick={() => setEditPaymentMethod(method.id)}
+                        className={`p-3 rounded-xl border-2 flex flex-col items-center gap-1 transition-all ${
+                          editPaymentMethod === method.id
+                            ? 'border-emerald-500 bg-emerald-50'
+                            : 'border-slate-200 hover:border-slate-300'
+                        }`}
+                      >
+                        <span className="text-xl">{method.icon}</span>
+                        <span className="text-xs font-medium text-maroon">{method.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Amount and Note (only for completed) */}
+              {editStatus === 'completed' && (
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                      Amount Paid
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                      <input
+                        type="number"
+                        value={editPaymentAmount}
+                        onChange={(e) => setEditPaymentAmount(e.target.value)}
+                        className="w-full pl-7 pr-3 py-2.5 border-2 border-slate-200 rounded-xl focus:border-emerald-500 focus:outline-none text-maroon font-medium"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                      Note (optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={editPaymentNote}
+                      onChange={(e) => setEditPaymentNote(e.target.value)}
+                      className="w-full px-3 py-2.5 border-2 border-slate-200 rounded-xl focus:border-emerald-500 focus:outline-none text-maroon"
+                      placeholder="Tipped $20..."
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setEditingAppointment(null)}
+                  className="flex-1 py-3 border-2 border-slate-200 text-maroon font-bold rounded-xl hover:bg-slate-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    if (onUpdateAppointment) {
+                      const updates: Partial<Appointment> = {
+                        status: editStatus,
+                        updatedAt: new Date().toISOString(),
+                      };
+                      if (editStatus === 'completed') {
+                        updates.paymentMethod = editPaymentMethod || undefined;
+                        updates.paymentAmount = parseFloat(editPaymentAmount) || editingAppointment.price;
+                        updates.paymentNote = editPaymentNote || undefined;
+                        updates.completedAt = new Date().toISOString();
+                      }
+                      onUpdateAppointment(editingAppointment.date, updates);
+                    }
+                    showToast(`Appointment updated to ${editStatus}`);
+                    setEditingAppointment(null);
+                  }}
+                  className="flex-1 py-3 bg-maroon text-white font-bold rounded-xl hover:bg-maroon/90 transition-colors"
+                >
+                  Save Changes
+                </button>
+              </div>
+
+              {/* Audit trail */}
+              {editingAppointment.updatedAt && (
+                <p className="text-xs text-slate-400 text-center mt-4">
+                  Last updated: {formatDate(editingAppointment.updatedAt)}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed bottom-4 right-4 px-4 py-3 rounded-xl shadow-lg z-50 flex items-center gap-2 ${
+          toast.type === 'success' ? 'bg-emerald-500 text-white' :
+          toast.type === 'error' ? 'bg-red-500 text-white' :
+          'bg-slate-800 text-white'
+        }`}>
+          {toast.type === 'success' && (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          )}
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 };

@@ -15,13 +15,14 @@ const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, industry, onSave, onBack, clientToEdit }) => {
   const isEditMode = !!clientToEdit;
 
+  const [isQuickAdd, setIsQuickAdd] = useState(!isEditMode);
   const [step, setStep] = useState(1);
   const [client, setClient] = useState<Partial<Client>>(() => {
     if (clientToEdit) {
       return { ...clientToEdit };
     }
     return {
-      id: `client-${Date.now()}`,
+      id: crypto.randomUUID(),
       name: '',
       phone: '',
       email: '',
@@ -71,6 +72,14 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, industry, o
       return services;
     }
     return [];
+  });
+
+  // Custom rotation weeks
+  const [customWeeks, setCustomWeeks] = useState(() => {
+    if (clientToEdit && clientToEdit.rotation === RotationType.CUSTOM) {
+      return clientToEdit.rotationWeeks;
+    }
+    return 4;
   });
 
   // First appointment scheduling
@@ -124,7 +133,11 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, industry, o
   }, [selectedServices, client.rotationWeeks, client.events]);
 
   const handleNext = () => {
-    if (step < 4) {
+    // In Quick Add mode: step 1 -> step 2, and step 2 renders service/scheduling content
+    // In Full Profile mode: step 1 -> 2 -> 3 -> 4
+    const maxStep = isQuickAdd ? 2 : 4;
+
+    if (step < maxStep) {
       setStep(step + 1);
     } else {
       // Generate appointments for the year
@@ -222,16 +235,46 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, industry, o
           <button onClick={onBack} className="text-maroon/60 hover:text-maroon flex items-center gap-2 text-sm font-medium">
             ← Cancel
           </button>
-          <span className="text-sm font-bold text-maroon">Step {step} of 4</span>
+          <span className="text-sm font-bold text-maroon">
+            Step {step} of {isQuickAdd ? 2 : 4}
+          </span>
         </div>
       </div>
 
+      {/* Mode Toggle (only show when adding new client) */}
+      {!isEditMode && (
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-6">
+          <div className="flex items-center justify-center gap-2 p-1 bg-slate-100 rounded-xl w-fit mx-auto">
+            <button
+              onClick={() => setIsQuickAdd(true)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                isQuickAdd
+                  ? 'bg-white text-maroon shadow-sm'
+                  : 'text-maroon/60 hover:text-maroon'
+              }`}
+            >
+              Quick Add
+            </button>
+            <button
+              onClick={() => setIsQuickAdd(false)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                !isQuickAdd
+                  ? 'bg-white text-maroon shadow-sm'
+                  : 'text-maroon/60 hover:text-maroon'
+              }`}
+            >
+              Full Profile
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Progress Bar */}
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-6">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-4">
         <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
           <div
             className="h-full bg-maroon rounded-full transition-all duration-500"
-            style={{ width: `${(step / 4) * 100}%` }}
+            style={{ width: `${(step / (isQuickAdd ? 2 : 4)) * 100}%` }}
           />
         </div>
       </div>
@@ -263,7 +306,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, industry, o
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-bold text-maroon mb-2">Phone</label>
+                  <label className="block text-sm font-bold text-maroon mb-2">Phone <span className="font-normal text-maroon/50">(optional)</span></label>
                   <input
                     type="tel"
                     value={client.phone}
@@ -273,7 +316,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, industry, o
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-maroon mb-2">Email</label>
+                  <label className="block text-sm font-bold text-maroon mb-2">Email <span className="font-normal text-maroon/50">(optional)</span></label>
                   <input
                     type="email"
                     value={client.email}
@@ -552,7 +595,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, industry, o
           </div>
         )}
 
-        {step === 4 && (
+        {(step === 4 || (isQuickAdd && step === 2)) && (
           <div className="space-y-8">
             <div>
               <h1 className="text-3xl font-serif text-maroon mb-2">Service & Rotation</h1>
@@ -638,7 +681,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, industry, o
               {/* Rotation Assignment */}
               <div className="bg-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-slate-100">
                 <h3 className="text-lg font-bold text-maroon mb-4">Rotation Assignment</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <button
                     onClick={() => setRotation(RotationType.PRIORITY, 8)}
                     className={`p-6 rounded-xl text-left transition-all ${
@@ -693,7 +736,50 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, industry, o
                       )}
                     </div>
                   </button>
+                  <button
+                    onClick={() => setRotation(RotationType.CUSTOM, customWeeks)}
+                    className={`p-6 rounded-xl text-left transition-all ${
+                      client.rotation === RotationType.CUSTOM
+                        ? 'bg-[#6b5b95] text-white'
+                        : 'bg-[#6b5b95]/10 text-maroon hover:bg-[#6b5b95]/20'
+                    }`}
+                  >
+                    <div className="font-bold text-lg">Custom</div>
+                    <div className={`text-2xl font-serif ${client.rotation === RotationType.CUSTOM ? 'text-white' : ''}`}>{customWeeks} week{customWeeks !== 1 ? 's' : ''}</div>
+                    <div className={`text-sm mt-2 ${client.rotation === RotationType.CUSTOM ? 'text-white/70' : 'text-maroon/60'}`}>{Math.round(52 / customWeeks)} visits/year</div>
+                    <div className={`text-xs mt-3 pt-3 border-t ${client.rotation === RotationType.CUSTOM ? 'border-white/20' : 'border-current/20'}`}>
+                      <span className="font-medium">Your schedule</span>
+                      {client.baseService && (
+                        <div className={`mt-1 ${client.rotation === RotationType.CUSTOM ? 'text-white/70' : 'text-maroon/60'}`}>~{formatCurrency(client.baseService.price * Math.round(52 / customWeeks))}/year</div>
+                      )}
+                    </div>
+                  </button>
                 </div>
+
+                {/* Custom weeks input - shown when Custom is selected */}
+                {client.rotation === RotationType.CUSTOM && (
+                  <div className="mt-4 p-4 bg-[#6b5b95]/10 rounded-xl border-2 border-[#6b5b95]/30">
+                    <label className="block text-sm font-bold text-maroon mb-2">Set custom rotation (1-52 weeks)</label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="number"
+                        min={1}
+                        max={52}
+                        value={customWeeks}
+                        onChange={(e) => {
+                          const weeks = Math.max(1, Math.min(52, parseInt(e.target.value) || 1));
+                          setCustomWeeks(weeks);
+                          setClient({ ...client, rotationWeeks: weeks });
+                        }}
+                        className="w-24 px-4 py-3 rounded-xl border border-slate-200 focus:border-[#6b5b95] focus:ring-2 focus:ring-[#6b5b95]/20 outline-none transition-all text-center text-lg font-bold"
+                      />
+                      <span className="text-maroon/60">weeks between visits</span>
+                    </div>
+                    <p className="text-xs text-maroon/50 mt-2">
+                      Popular: 1 week (weekly), 2 weeks (bi-weekly), 4 weeks (monthly)
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Appointment Section */}
@@ -827,7 +913,7 @@ export const ClientIntake: React.FC<ClientIntakeProps> = ({ profile, industry, o
             disabled={step === 1 && !client.name}
             className="btn-primary ml-auto px-8 py-4 bg-maroon text-white rounded-xl font-bold text-lg shadow-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {step === 4 ? (isEditMode ? 'Save Changes' : 'Save Client') : 'Continue'}
+            {(step === 4 || (isQuickAdd && step === 2)) ? (isEditMode ? 'Save Changes' : 'Save Client') : 'Continue'}
             <span>→</span>
           </button>
         </div>

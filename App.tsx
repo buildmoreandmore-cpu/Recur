@@ -7,10 +7,11 @@ import { ClientProfile } from './components/ClientProfile';
 import { Settings } from './components/Settings';
 import { PublicProfile } from './components/PublicProfile';
 import { ClientBookingFlow } from './components/ClientBookingFlow';
+import { AboutPage } from './components/AboutPage';
 import { AuthModal } from './components/AuthModal';
 import { TrialBanner, Paywall } from './components/TrialBanner';
 import { createCheckoutSession } from './lib/stripe';
-import { Client, StylistProfile, RotationType, AppScreen, Service, BookingSettings, BookingRequest } from './types';
+import { Client, StylistProfile, RotationType, AppScreen, Service, BookingSettings, BookingRequest, PaymentMethod, MissedReason, Appointment } from './types';
 import { ICONS, LOGOS, INDUSTRY_SAMPLE_CLIENTS } from './constants';
 import { useAuth } from './lib/auth';
 import {
@@ -20,7 +21,11 @@ import {
   saveClient as saveClientToDb,
   deleteClient as deleteClientFromDb,
   fetchBookingSettings,
-  saveBookingSettings as saveBookingSettingsToDb
+  saveBookingSettings as saveBookingSettingsToDb,
+  fetchPublicBookingSettings,
+  submitBookingRequest,
+  fetchBookingRequests,
+  updateBookingRequest
 } from './lib/api';
 
 // Sample clients for demo
@@ -374,8 +379,15 @@ const App: React.FC = () => {
   const [dataLoading, setDataLoading] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
 
-  const [screen, setScreen] = useState<AppScreen>('landing');
-  const [screenHistory, setScreenHistory] = useState<AppScreen[]>(['landing']);
+  // Determine initial screen from URL
+  const getInitialScreen = (): AppScreen => {
+    const path = window.location.pathname;
+    if (path === '/about' || path === '/about/') return 'about';
+    if (path.startsWith('/book/')) return 'client-booking';
+    return 'landing';
+  };
+  const [screen, setScreen] = useState<AppScreen>(getInitialScreen);
+  const [screenHistory, setScreenHistory] = useState<AppScreen[]>([getInitialScreen()]);
   const [profile, setProfile] = useState<StylistProfile>(DEFAULT_PROFILE);
   const [clients, setClients] = useState<Client[]>([]);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -409,6 +421,24 @@ const App: React.FC = () => {
     maximumAdvanceBooking: '60',
     autoConfirmExisting: false,
   });
+  const [bookingRequests, setBookingRequests] = useState<BookingRequest[]>([]);
+
+  // Public booking page state (for /book/[slug] URLs)
+  const getInitialSlug = (): string | null => {
+    const path = window.location.pathname;
+    if (path.startsWith('/book/')) {
+      return path.split('/')[2] || null;
+    }
+    return null;
+  };
+  const [publicBookingSlug, setPublicBookingSlug] = useState<string | null>(getInitialSlug);
+  const [publicBookingData, setPublicBookingData] = useState<{
+    settings: BookingSettings | null;
+    profile: StylistProfile | null;
+    professionalId: string | null;
+  } | null>(null);
+  const [publicBookingLoading, setPublicBookingLoading] = useState(getInitialSlug() !== null);
+  const [publicBookingError, setPublicBookingError] = useState<string | null>(null);
 
   // Navigate to a new screen (adds to history)
   const navigateTo = useCallback((newScreen: AppScreen) => {
@@ -429,22 +459,68 @@ const App: React.FC = () => {
     }
   }, [screenHistory]);
 
+  // Check URL path on initial load for routing
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (path === '/about' || path === '/about/') {
+      setScreen('about');
+      setScreenHistory(['about']);
+    } else if (path.startsWith('/book/')) {
+      const slug = path.split('/')[2];
+      if (slug) {
+        setPublicBookingSlug(slug);
+        setScreen('client-booking');
+        setScreenHistory(['client-booking']);
+      }
+    }
+  }, []);
+
+  // Fetch public booking data when slug is set
+  useEffect(() => {
+    if (publicBookingSlug) {
+      loadPublicBookingData(publicBookingSlug);
+    }
+  }, [publicBookingSlug]);
+
+  const loadPublicBookingData = async (slug: string) => {
+    setPublicBookingLoading(true);
+    setPublicBookingError(null);
+    try {
+      const data = await fetchPublicBookingSettings(slug);
+      if (data.settings && data.profile) {
+        setPublicBookingData({
+          settings: data.settings,
+          profile: data.profile,
+          professionalId: data.professionalId,
+        });
+      } else {
+        setPublicBookingError('Professional not found');
+      }
+    } catch (error) {
+      setPublicBookingError('Failed to load booking page');
+    } finally {
+      setPublicBookingLoading(false);
+    }
+  };
+
   // Load user data from Supabase when authenticated
   const loadUserData = useCallback(async () => {
     if (!user || !isSupabaseConfigured) return;
 
     setDataLoading(true);
     try {
-      const [loadedProfile, loadedClients, loadedBookingSettings] = await Promise.all([
+      const [loadedProfile, loadedClients, loadedBookingSettings, loadedBookingRequests] = await Promise.all([
         fetchProfile(),
         fetchClients(),
         fetchBookingSettings(),
+        fetchBookingRequests(),
       ]);
 
-      if (loadedProfile && loadedProfile.services.length > 0) {
-        // User has completed onboarding - load their data
+      if (loadedProfile) {
+        // User has a profile - load their data
         setProfile(loadedProfile);
         setHasOnboarded(true);
+        setBookingRequests(loadedBookingRequests || []);
 
         if (loadedClients.length > 0) {
           setClients(loadedClients);
@@ -475,8 +551,12 @@ const App: React.FC = () => {
   }, [user, isSupabaseConfigured, screen, navigateTo]);
 
   // Load data when user logs in
+  // Skip if returning from payment (URL param will handle it)
   useEffect(() => {
-    if (user && !dataLoaded && !dataLoading) {
+    const params = new URLSearchParams(window.location.search);
+    const isReturningFromPayment = params.get('onboarding') === 'complete';
+
+    if (user && !dataLoaded && !dataLoading && !isReturningFromPayment) {
       loadUserData();
     }
   }, [user, dataLoaded, dataLoading, loadUserData]);
@@ -489,24 +569,50 @@ const App: React.FC = () => {
   }, [user]);
 
   // Handle URL parameters (e.g., after Stripe redirect)
+  // This effect runs BEFORE loadUserData by setting dataLoaded to prevent race conditions
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const onboardingStatus = params.get('onboarding');
 
     if (onboardingStatus === 'complete' && user) {
       // Payment successful - go to dashboard with tutorial
+      // Set dataLoaded first to prevent loadUserData from overwriting our state
+      setDataLoaded(true);
       setHasOnboarded(true);
       setScreen('dashboard');
       setScreenHistory(['dashboard']);
       setShowDashboardTutorial(true);
       // Clean up URL
       window.history.replaceState({}, '', window.location.pathname);
+
+      // Load user data in the background without overwriting screen state
+      if (isSupabaseConfigured) {
+        Promise.all([
+          fetchProfile(),
+          fetchClients(),
+          fetchBookingSettings(),
+          fetchBookingRequests(),
+        ]).then(([loadedProfile, loadedClients, loadedBookingSettings, loadedBookingRequests]) => {
+          if (loadedProfile) {
+            setProfile(loadedProfile);
+          }
+          if (loadedClients && loadedClients.length > 0) {
+            setClients(loadedClients);
+          }
+          if (loadedBookingSettings) {
+            setBookingSettings(loadedBookingSettings);
+          }
+          if (loadedBookingRequests) {
+            setBookingRequests(loadedBookingRequests);
+          }
+        }).catch(err => console.error('Error loading data after payment:', err));
+      }
     } else if (onboardingStatus === 'payment') {
       // Payment was cancelled - stay on onboarding step 6
       setScreen('onboarding');
       window.history.replaceState({}, '', window.location.pathname);
     }
-  }, [user]);
+  }, [user, isSupabaseConfigured]);
 
   // Go back to landing (resets history)
   const goToLanding = () => {
@@ -649,6 +755,123 @@ const App: React.FC = () => {
     goBack(); // Go back to previous screen
   };
 
+  // Handle completing an appointment with payment info
+  const handleCompleteAppointment = async (
+    clientId: string,
+    appointmentDate: string,
+    paymentMethod: PaymentMethod,
+    paymentAmount: number,
+    paymentNote?: string
+  ) => {
+    const clientIndex = clients.findIndex(c => c.id === clientId);
+    if (clientIndex < 0) return;
+
+    const updatedClient = { ...clients[clientIndex] };
+    updatedClient.appointments = updatedClient.appointments.map(apt => {
+      if (apt.date === appointmentDate) {
+        return {
+          ...apt,
+          status: 'completed' as const,
+          completedAt: new Date().toISOString(),
+          paymentMethod,
+          paymentAmount,
+          paymentNote,
+          updatedAt: new Date().toISOString(),
+        };
+      }
+      return apt;
+    });
+    // Remember preferred payment method for this client
+    updatedClient.preferredPaymentMethod = paymentMethod;
+
+    const updatedClients = [...clients];
+    updatedClients[clientIndex] = updatedClient;
+    setClients(updatedClients);
+
+    // Persist to Supabase
+    if (user && isSupabaseConfigured) {
+      await saveClientToDb(updatedClient);
+    }
+  };
+
+  // Handle marking an appointment as missed
+  const handleMissedAppointment = async (
+    clientId: string,
+    appointmentDate: string,
+    missedReason: MissedReason,
+    options?: { chargeFee?: boolean; flagAtRisk?: boolean; sendMessage?: boolean }
+  ) => {
+    const clientIndex = clients.findIndex(c => c.id === clientId);
+    if (clientIndex < 0) return;
+
+    const updatedClient = { ...clients[clientIndex] };
+
+    // Map missedReason to appointment status
+    const statusMap: Record<MissedReason, 'no-show' | 'cancelled' | 'late-cancel'> = {
+      'no-show': 'no-show',
+      'late-cancel': 'late-cancel',
+      'cancelled': 'cancelled',
+      'rescheduled': 'cancelled',
+    };
+
+    updatedClient.appointments = updatedClient.appointments.map(apt => {
+      if (apt.date === appointmentDate) {
+        return {
+          ...apt,
+          status: statusMap[missedReason],
+          missedReason,
+          updatedAt: new Date().toISOString(),
+        };
+      }
+      return apt;
+    });
+
+    // Flag as at-risk if option selected
+    if (options?.flagAtRisk) {
+      updatedClient.status = 'at-risk';
+    }
+
+    const updatedClients = [...clients];
+    updatedClients[clientIndex] = updatedClient;
+    setClients(updatedClients);
+
+    // Persist to Supabase
+    if (user && isSupabaseConfigured) {
+      await saveClientToDb(updatedClient);
+    }
+  };
+
+  // Handle updating a past appointment
+  const handleUpdateAppointment = async (
+    clientId: string,
+    appointmentDate: string,
+    updates: Partial<Appointment>
+  ) => {
+    const clientIndex = clients.findIndex(c => c.id === clientId);
+    if (clientIndex < 0) return;
+
+    const updatedClient = { ...clients[clientIndex] };
+    updatedClient.appointments = updatedClient.appointments.map(apt => {
+      if (apt.date === appointmentDate) {
+        return {
+          ...apt,
+          ...updates,
+          updatedAt: new Date().toISOString(),
+        };
+      }
+      return apt;
+    });
+
+    const updatedClients = [...clients];
+    updatedClients[clientIndex] = updatedClient;
+    setClients(updatedClients);
+
+    // Persist to Supabase
+    if (user && isSupabaseConfigured) {
+      await saveClientToDb(updatedClient);
+    }
+  };
+
   const handleViewClient = (client: Client) => {
     setSelectedClient(client);
     navigateTo('client-profile');
@@ -763,6 +986,7 @@ const App: React.FC = () => {
         <AppDashboard
           profile={profile}
           clients={clients}
+          bookingRequests={bookingRequests}
           onAddClient={() => {
             setSelectedClient(null);
             navigateTo('client-intake');
@@ -783,6 +1007,65 @@ const App: React.FC = () => {
           } : undefined}
           showTutorial={showDashboardTutorial}
           onTutorialComplete={() => setShowDashboardTutorial(false)}
+          onCompleteAppointment={handleCompleteAppointment}
+          onMissedAppointment={handleMissedAppointment}
+          onUpdateBookingRequest={async (id, status) => {
+            const { error } = await updateBookingRequest(id, status);
+            if (!error) {
+              // Update local state
+              setBookingRequests(prev => prev.map(r =>
+                r.id === id ? { ...r, status } : r
+              ));
+
+              // If confirmed, create a client from the booking request
+              if (status === 'confirmed') {
+                const request = bookingRequests.find(r => r.id === id);
+                if (request) {
+                  const newClient: Client = {
+                    id: crypto.randomUUID(),
+                    name: request.clientName || 'New Client',
+                    phone: request.clientPhone || '',
+                    email: request.clientEmail || '',
+                    rotation: RotationType.STANDARD,
+                    rotationWeeks: 6,
+                    baseService: request.requestedService || null,
+                    addOns: request.requestedAddOns?.map(s => ({ service: s, frequency: 'Every visit' })) || [],
+                    annualValue: (request.requestedService?.price || 0) * 8,
+                    nextAppointment: request.requestedDate || new Date().toISOString().split('T')[0],
+                    clientSince: new Date().toISOString().split('T')[0],
+                    preferredDays: request.preferredDays || [],
+                    preferredTime: request.preferredTime || '',
+                    contactMethod: request.contactMethod || '',
+                    occupation: request.occupation || '',
+                    clientFacing: false,
+                    morningTime: request.morningTime || '',
+                    events: [],
+                    photographed: '',
+                    concerns: request.concerns || '',
+                    serviceGoal: request.serviceGoal || '',
+                    maintenanceLevel: request.maintenanceLevel || '',
+                    additionalNotes: request.additionalNotes || '',
+                    naturalColor: request.naturalColor || '',
+                    currentColor: request.currentColor || '',
+                    appointments: [{
+                      date: request.requestedDate || new Date().toISOString().split('T')[0],
+                      service: request.requestedService?.name || 'Consultation',
+                      price: request.requestedService?.price || 0,
+                      status: 'upcoming'
+                    }],
+                    notes: `Booked via online form. ${request.additionalNotes || ''}`.trim(),
+                    status: 'confirmed'
+                  };
+
+                  // Add to state and save to database
+                  setClients(prev => [...prev, newClient]);
+                  if (user && isSupabaseConfigured) {
+                    await saveClientToDb(newClient);
+                  }
+                }
+              }
+            }
+          }}
         />
 
         {/* Waitlist Modal for Dashboard */}
@@ -871,12 +1154,20 @@ const App: React.FC = () => {
     return (
       <Settings
         profile={profile}
+        bookingSettings={bookingSettings}
+        clients={clients}
         onBack={goBack}
         onUpdateProfile={async (updatedProfile) => {
           setProfile(updatedProfile);
           // Persist to Supabase
           if (user && isSupabaseConfigured) {
             await saveProfile(updatedProfile);
+          }
+        }}
+        onUpdateBookingSettings={async (settings) => {
+          setBookingSettings(settings);
+          if (user && isSupabaseConfigured) {
+            await saveBookingSettingsToDb(settings);
           }
         }}
         onLogoClick={() => {
@@ -908,17 +1199,83 @@ const App: React.FC = () => {
     );
   }
 
+  if (screen === 'about') {
+    return (
+      <AboutPage
+        onBack={() => {
+          setScreen('landing');
+          setScreenHistory(['landing']);
+          window.history.replaceState({}, '', '/');
+        }}
+      />
+    );
+  }
+
   if (screen === 'client-booking') {
+    // Use public data if coming from /book/[slug] URL
+    const isPublicBooking = !!publicBookingSlug;
+    const bookingProfile = isPublicBooking && publicBookingData?.profile ? publicBookingData.profile : profile;
+    const bookingSettingsData = isPublicBooking && publicBookingData?.settings ? publicBookingData.settings : bookingSettings;
+    const profId = isPublicBooking ? (publicBookingData?.professionalId || '') : '';
+
+    // Show loading state for public booking
+    if (isPublicBooking && publicBookingLoading) {
+      return (
+        <div className="min-h-screen bg-cream flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-maroon mx-auto mb-4"></div>
+            <p className="text-maroon/60">Loading booking page...</p>
+          </div>
+        </div>
+      );
+    }
+
+    // Show error state for public booking
+    if (isPublicBooking && publicBookingError) {
+      return (
+        <div className="min-h-screen bg-cream flex items-center justify-center">
+          <div className="text-center max-w-md mx-auto px-4">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-serif text-maroon mb-2">Page Not Found</h1>
+            <p className="text-maroon/60 mb-6">{publicBookingError}</p>
+            <a href="/" className="inline-block px-6 py-3 bg-maroon text-white rounded-xl font-bold hover:bg-maroon/90 transition-colors">
+              Go Home
+            </a>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <ClientBookingFlow
-        profile={profile}
-        bookingSettings={bookingSettings}
-        onSubmit={(request: BookingRequest) => {
+        profile={bookingProfile}
+        bookingSettings={bookingSettingsData}
+        professionalId={profId}
+        onSubmit={async (request: BookingRequest) => {
           console.log('New booking request:', request);
-          // In demo, just show toast - in production this would create the request
-          alert('Demo: In production, this request would be sent to the professional for review.');
+          if (isPublicBooking && profId) {
+            // Submit to database for public bookings
+            const { error } = await submitBookingRequest(profId, request);
+            if (error) {
+              console.error('Failed to submit booking:', error);
+              alert('Failed to submit booking request. Please try again.');
+            }
+          } else {
+            // Demo mode
+            alert('Demo: In production, this request would be sent to the professional for review.');
+          }
         }}
-        onBack={goBack}
+        onBack={() => {
+          if (isPublicBooking) {
+            window.location.href = '/';
+          } else {
+            goBack();
+          }
+        }}
       />
     );
   }
@@ -1037,6 +1394,7 @@ const App: React.FC = () => {
         <ClientProfile
           client={selectedClient}
           industry={profile.industry || 'hair-stylist'}
+          professional={profile}
           onBack={() => {
             setSelectedClient(null);
             goBack();
@@ -1047,6 +1405,9 @@ const App: React.FC = () => {
           onBookAppointment={handleBookAppointment}
           onMarkOverdue={handleMarkOverdue}
           onArchive={handleArchive}
+          onUpdateAppointment={(appointmentDate, updates) => {
+            handleUpdateAppointment(selectedClient.id, appointmentDate, updates);
+          }}
         />
 
         {/* Booking Modal */}
@@ -1247,6 +1608,7 @@ const App: React.FC = () => {
           ) : (
             <>
               <button
+                type="button"
                 onClick={() => {
                   setAuthModalMode('login');
                   setShowAuthModal(true);
@@ -1746,10 +2108,13 @@ const App: React.FC = () => {
               </ul>
 
               <button
-                onClick={() => setShowWaitlist(true)}
+                onClick={() => {
+                  setAuthModalMode('signup');
+                  setShowAuthModal(true);
+                }}
                 className="btn-primary w-full py-3 sm:py-4 bg-maroon text-white rounded-xl font-bold text-base sm:text-lg"
               >
-                Join Waitlist for Early Access
+                Get Started Free
               </button>
             </div>
           </div>

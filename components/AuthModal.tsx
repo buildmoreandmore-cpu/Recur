@@ -10,6 +10,8 @@ interface AuthModalProps {
 
 type AuthMode = 'login' | 'signup' | 'reset';
 
+const REMEMBERED_EMAIL_KEY = 'recur_remembered_email';
+
 export function AuthModal({ isOpen, onClose, onSuccess, initialMode = 'login' }: AuthModalProps) {
   const { signIn, signUp, resetPassword } = useAuth();
   const [mode, setMode] = useState<AuthMode>(initialMode);
@@ -19,6 +21,16 @@ export function AuthModal({ isOpen, onClose, onSuccess, initialMode = 'login' }:
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [rememberEmail, setRememberEmail] = useState(false);
+
+  // Load remembered email on mount
+  useEffect(() => {
+    const savedEmail = localStorage.getItem(REMEMBERED_EMAIL_KEY);
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberEmail(true);
+    }
+  }, []);
 
   // Reset mode when modal opens
   useEffect(() => {
@@ -43,6 +55,12 @@ export function AuthModal({ isOpen, onClose, onSuccess, initialMode = 'login' }:
         if (error) {
           setError(error.message);
         } else {
+          // Save or clear remembered email
+          if (rememberEmail) {
+            localStorage.setItem(REMEMBERED_EMAIL_KEY, email);
+          } else {
+            localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+          }
           onSuccess?.();
           onClose();
         }
@@ -87,16 +105,20 @@ export function AuthModal({ isOpen, onClose, onSuccess, initialMode = 'login' }:
       <div
         className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="auth-modal-title"
       >
         {/* Header */}
         <div className="px-6 py-5 bg-maroon text-white text-center relative">
           <button
             onClick={onClose}
-            className="absolute right-4 top-4 text-white/70 hover:text-white text-xl"
+            className="absolute right-4 top-4 p-2 text-white/70 hover:text-white text-xl rounded-lg hover:bg-white/10 transition-colors focus:ring-2 focus:ring-white/50 focus:outline-none"
+            aria-label="Close"
           >
             &times;
           </button>
-          <h3 className="text-xl sm:text-2xl font-serif mb-1">
+          <h3 id="auth-modal-title" className="text-xl sm:text-2xl font-serif mb-1">
             {mode === 'login' && 'Welcome Back'}
             {mode === 'signup' && 'Create Account'}
             {mode === 'reset' && 'Reset Password'}
@@ -163,6 +185,22 @@ export function AuthModal({ isOpen, onClose, onSuccess, initialMode = 'login' }:
                 </p>
               )}
             </div>
+          )}
+
+          {mode === 'login' && (
+            <label className="flex items-center gap-3 cursor-pointer py-2 -my-1">
+              <input
+                type="checkbox"
+                id="remember-email"
+                checked={rememberEmail}
+                onChange={(e) => setRememberEmail(e.target.checked)}
+                disabled={loading}
+                className="w-5 h-5 rounded border-slate-300 text-maroon focus:ring-maroon/20"
+              />
+              <span className="text-sm text-maroon/70">
+                Remember my email
+              </span>
+            </label>
           )}
 
           {error && (

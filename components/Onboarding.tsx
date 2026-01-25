@@ -51,6 +51,18 @@ const INDUSTRY_ICONS: Record<IndustryType, { icon: React.ReactNode; color: strin
     ),
     color: '#C17F59'
   },
+  'barber': {
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 4v16"/>
+        <path d="M4 8h2.5a4.5 4.5 0 0 1 0 9H4"/>
+        <path d="M20 4v16"/>
+        <path d="M20 8h-2.5a4.5 4.5 0 0 0 0 9H20"/>
+        <path d="M4 12h16"/>
+      </svg>
+    ),
+    color: '#8B5A3C'
+  },
   'personal-trainer': {
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -73,6 +85,64 @@ const INDUSTRY_ICONS: Record<IndustryType, { icon: React.ReactNode; color: strin
     ),
     color: '#C17F59'
   },
+  'esthetician': {
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
+      </svg>
+    ),
+    color: '#8B9A7D'
+  },
+  'lash-technician': {
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M2 12c0-3.5 4.5-6 10-6s10 2.5 10 6"/>
+        <ellipse cx="12" cy="12" rx="3" ry="2"/>
+        <path d="M12 6V3"/>
+        <path d="M8 7l-2-3"/>
+        <path d="M16 7l2-3"/>
+        <path d="M5 9l-3-2"/>
+        <path d="M19 9l3-2"/>
+      </svg>
+    ),
+    color: '#9B7BB8'
+  },
+  'nail-technician': {
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 22c-4-3-7-6-7-10a7 7 0 0 1 14 0c0 4-3 7-7 10z"/>
+        <path d="M12 6v8"/>
+        <path d="M8 10h8"/>
+      </svg>
+    ),
+    color: '#E8A0BF'
+  },
+  'tattoo-artist': {
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M8 21h8"/>
+        <path d="M12 17v4"/>
+        <path d="M7 4h10"/>
+        <path d="M17 4v8a5 5 0 0 1-10 0V4"/>
+        <path d="M12 4v4"/>
+      </svg>
+    ),
+    color: '#2A2420'
+  },
+  'pet-groomer': {
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="11" cy="4" r="2"/>
+        <path d="M8 8l-2 8 6 1 6-1-2-8"/>
+        <path d="M6 17l-1 4"/>
+        <path d="M18 17l1 4"/>
+        <circle cx="8" cy="11" r="1"/>
+        <circle cx="14" cy="11" r="1"/>
+        <path d="M10 14h2"/>
+      </svg>
+    ),
+    color: '#D4A574'
+  },
   'therapist-counselor': {
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -82,15 +152,7 @@ const INDUSTRY_ICONS: Record<IndustryType, { icon: React.ReactNode; color: strin
         <path d="M16 12h.01"/>
       </svg>
     ),
-    color: '#2A2420'
-  },
-  'esthetician': {
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
-      </svg>
-    ),
-    color: '#8B9A7D'
+    color: '#6B8E7D'
   },
   'consultant-coach': {
     icon: (
@@ -105,6 +167,17 @@ const INDUSTRY_ICONS: Record<IndustryType, { icon: React.ReactNode; color: strin
       </svg>
     ),
     color: '#2A2420'
+  },
+  'auto-detailer': {
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9L18 10l-3-5H9L6 10l-2.5 1.1C2.7 11.3 2 12.1 2 13v3c0 .6.4 1 1 1h2"/>
+        <circle cx="7" cy="17" r="2"/>
+        <circle cx="17" cy="17" r="2"/>
+        <path d="M14 17H10"/>
+      </svg>
+    ),
+    color: '#4A6FA5'
   },
   'other': {
     icon: (
@@ -270,7 +343,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onSaveProfil
               >
                 Get Started
               </button>
-              <p className="text-xs text-slate-400 mt-4">Takes about 2 minutes</p>
+              <p className="text-xs text-slate-400 mt-4">Quick setup</p>
             </div>
           </div>
         </div>
@@ -439,8 +512,8 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onSaveProfil
               <p className="text-maroon/60">Optional: Enter your services and pricing, or skip to use demo data.</p>
             </div>
 
-            <div className="bg-amber-50 text-amber-700 px-4 py-3 rounded-xl text-sm">
-              This step is optional for the demo. Click "Continue" to skip with sample pricing.
+            <div className="bg-blue-50 text-blue-700 px-4 py-3 rounded-xl text-sm">
+              Add your service pricing or click "Continue" to customize later.
             </div>
 
             <div className="space-y-6">

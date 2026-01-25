@@ -1,6 +1,48 @@
-import React, { useState } from 'react';
-import { Client, RotationType, StylistProfile, BookingRequest } from '../types';
-import { ICONS, LOGOS } from '../constants';
+import React, { useState, useEffect } from 'react';
+import { Client, RotationType, StylistProfile, BookingRequest, Appointment, PaymentMethod, MissedReason } from '../types';
+import { ICONS, LOGOS, PAYMENT_METHODS, MISSED_REASONS } from '../constants';
+import { GettingStartedChecklist } from './GettingStartedChecklist';
+
+// Tooltip component for dashboard feature hints
+const Tooltip: React.FC<{ text: string; children: React.ReactNode; position?: 'top' | 'bottom' | 'left' | 'right' }> = ({
+  text,
+  children,
+  position = 'top'
+}) => {
+  const [show, setShow] = useState(false);
+
+  const positionClasses = {
+    top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
+    bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
+    left: 'right-full top-1/2 -translate-y-1/2 mr-2',
+    right: 'left-full top-1/2 -translate-y-1/2 ml-2',
+  };
+
+  const arrowClasses = {
+    top: 'top-full left-1/2 -translate-x-1/2 border-t-slate-800 border-x-transparent border-b-transparent',
+    bottom: 'bottom-full left-1/2 -translate-x-1/2 border-b-slate-800 border-x-transparent border-t-transparent',
+    left: 'left-full top-1/2 -translate-y-1/2 border-l-slate-800 border-y-transparent border-r-transparent',
+    right: 'right-full top-1/2 -translate-y-1/2 border-r-slate-800 border-y-transparent border-l-transparent',
+  };
+
+  return (
+    <div
+      className="relative inline-block"
+      onMouseEnter={() => setShow(true)}
+      onMouseLeave={() => setShow(false)}
+    >
+      {children}
+      {show && (
+        <div className={`absolute z-50 ${positionClasses[position]} pointer-events-none`}>
+          <div className="bg-slate-800 text-white text-xs px-3 py-2 rounded-lg shadow-lg max-w-xs whitespace-normal">
+            {text}
+            <div className={`absolute w-0 h-0 border-4 ${arrowClasses[position]}`} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 // Sample booking requests for demo
 const SAMPLE_BOOKING_REQUESTS: BookingRequest[] = [
@@ -62,6 +104,7 @@ const SAMPLE_BOOKING_REQUESTS: BookingRequest[] = [
 interface AppDashboardProps {
   profile: StylistProfile;
   clients: Client[];
+  bookingRequests?: BookingRequest[];
   onAddClient: () => void;
   onViewClient: (client: Client) => void;
   onBack: () => void;
@@ -71,6 +114,10 @@ interface AppDashboardProps {
   onLogout?: () => void;
   showTutorial?: boolean;
   onTutorialComplete?: () => void;
+  onUpdateBookingRequest?: (id: string, status: 'confirmed' | 'declined') => void;
+  // New appointment completion handlers
+  onCompleteAppointment?: (clientId: string, appointmentDate: string, paymentMethod: PaymentMethod, paymentAmount: number, paymentNote?: string) => void;
+  onMissedAppointment?: (clientId: string, appointmentDate: string, missedReason: MissedReason, options?: { chargeFee?: boolean; flagAtRisk?: boolean; sendMessage?: boolean }) => void;
 }
 
 const TUTORIAL_STEPS = [
@@ -119,19 +166,55 @@ const ROTATION_COLORS = {
 
 const AVATAR_COLORS = ['#c17f59', '#7c9a7e', '#b5a078', '#6b7c91', '#a67c8e'];
 
-export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, onAddClient, onViewClient, onBack, onExitDemo, onLogoClick, onNavigateToSettings, onLogout, showTutorial, onTutorialComplete }) => {
+export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bookingRequests: bookingRequestsProp, onAddClient, onViewClient, onBack, onExitDemo, onLogoClick, onNavigateToSettings, onLogout, showTutorial, onTutorialComplete, onUpdateBookingRequest, onCompleteAppointment, onMissedAppointment }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<{ day: number; appointments: Client[] } | null>(null);
   const [bookingClient, setBookingClient] = useState<Client | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showSquarePreview, setShowSquarePreview] = useState(false);
-  const [bookingRequests, setBookingRequests] = useState<BookingRequest[]>(SAMPLE_BOOKING_REQUESTS);
+  // Use prop if provided, otherwise use sample data for demo users
+  const [bookingRequests, setBookingRequests] = useState<BookingRequest[]>(
+    bookingRequestsProp || (onExitDemo ? SAMPLE_BOOKING_REQUESTS : [])
+  );
   const [selectedRequest, setSelectedRequest] = useState<BookingRequest | null>(null);
   const [expandedBriefs, setExpandedBriefs] = useState<Set<string>>(new Set());
   const [completedClient, setCompletedClient] = useState<Client | null>(null);
   const [showGapFillerModal, setShowGapFillerModal] = useState(false);
   const [tutorialStep, setTutorialStep] = useState(0);
   const [isTutorialActive, setIsTutorialActive] = useState(showTutorial || false);
+
+  // NEW: Payment tracking state for appointment completion
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [paymentAmount, setPaymentAmount] = useState<string>('');
+  const [paymentNote, setPaymentNote] = useState<string>('');
+
+  // NEW: Missed appointment modal state
+  const [missedClient, setMissedClient] = useState<Client | null>(null);
+  const [selectedMissedReason, setSelectedMissedReason] = useState<MissedReason | null>(null);
+  const [missedOptions, setMissedOptions] = useState({
+    chargeFee: false,
+    flagAtRisk: false,
+    sendMessage: false
+  });
+
+  // NEW: End-of-day unmarked appointments prompt
+  const [showUnmarkedPrompt, setShowUnmarkedPrompt] = useState(false);
+
+  // Toast notification state
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+  // Show toast helper
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  // Update booking requests when prop changes
+  useEffect(() => {
+    if (bookingRequestsProp) {
+      setBookingRequests(bookingRequestsProp);
+    }
+  }, [bookingRequestsProp]);
 
   const handleNextStep = () => {
     if (tutorialStep < TUTORIAL_STEPS.length - 1) {
@@ -147,10 +230,44 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
     onTutorialComplete?.();
   };
 
+  // Calculate actual revenue from completed appointments this year
+  const currentYear = new Date().getFullYear();
+  const getActualRevenueStats = () => {
+    let actualYTD = 0;
+    let missedYTD = 0;
+    let completedCount = 0;
+    let missedCount = 0;
+
+    clients.forEach(client => {
+      if (client.appointments) {
+        client.appointments.forEach(apt => {
+          const aptYear = new Date(apt.date).getFullYear();
+          if (aptYear === currentYear) {
+            if (apt.status === 'completed') {
+              actualYTD += apt.paymentAmount ?? apt.price;
+              completedCount++;
+            } else if (apt.status === 'no-show' || apt.status === 'cancelled' || apt.status === 'late-cancel') {
+              missedYTD += apt.price;
+              missedCount++;
+            }
+          }
+        });
+      }
+    });
+
+    const total = actualYTD + missedYTD;
+    const collectionRate = total > 0 ? Math.round((actualYTD / total) * 100) : 100;
+
+    return { actualYTD, missedYTD, completedCount, missedCount, collectionRate };
+  };
+
+  const actualStats = getActualRevenueStats();
+
   const stats = {
     annualProjected: clients.reduce((sum, c) => sum + c.annualValue, 0),
     confirmed: clients.filter(c => c.status === 'confirmed').reduce((sum, c) => sum + c.annualValue, 0),
     pending: clients.filter(c => c.status !== 'confirmed').reduce((sum, c) => sum + c.annualValue, 0),
+    ...actualStats,
   };
 
   const needsAttention = clients.filter(c => c.status === 'at-risk' || c.status === 'pending');
@@ -326,7 +443,9 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
   };
 
   const formatDate = (dateStr: string) => {
+    if (!dateStr) return 'No date selected';
     const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return 'No date selected';
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
@@ -380,8 +499,8 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
           <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => onNavigateToSettings ? onNavigateToSettings() : setShowSettings(true)}
-              className="p-2 text-maroon/60 hover:text-maroon hover:bg-slate-100 rounded-xl transition-all"
-              title="Settings"
+              className="p-3 text-maroon/60 hover:text-maroon hover:bg-slate-100 rounded-xl transition-all focus:ring-2 focus:ring-maroon/50 focus:outline-none"
+              aria-label="Settings"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -403,12 +522,14 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
                 Exit Demo
               </button>
             )}
-            <button
-              onClick={onAddClient}
-              className="btn-primary px-3 sm:px-5 py-2 sm:py-2.5 bg-maroon text-white rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1 sm:gap-2"
-            >
-              <span className="text-base sm:text-lg">+</span> <span className="hidden sm:inline">Add</span> Client
-            </button>
+            <Tooltip text="Add a new client to track their appointments, preferences, and annual value. Each client contributes to your revenue forecast." position="bottom">
+              <button
+                onClick={onAddClient}
+                className="btn-primary px-3 sm:px-5 py-2 sm:py-2.5 bg-maroon text-white rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1 sm:gap-2 focus:ring-2 focus:ring-maroon/50 focus:outline-none"
+              >
+                <span className="text-base sm:text-lg">+</span> <span className="hidden sm:inline">Add</span> Client
+              </button>
+            </Tooltip>
           </div>
         </div>
       </header>
@@ -422,12 +543,14 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
 
         {/* Stat Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-6 mb-6 sm:mb-10">
-          <div className="bg-maroon text-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg">
-            {profile.annualGoal && profile.annualGoal > 0 ? (
-              <>
-                <div className="text-[10px] font-bold opacity-50 uppercase tracking-wider mb-1 sm:mb-2">
-                  {new Date().getFullYear()} Goal Progress
-                </div>
+          <Tooltip text="Your total projected annual revenue based on all clients' rotation schedules and service prices. Set a goal in Settings to track your progress." position="bottom">
+            <div className="bg-maroon text-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg cursor-help">
+              {profile.annualGoal && profile.annualGoal > 0 ? (
+                <>
+                  <div className="text-[10px] font-bold opacity-50 uppercase tracking-wider mb-1 sm:mb-2 flex items-center gap-1">
+                    {new Date().getFullYear()} Goal Progress
+                    <svg className="w-3 h-3 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                  </div>
                 <div className="text-2xl sm:text-3xl font-serif number-animate">{formatCurrency(stats.confirmed)}</div>
                 <div className="mt-2 sm:mt-3">
                   <div className="flex justify-between text-[10px] font-bold opacity-70 mb-1">
@@ -452,29 +575,66 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
               </>
             ) : (
               <>
-                <div className="text-[10px] font-bold opacity-50 uppercase tracking-wider mb-1 sm:mb-2">Annual Forecast</div>
+                <div className="text-[10px] font-bold opacity-50 uppercase tracking-wider mb-1 sm:mb-2 flex items-center gap-1">
+                  Annual Forecast
+                  <svg className="w-3 h-3 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                </div>
                 <div className="text-2xl sm:text-3xl font-serif number-animate">{formatCurrency(stats.annualProjected)}</div>
                 <div className="text-emerald-400 text-xs font-bold mt-1 sm:mt-2 flex items-center gap-1">
                   <ICONS.TrendingUp /> {clients.length} clients on rotation
                 </div>
               </>
             )}
-          </div>
-          <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm">
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 sm:mb-2">Confirmed</div>
-            <div className="text-2xl sm:text-3xl font-serif text-emerald-600 number-animate">{formatCurrency(stats.confirmed)}</div>
-            <div className="text-slate-400 text-xs font-bold mt-1 sm:mt-2">
-              {stats.annualProjected > 0 ? Math.round((stats.confirmed / stats.annualProjected) * 100) : 0}% of forecast
             </div>
-          </div>
-          <div className="bg-[#fff38a] p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-sm">
-            <div className="text-[10px] font-bold text-maroon/50 uppercase tracking-wider mb-1 sm:mb-2">Pending</div>
-            <div className="text-2xl sm:text-3xl font-serif text-maroon number-animate">{formatCurrency(stats.pending)}</div>
-            <div className="text-maroon/60 text-xs font-bold mt-1 sm:mt-2 flex items-center gap-1">
-              <ICONS.Alert /> {needsAttention.length} need attention
+          </Tooltip>
+          <Tooltip text="Actual revenue collected from completed appointments this year. This is money you've already earned." position="bottom">
+            <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm cursor-help">
+              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 sm:mb-2 flex items-center gap-1">
+                {currentYear} Actual
+                <svg className="w-3 h-3 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+              </div>
+              <div className="text-2xl sm:text-3xl font-serif text-emerald-600 number-animate">{formatCurrency(stats.actualYTD)}</div>
+              <div className="text-slate-400 text-xs font-bold mt-1 sm:mt-2">
+                {stats.completedCount} appointments • {stats.collectionRate}% collection
+              </div>
             </div>
-          </div>
+          </Tooltip>
+          <Tooltip text="Revenue lost to no-shows, late cancels, and missed appointments this year." position="bottom">
+            <div className={`p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-sm cursor-help ${stats.missedYTD > 0 ? 'bg-red-50 border border-red-100' : 'bg-[#fff38a]'}`}>
+              <div className={`text-[10px] font-bold uppercase tracking-wider mb-1 sm:mb-2 flex items-center gap-1 ${stats.missedYTD > 0 ? 'text-red-400' : 'text-maroon/50'}`}>
+                {stats.missedYTD > 0 ? 'Missed Revenue' : 'Pending'}
+                <svg className="w-3 h-3 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+              </div>
+              {stats.missedYTD > 0 ? (
+                <>
+                  <div className="text-2xl sm:text-3xl font-serif text-red-600 number-animate">{formatCurrency(stats.missedYTD)}</div>
+                  <div className="text-red-500/70 text-xs font-bold mt-1 sm:mt-2 flex items-center gap-1">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    {stats.missedCount} no-shows YTD
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-2xl sm:text-3xl font-serif text-maroon number-animate">{formatCurrency(stats.pending)}</div>
+                  <div className="text-maroon/60 text-xs font-bold mt-1 sm:mt-2 flex items-center gap-1">
+                    <ICONS.Alert /> {needsAttention.length} need attention
+                  </div>
+                </>
+              )}
+            </div>
+          </Tooltip>
         </div>
+
+        {/* Getting Started Checklist for new users */}
+        <GettingStartedChecklist
+          profile={profile}
+          clients={clients}
+          onSetupProfile={onNavigateToSettings}
+          onSetupServices={onNavigateToSettings}
+          onAddClient={onAddClient}
+        />
 
         {/* Today's Appointments - Pre-Appointment Client Briefs */}
         {todaysAppointments.length > 0 && (
@@ -616,10 +776,25 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
                             View Profile
                           </button>
                           <button
-                            onClick={() => setCompletedClient(client)}
+                            onClick={() => {
+                              setCompletedClient(client);
+                              setSelectedPaymentMethod(client.preferredPaymentMethod || null);
+                              setPaymentAmount((client.baseService?.price || 0).toString());
+                              setPaymentNote('');
+                            }}
                             className="flex-1 py-2.5 bg-emerald-500 text-white font-bold rounded-xl text-sm hover:bg-emerald-600 transition-colors"
                           >
                             Mark Complete
+                          </button>
+                          <button
+                            onClick={() => {
+                              setMissedClient(client);
+                              setSelectedMissedReason(null);
+                              setMissedOptions({ chargeFee: false, flagAtRisk: false, sendMessage: false });
+                            }}
+                            className="py-2.5 px-4 bg-red-100 text-red-600 font-medium rounded-xl text-sm hover:bg-red-200 transition-colors"
+                          >
+                            Didn't Show
                           </button>
                         </div>
                       </div>
@@ -634,9 +809,12 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
         {/* Calendar */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm mb-6 sm:mb-10 overflow-hidden">
           <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 flex items-center justify-between">
-            <h2 className="font-bold text-maroon flex items-center gap-2 text-sm sm:text-base">
-              <ICONS.Calendar /> <span className="hidden sm:inline">Appointment</span> Calendar
-            </h2>
+            <Tooltip text="Visual overview of client appointments. Click any day to see who's scheduled. Colored dots show each client's rotation tier." position="right">
+              <h2 className="font-bold text-maroon flex items-center gap-2 text-sm sm:text-base cursor-help">
+                <ICONS.Calendar /> <span className="hidden sm:inline">Appointment</span> Calendar
+                <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+              </h2>
+            </Tooltip>
             <div className="flex items-center gap-1 sm:gap-2">
               <button
                 onClick={prevMonth}
@@ -738,16 +916,20 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
               <div className="divide-y divide-slate-50">
                 {clients.length === 0 ? (
                   <div className="px-4 sm:px-6 py-8 sm:py-12 text-center">
-                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-slate-100 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 text-slate-300">
-                      <ICONS.Users />
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-maroon/5 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 text-maroon/40">
+                      <svg className="w-8 h-8 sm:w-10 sm:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
                     </div>
-                    <p className="text-maroon font-bold mb-2 text-sm sm:text-base">No clients yet</p>
-                    <p className="text-slate-400 text-xs sm:text-sm mb-4">Add your first client to start forecasting.</p>
+                    <p className="text-maroon font-bold mb-2 text-sm sm:text-base">Add Your First Client</p>
+                    <p className="text-slate-400 text-xs sm:text-sm mb-4 max-w-xs mx-auto">
+                      Start building your client roster to forecast revenue and track appointments.
+                    </p>
                     <button
                       onClick={onAddClient}
-                      className="btn-primary px-4 sm:px-6 py-2 sm:py-2.5 bg-maroon text-white rounded-xl text-xs sm:text-sm font-bold"
+                      className="btn-primary px-4 sm:px-6 py-2.5 sm:py-3 bg-maroon text-white rounded-xl text-xs sm:text-sm font-bold inline-flex items-center gap-2 hover:bg-maroon/90 transition-colors"
                     >
-                      Add Client
+                      <span className="text-lg">+</span> Add Client
                     </button>
                   </div>
                 ) : (
@@ -886,10 +1068,13 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
                           </button>
                           <button
                             onClick={() => {
-                              setBookingRequests(prev => prev.map(r =>
-                                r.id === request.id ? { ...r, status: 'confirmed' as const } : r
-                              ));
-                              alert('Demo: Client would receive confirmation email/SMS.');
+                              if (onUpdateBookingRequest) {
+                                onUpdateBookingRequest(request.id, 'confirmed');
+                              } else {
+                                setBookingRequests(prev => prev.map(r =>
+                                  r.id === request.id ? { ...r, status: 'confirmed' as const } : r
+                                ));
+                              }
                             }}
                             className="flex-1 py-2 bg-slate-600 text-white rounded-lg text-xs font-bold hover:bg-slate-700 transition-colors"
                           >
@@ -907,12 +1092,15 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
             {(comingDueClients.length > 0 || overdueClients.length > 0) && (
               <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                 <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 bg-slate-50">
-                  <h2 className="font-bold text-maroon flex items-center gap-2 text-sm sm:text-base">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                    </svg>
-                    Client Alerts
-                  </h2>
+                  <Tooltip text="Clients approaching their next visit (Coming Due) or past their rotation schedule (Overdue). Click a client to view their profile and reach out." position="bottom">
+                    <h2 className="font-bold text-maroon flex items-center gap-2 text-sm sm:text-base cursor-help">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                      </svg>
+                      Client Alerts
+                      <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                    </h2>
+                  </Tooltip>
                 </div>
                 <div className="p-3 sm:p-4 space-y-4">
                   {/* Coming Due */}
@@ -987,7 +1175,12 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
             {/* This Month */}
             <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
               <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100">
-                <h2 className="font-bold text-maroon text-sm sm:text-base">This Month</h2>
+                <Tooltip text="Monthly breakdown of your revenue. Projected is your annual forecast divided by 12. Booked shows confirmed appointments for this month." position="left">
+                  <h2 className="font-bold text-maroon text-sm sm:text-base cursor-help flex items-center gap-1">
+                    This Month
+                    <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                  </h2>
+                </Tooltip>
               </div>
               <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
                 <div className="flex justify-between items-center">
@@ -1045,7 +1238,8 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
               </div>
               <button
                 onClick={() => setSelectedDay(null)}
-                className="p-2 hover:bg-slate-100 rounded-full transition-colors text-maroon/60"
+                className="p-3 hover:bg-slate-100 rounded-full transition-colors text-maroon/60 focus:ring-2 focus:ring-maroon/50 focus:outline-none"
+                aria-label="Close"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1283,29 +1477,6 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
                 </p>
               </div>
 
-              {/* Payment Collection (Demo Preview) */}
-              <div className="border border-slate-200 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Payment Collection</span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#C4B5A4]/30 text-maroon/70">Coming Soon</span>
-                </div>
-                <div className="space-y-2">
-                  <label className="flex items-center gap-3 opacity-50 cursor-not-allowed">
-                    <input type="radio" disabled className="w-4 h-4 text-slate-300" />
-                    <span className="text-sm text-slate-400">Require deposit</span>
-                  </label>
-                  <label className="flex items-center gap-3 opacity-50 cursor-not-allowed">
-                    <input type="radio" disabled className="w-4 h-4 text-slate-300" />
-                    <span className="text-sm text-slate-400">Send invoice after appointment</span>
-                  </label>
-                  <label className="flex items-center gap-3">
-                    <input type="radio" checked readOnly className="w-4 h-4 text-maroon" />
-                    <span className="text-sm text-maroon">No payment through Recur</span>
-                  </label>
-                </div>
-                <p className="text-xs text-slate-400 mt-3">Connect Square in settings to enable payment collection.</p>
-              </div>
-
               {/* Actions */}
               <div className="flex gap-3 pt-2">
                 <button
@@ -1316,7 +1487,7 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
                 </button>
                 <button
                   onClick={() => {
-                    alert(`Demo: Appointment booked for ${bookingClient.name} on ${getNextSuggestedDate(bookingClient).toLocaleDateString()}`);
+                    showToast(`Appointment booked for ${bookingClient.name} on ${getNextSuggestedDate(bookingClient).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`);
                     setBookingClient(null);
                   }}
                   className="flex-1 py-3 bg-[#7c9a7e] text-white font-bold rounded-xl hover:bg-[#6b8a6d] transition-colors flex items-center justify-center gap-2"
@@ -1341,13 +1512,17 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
           <div
             className="bg-white w-full sm:w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden"
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="settings-title"
           >
             {/* Modal Header */}
             <div className="px-4 sm:px-6 py-4 border-b border-slate-100 bg-cream flex items-center justify-between">
-              <h3 className="font-bold text-maroon text-lg">Settings</h3>
+              <h3 id="settings-title" className="font-bold text-maroon text-lg">Settings</h3>
               <button
                 onClick={() => setShowSettings(false)}
-                className="p-2 hover:bg-slate-100 rounded-full transition-colors text-maroon/60"
+                className="p-3 hover:bg-slate-100 rounded-full transition-colors text-maroon/60 focus:ring-2 focus:ring-maroon/50 focus:outline-none"
+                aria-label="Close settings"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1356,80 +1531,52 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
             </div>
 
             <div className="overflow-y-auto max-h-[70vh] p-4 sm:p-6 space-y-6">
-              {/* Payment Integration Section */}
+              {/* Quick Settings */}
               <div>
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Payment Integration</h4>
-                <div className="bg-white border-2 border-slate-200 rounded-xl p-4">
-                  <div className="flex items-center gap-4">
-                    {/* Square Logo */}
-                    <div className="w-12 h-12 bg-black rounded-xl flex items-center justify-center flex-shrink-0">
-                      <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M3 3h18v18H3V3zm16 16V5H5v14h14z"/>
-                        <path d="M7 7h10v10H7V7zm8 8V9H9v6h6z"/>
-                      </svg>
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Preferences</h4>
+                <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="font-medium text-maroon">Default Rotation</span>
+                      <p className="text-xs text-slate-400">For new clients</p>
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-bold text-maroon">Square</span>
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#C4B5A4]/30 text-maroon/70">Coming Soon</span>
-                      </div>
-                      <p className="text-sm text-slate-500">Send invoices and collect payments from your clients.</p>
-                    </div>
+                    <span className="text-sm font-bold text-maroon">{profile.defaultRotation || 10} weeks</span>
                   </div>
-                  <button
-                    onClick={() => {
-                      setShowSettings(false);
-                      setShowSquarePreview(true);
-                    }}
-                    className="mt-4 w-full py-2.5 bg-maroon text-white font-bold text-sm rounded-xl hover:bg-maroon/90 transition-colors"
-                  >
-                    Connect Square
-                  </button>
-                </div>
-              </div>
-
-              {/* Future Integrations */}
-              <div>
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">More Integrations</h4>
-                <div className="space-y-3">
-                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center gap-4 opacity-60">
-                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-slate-200">
-                      <svg className="w-5 h-5 text-[#4285F4]" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19.5 22h-15A2.5 2.5 0 012 19.5v-15A2.5 2.5 0 014.5 2h15A2.5 2.5 0 0122 4.5v15a2.5 2.5 0 01-2.5 2.5zM8 7v10h2v-4h4v4h2V7h-2v4h-4V7H8z"/>
-                      </svg>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="font-medium text-maroon">Annual Goal</span>
+                      <p className="text-xs text-slate-400">Track your progress</p>
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-maroon">Google Calendar</span>
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-200 text-slate-500">Coming Soon</span>
-                      </div>
-                      <p className="text-xs text-slate-400">Sync appointments automatically</p>
-                    </div>
-                  </div>
-                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center gap-4 opacity-60">
-                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-slate-200">
-                      <svg className="w-5 h-5 text-[#635BFF]" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.591-7.305z"/>
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-maroon">Stripe</span>
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-200 text-slate-500">Coming Soon</span>
-                      </div>
-                      <p className="text-xs text-slate-400">Alternative payment processing</p>
-                    </div>
+                    <span className="text-sm font-bold text-maroon">{profile.annualGoal ? formatCurrency(profile.annualGoal) : 'Not set'}</span>
                   </div>
                 </div>
+                <p className="text-xs text-slate-400 mt-2 text-center">
+                  {onNavigateToSettings ? 'Go to full Settings to edit your profile, services, and goals.' : 'Create an account to access full settings.'}
+                </p>
               </div>
 
-              {/* Account Settings Placeholder */}
+              {/* Account */}
               <div>
                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Account</h4>
                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                  <p className="text-sm text-slate-500 text-center">
-                    Account settings will be available when you create an account.
-                  </p>
+                  {onLogout ? (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-maroon">Signed in</span>
+                      <button
+                        onClick={() => {
+                          setShowSettings(false);
+                          onLogout();
+                        }}
+                        className="text-sm font-medium text-red-500 hover:text-red-600"
+                      >
+                        Sign Out
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-500 text-center">
+                      Create an account to save your data and access more features.
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -1513,7 +1660,7 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
                   onClick={() => {
                     setShowSquarePreview(false);
                     // Scroll to waitlist or show waitlist modal
-                    alert('Thanks for your interest! You\'ll be notified when Square integration launches.');
+                    showToast('You\'ll be notified when Square integration launches!', 'info');
                   }}
                   className="flex-1 py-3 bg-maroon text-white font-bold rounded-xl hover:bg-maroon/90 transition-colors"
                 >
@@ -1556,17 +1703,17 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
             <div className="p-6 max-h-[70vh] overflow-y-auto">
               {/* Contact Info */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                <div>
+                <div className="min-w-0">
                   <p className="text-xs text-slate-400 uppercase tracking-wider">Phone</p>
-                  <p className="text-maroon font-medium">{selectedRequest.clientPhone}</p>
+                  <p className="text-maroon font-medium">{selectedRequest.clientPhone || '-'}</p>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-xs text-slate-400 uppercase tracking-wider">Email</p>
-                  <p className="text-maroon font-medium text-sm">{selectedRequest.clientEmail}</p>
+                  <p className="text-maroon font-medium text-sm truncate" title={selectedRequest.clientEmail}>{selectedRequest.clientEmail || '-'}</p>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-xs text-slate-400 uppercase tracking-wider">Prefers</p>
-                  <p className="text-maroon font-medium capitalize">{selectedRequest.contactMethod}</p>
+                  <p className="text-maroon font-medium capitalize">{selectedRequest.contactMethod || '-'}</p>
                 </div>
               </div>
 
@@ -1713,16 +1860,36 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
               </div>
             </div>
 
+            {/* Rotation Info */}
+            <div className="px-6 py-3 bg-blue-50 border-t border-blue-100">
+              <div className="flex items-start gap-2">
+                <svg className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="text-sm text-blue-700">
+                  <p className="font-medium mb-1">What happens when you confirm:</p>
+                  <ul className="text-xs space-y-1 text-blue-600">
+                    <li>• Client is added to your roster with a <strong>Standard rotation</strong> (every 6 weeks)</li>
+                    <li>• Their next appointment appears on your calendar</li>
+                    <li>• You can adjust rotation (Priority/Standard/Flex) in their profile later</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
             {/* Actions */}
             <div className="px-6 py-4 bg-slate-50 border-t border-slate-100">
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={() => {
-                    setBookingRequests(prev => prev.map(r =>
-                      r.id === selectedRequest.id ? { ...r, status: 'declined' as const } : r
-                    ));
+                    if (onUpdateBookingRequest) {
+                      onUpdateBookingRequest(selectedRequest.id, 'declined');
+                    } else {
+                      setBookingRequests(prev => prev.map(r =>
+                        r.id === selectedRequest.id ? { ...r, status: 'declined' as const } : r
+                      ));
+                    }
                     setSelectedRequest(null);
-                    alert('Demo: Client would receive a polite decline message.');
                   }}
                   className="sm:flex-1 py-3 text-red-500 hover:bg-red-50 rounded-xl font-bold transition-colors order-3 sm:order-1"
                 >
@@ -1730,7 +1897,15 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
                 </button>
                 <button
                   onClick={() => {
-                    alert('Demo: Would open edit modal to adjust appointment details.');
+                    // For now, just confirm - edit functionality can be added later
+                    if (onUpdateBookingRequest) {
+                      onUpdateBookingRequest(selectedRequest.id, 'confirmed');
+                    } else {
+                      setBookingRequests(prev => prev.map(r =>
+                        r.id === selectedRequest.id ? { ...r, status: 'confirmed' as const } : r
+                      ));
+                    }
+                    setSelectedRequest(null);
                   }}
                   className="sm:flex-1 py-3 border-2 border-slate-200 text-maroon font-bold rounded-xl hover:bg-white transition-colors order-2"
                 >
@@ -1738,13 +1913,17 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
                 </button>
                 <button
                   onClick={() => {
-                    setBookingRequests(prev => prev.map(r =>
-                      r.id === selectedRequest.id ? { ...r, status: 'confirmed' as const } : r
-                    ));
+                    if (onUpdateBookingRequest) {
+                      onUpdateBookingRequest(selectedRequest.id, 'confirmed');
+                    } else {
+                      setBookingRequests(prev => prev.map(r =>
+                        r.id === selectedRequest.id ? { ...r, status: 'confirmed' as const } : r
+                      ));
+                    }
                     setSelectedRequest(null);
-                    alert('Demo: Client would receive confirmation email/SMS with appointment details.');
                   }}
                   className="sm:flex-1 py-3 bg-emerald-500 text-white font-bold rounded-xl hover:bg-emerald-600 transition-colors order-1 sm:order-3"
+                  title="Confirms appointment and adds client to your roster with Standard rotation (6 weeks). You can adjust their rotation schedule later."
                 >
                   Confirm Appointment
                 </button>
@@ -1754,14 +1933,14 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
         </div>
       )}
 
-      {/* Rebooking Prompt Modal (After Completing Appointment) */}
+      {/* Enhanced Appointment Complete Modal with Payment Tracking */}
       {completedClient && (
         <div
           className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
           onClick={() => setCompletedClient(null)}
         >
           <div
-            className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden"
+            className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -1778,6 +1957,60 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
             </div>
 
             <div className="p-6">
+              {/* Payment Method Selection */}
+              <div className="mb-6">
+                <h4 className="font-bold text-maroon text-sm mb-3">How was payment collected?</h4>
+                <div className="grid grid-cols-4 gap-2">
+                  {PAYMENT_METHODS.map(method => (
+                    <button
+                      key={method.id}
+                      onClick={() => setSelectedPaymentMethod(method.id)}
+                      className={`p-3 rounded-xl border-2 flex flex-col items-center gap-1 transition-all ${
+                        selectedPaymentMethod === method.id
+                          ? 'border-emerald-500 bg-emerald-50'
+                          : 'border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      <span className="text-xl">{method.icon}</span>
+                      <span className="text-xs font-medium text-maroon">{method.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Amount and Note */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                    Amount Paid
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                    <input
+                      type="number"
+                      value={paymentAmount}
+                      onChange={(e) => setPaymentAmount(e.target.value)}
+                      className="w-full pl-7 pr-3 py-2.5 border-2 border-slate-200 rounded-xl focus:border-emerald-500 focus:outline-none text-maroon font-medium"
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                    Note (optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={paymentNote}
+                    onChange={(e) => setPaymentNote(e.target.value)}
+                    className="w-full px-3 py-2.5 border-2 border-slate-200 rounded-xl focus:border-emerald-500 focus:outline-none text-maroon"
+                    placeholder="Tipped $20..."
+                  />
+                </div>
+              </div>
+
+              <hr className="border-slate-200 my-6" />
+
               <h4 className="font-bold text-maroon text-lg mb-4 text-center">
                 Book {completedClient.name.split(' ')[0]}'s next appointment?
               </h4>
@@ -1809,8 +2042,21 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
                 <button
                   onClick={() => {
                     const suggestedDate = getNextSuggestedDate(completedClient);
-                    alert(`Demo: Appointment booked for ${completedClient.name} on ${suggestedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}. Confirmation sent to client.`);
+                    // Call the completion handler with payment info
+                    if (onCompleteAppointment && selectedPaymentMethod) {
+                      onCompleteAppointment(
+                        completedClient.id,
+                        completedClient.nextAppointment,
+                        selectedPaymentMethod,
+                        parseFloat(paymentAmount) || completedClient.baseService?.price || 0,
+                        paymentNote || undefined
+                      );
+                    }
+                    showToast(`Appointment completed! Next visit booked for ${suggestedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`);
                     setCompletedClient(null);
+                    setSelectedPaymentMethod(null);
+                    setPaymentAmount('');
+                    setPaymentNote('');
                   }}
                   className="w-full py-3.5 bg-emerald-500 text-white font-bold rounded-xl hover:bg-emerald-600 transition-colors flex items-center justify-center gap-2"
                 >
@@ -1821,25 +2067,51 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
                     <line x1="3" y1="10" x2="21" y2="10"/>
                     <path d="M9 16l2 2 4-4"/>
                   </svg>
-                  Book {getNextSuggestedDate(completedClient).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  Complete & Book {getNextSuggestedDate(completedClient).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 </button>
                 <button
                   onClick={() => {
+                    // Save payment and go to manual booking
+                    if (onCompleteAppointment && selectedPaymentMethod) {
+                      onCompleteAppointment(
+                        completedClient.id,
+                        completedClient.nextAppointment,
+                        selectedPaymentMethod,
+                        parseFloat(paymentAmount) || completedClient.baseService?.price || 0,
+                        paymentNote || undefined
+                      );
+                    }
                     setCompletedClient(null);
                     setBookingClient(completedClient);
+                    setSelectedPaymentMethod(null);
+                    setPaymentAmount('');
+                    setPaymentNote('');
                   }}
                   className="w-full py-3 border-2 border-slate-200 text-maroon font-bold rounded-xl hover:bg-slate-50 transition-colors"
                 >
-                  Pick Different Date
+                  Complete & Pick Different Date
                 </button>
                 <button
                   onClick={() => {
-                    alert('Demo: Appointment marked complete. Client was not rebooked.');
+                    // Save payment only
+                    if (onCompleteAppointment && selectedPaymentMethod) {
+                      onCompleteAppointment(
+                        completedClient.id,
+                        completedClient.nextAppointment,
+                        selectedPaymentMethod,
+                        parseFloat(paymentAmount) || completedClient.baseService?.price || 0,
+                        paymentNote || undefined
+                      );
+                    }
+                    showToast('Appointment marked complete');
                     setCompletedClient(null);
+                    setSelectedPaymentMethod(null);
+                    setPaymentAmount('');
+                    setPaymentNote('');
                   }}
                   className="w-full py-3 text-slate-400 font-medium rounded-xl hover:text-maroon hover:bg-slate-50 transition-colors text-sm"
                 >
-                  Skip for Now
+                  Skip Rebooking
                 </button>
               </div>
 
@@ -1918,7 +2190,7 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
                 </button>
                 <button
                   onClick={() => {
-                    alert(`Demo: In production, ${overdueClients.length} clients would receive your availability via text/email.`);
+                    showToast(`Availability sent to ${overdueClients.length} client${overdueClients.length !== 1 ? 's' : ''}`, 'info');
                     setShowGapFillerModal(false);
                   }}
                   className="flex-1 py-3 bg-[#c17f59] text-white font-bold rounded-xl hover:bg-[#a86b48] transition-colors flex items-center justify-center gap-2"
@@ -1927,6 +2199,226 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                   </svg>
                   Send Messages
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Missed Appointment Modal */}
+      {missedClient && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={() => setMissedClient(null)}
+        >
+          <div
+            className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-6 py-5 bg-gradient-to-r from-red-500 to-red-600 text-white text-center">
+              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+              <h3 className="font-bold text-xl mb-1">Appointment Missed</h3>
+              <p className="text-white/80 text-sm">
+                {missedClient.name} • {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              </p>
+            </div>
+
+            <div className="p-6">
+              <h4 className="font-bold text-maroon text-sm mb-3">What happened?</h4>
+
+              {/* Missed Reason Options */}
+              <div className="space-y-2 mb-6">
+                {MISSED_REASONS.map(reason => (
+                  <button
+                    key={reason.id}
+                    onClick={() => setSelectedMissedReason(reason.id)}
+                    className={`w-full p-3 rounded-xl border-2 flex items-center gap-3 transition-all ${
+                      selectedMissedReason === reason.id
+                        ? 'border-red-500 bg-red-50'
+                        : 'border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    <span className="text-xl">{reason.icon}</span>
+                    <div className="text-left">
+                      <div className="font-medium text-maroon">{reason.label}</div>
+                      <div className="text-xs text-slate-500">{reason.description}</div>
+                    </div>
+                    {selectedMissedReason === reason.id && (
+                      <svg className="w-5 h-5 text-red-500 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              <hr className="border-slate-200 my-4" />
+
+              {/* Follow-up Options */}
+              <div className="space-y-3 mb-6">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={missedOptions.chargeFee}
+                    onChange={(e) => setMissedOptions({ ...missedOptions, chargeFee: e.target.checked })}
+                    className="w-4 h-4 rounded border-slate-300 text-red-500 focus:ring-red-500"
+                  />
+                  <span className="text-sm text-maroon">Charge late cancel fee ($25)</span>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={missedOptions.flagAtRisk}
+                    onChange={(e) => setMissedOptions({ ...missedOptions, flagAtRisk: e.target.checked })}
+                    className="w-4 h-4 rounded border-slate-300 text-red-500 focus:ring-red-500"
+                  />
+                  <span className="text-sm text-maroon">Flag client as at-risk</span>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={missedOptions.sendMessage}
+                    onChange={(e) => setMissedOptions({ ...missedOptions, sendMessage: e.target.checked })}
+                    className="w-4 h-4 rounded border-slate-300 text-red-500 focus:ring-red-500"
+                  />
+                  <span className="text-sm text-maroon">Send "We missed you" message</span>
+                </label>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setMissedClient(null);
+                    setSelectedMissedReason(null);
+                    setMissedOptions({ chargeFee: false, flagAtRisk: false, sendMessage: false });
+                  }}
+                  className="flex-1 py-3 border-2 border-slate-200 text-maroon font-bold rounded-xl hover:bg-slate-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    if (selectedMissedReason && onMissedAppointment) {
+                      onMissedAppointment(
+                        missedClient.id,
+                        missedClient.nextAppointment,
+                        selectedMissedReason,
+                        missedOptions
+                      );
+                    }
+                    const reasonLabel = MISSED_REASONS.find(r => r.id === selectedMissedReason)?.label || 'Missed';
+                    showToast(`Appointment marked as ${reasonLabel}${missedOptions.flagAtRisk ? '. Client flagged.' : ''}`, 'info');
+                    setMissedClient(null);
+                    setSelectedMissedReason(null);
+                    setMissedOptions({ chargeFee: false, flagAtRisk: false, sendMessage: false });
+                  }}
+                  disabled={!selectedMissedReason}
+                  className={`flex-1 py-3 font-bold rounded-xl transition-colors ${
+                    selectedMissedReason
+                      ? 'bg-red-500 text-white hover:bg-red-600'
+                      : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                  }`}
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* End-of-Day Unmarked Appointments Prompt */}
+      {showUnmarkedPrompt && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowUnmarkedPrompt(false)}
+        >
+          <div
+            className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-6 py-5 bg-gradient-to-r from-amber-500 to-amber-600 text-white">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg">Unmarked Appointments</h3>
+                  <p className="text-white/80 text-sm">You have {todaysAppointments.length} from today</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6">
+              <p className="text-maroon/70 mb-4">
+                Would you like to update the status of today's appointments?
+              </p>
+
+              {/* Appointments List */}
+              <div className="space-y-2 mb-6">
+                {todaysAppointments.slice(0, 3).map((client) => (
+                  <div key={client.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm"
+                        style={{ backgroundColor: getAvatarColor(client.name) }}
+                      >
+                        {getInitials(client.name)}
+                      </div>
+                      <div>
+                        <div className="font-medium text-maroon">{client.name}</div>
+                        <div className="text-xs text-slate-500">{client.baseService?.name}</div>
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => {
+                          setShowUnmarkedPrompt(false);
+                          setCompletedClient(client);
+                          setSelectedPaymentMethod(client.preferredPaymentMethod || null);
+                          setPaymentAmount((client.baseService?.price || 0).toString());
+                        }}
+                        className="px-2 py-1 bg-emerald-100 text-emerald-600 text-xs font-bold rounded-lg hover:bg-emerald-200"
+                      >
+                        Complete
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowUnmarkedPrompt(false);
+                          setMissedClient(client);
+                        }}
+                        className="px-2 py-1 bg-red-100 text-red-600 text-xs font-bold rounded-lg hover:bg-red-200"
+                      >
+                        Missed
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowUnmarkedPrompt(false)}
+                  className="flex-1 py-3 text-slate-400 font-medium rounded-xl hover:bg-slate-50 transition-colors"
+                >
+                  Remind Me Later
+                </button>
+                <button
+                  onClick={() => setShowUnmarkedPrompt(false)}
+                  className="flex-1 py-3 border-2 border-slate-200 text-maroon font-bold rounded-xl hover:bg-slate-50 transition-colors"
+                >
+                  Dismiss
                 </button>
               </div>
             </div>
@@ -2002,6 +2494,32 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, on
               </p>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed bottom-4 right-4 px-4 py-3 rounded-xl shadow-lg z-50 flex items-center gap-2 ${
+          toast.type === 'success' ? 'bg-emerald-500 text-white' :
+          toast.type === 'error' ? 'bg-red-500 text-white' :
+          'bg-slate-800 text-white'
+        }`}>
+          {toast.type === 'success' && (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          )}
+          {toast.type === 'error' && (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          )}
+          {toast.type === 'info' && (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          )}
+          {toast.message}
         </div>
       )}
     </div>

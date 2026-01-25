@@ -7,15 +7,22 @@ interface PublicProfileProps {
   bookingSettings: BookingSettings;
   onStartBooking: () => void;
   onJoinWaitlist: () => void;
+  onBack?: () => void;
 }
 
 const INDUSTRY_LABELS: Record<IndustryType, string> = {
   'hair-stylist': 'Hair Stylist',
+  'barber': 'Barber',
   'personal-trainer': 'Personal Trainer',
   'massage-therapist': 'Massage Therapist',
-  'therapist-counselor': 'Therapist',
   'esthetician': 'Esthetician',
+  'lash-technician': 'Lash Technician',
+  'nail-technician': 'Nail Technician',
+  'tattoo-artist': 'Tattoo Artist',
+  'pet-groomer': 'Pet Groomer',
+  'therapist-counselor': 'Therapist',
   'consultant-coach': 'Consultant',
+  'auto-detailer': 'Auto Detailer',
   'other': 'Professional',
 };
 
@@ -24,6 +31,7 @@ export const PublicProfile: React.FC<PublicProfileProps> = ({
   bookingSettings,
   onStartBooking,
   onJoinWaitlist,
+  onBack,
 }) => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -48,10 +56,24 @@ export const PublicProfile: React.FC<PublicProfileProps> = ({
     <div className="min-h-screen bg-cream">
       {/* Header */}
       <header className="bg-white border-b border-slate-100">
-        <div className="max-w-2xl mx-auto px-4 py-4 flex justify-center">
+        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
+          {onBack ? (
+            <button
+              onClick={onBack}
+              className="p-2 text-maroon/60 hover:text-maroon hover:bg-slate-100 rounded-xl transition-all"
+              aria-label="Go back"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          ) : (
+            <div className="w-9" />
+          )}
           <div className="text-maroon opacity-60">
             <LOGOS.Main />
           </div>
+          <div className="w-9" />
         </div>
       </header>
 
@@ -61,9 +83,17 @@ export const PublicProfile: React.FC<PublicProfileProps> = ({
           {/* Profile Header */}
           <div className="bg-gradient-to-br from-maroon to-[#1a1512] px-6 py-10 sm:py-14 text-center text-white">
             {/* Avatar */}
-            <div className="w-24 h-24 sm:w-28 sm:h-28 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-5 text-3xl sm:text-4xl font-bold backdrop-blur-sm">
-              {getInitials(profile.name || profile.businessName || 'DP')}
-            </div>
+            {profile.profilePhoto ? (
+              <img
+                src={profile.profilePhoto}
+                alt={profile.name || profile.businessName || 'Profile'}
+                className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover mx-auto mb-5 border-2 border-white/20"
+              />
+            ) : (
+              <div className="w-24 h-24 sm:w-28 sm:h-28 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-5 text-3xl sm:text-4xl font-bold backdrop-blur-sm">
+                {getInitials(profile.name || profile.businessName || 'DP')}
+              </div>
+            )}
 
             {/* Name & Business */}
             <h1 className="text-2xl sm:text-3xl font-serif mb-2">

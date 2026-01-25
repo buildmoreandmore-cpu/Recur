@@ -1199,6 +1199,7 @@ const App: React.FC = () => {
           alert('Demo: You would be added to the waitlist and notified when a spot opens.');
           goBack();
         }}
+        onBack={goBack}
       />
     );
   }

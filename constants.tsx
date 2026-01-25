@@ -14,11 +14,31 @@ export const PAYMENT_METHODS: { id: PaymentMethod; label: string; icon: string; 
 ];
 
 // Missed appointment reason options
-export const MISSED_REASONS: { id: MissedReason; label: string; description: string; icon: string }[] = [
-  { id: 'no-show', label: 'No-Show', description: "Didn't come, no notice", icon: '❌' },
-  { id: 'late-cancel', label: 'Late Cancel', description: 'Cancelled last-minute', icon: '⏰' },
-  { id: 'cancelled', label: 'Cancelled', description: 'Cancelled with notice', icon: '📅' },
-  { id: 'rescheduled', label: 'Rescheduled', description: 'Already rebooked', icon: '🔄' },
+export const MISSED_REASONS: { id: MissedReason; label: string; description: string; icon: React.ReactNode }[] = [
+  {
+    id: 'no-show',
+    label: 'No-Show',
+    description: "Didn't come, no notice",
+    icon: <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+  },
+  {
+    id: 'late-cancel',
+    label: 'Late Cancel',
+    description: 'Cancelled last-minute',
+    icon: <svg className="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+  },
+  {
+    id: 'cancelled',
+    label: 'Cancelled',
+    description: 'Cancelled with notice',
+    icon: <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+  },
+  {
+    id: 'rescheduled',
+    label: 'Rescheduled',
+    description: 'Already rebooked',
+    icon: <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+  },
 ];
 
 export const ROTATION_WEEKS: Record<RotationType, number> = {

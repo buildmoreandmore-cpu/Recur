@@ -376,8 +376,8 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bo
     const startOfYear = new Date(today.getFullYear(), 0, 1);
     const daysSoFar = Math.ceil((today.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24));
 
-    const runRate = daysSoFar > 0 ? stats.confirmed / daysSoFar : 0;
-    const remaining = profile.annualGoal - stats.confirmed;
+    const runRate = daysSoFar > 0 ? stats.actualYTD / daysSoFar : 0;
+    const remaining = profile.annualGoal - stats.actualYTD;
 
     if (remaining <= 0) return { onTrack: true, projectedDate: 'Goal reached!' };
 
@@ -582,16 +582,16 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bo
                     {new Date().getFullYear()} Goal Progress
                     <svg className="w-3 h-3 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
                   </div>
-                <div className="text-2xl sm:text-3xl font-serif number-animate">{formatCurrency(stats.confirmed)}</div>
+                <div className="text-2xl sm:text-3xl font-serif number-animate">{formatCurrency(stats.actualYTD)}</div>
                 <div className="mt-2 sm:mt-3">
                   <div className="flex justify-between text-[10px] font-bold opacity-70 mb-1">
                     <span>Goal: {formatCurrency(profile.annualGoal)}</span>
-                    <span>{Math.round((stats.confirmed / profile.annualGoal) * 100)}%</span>
+                    <span>{Math.round((stats.actualYTD / profile.annualGoal) * 100)}%</span>
                   </div>
                   <div className="h-2 bg-white/20 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-[#c17f59] rounded-full transition-all"
-                      style={{ width: `${Math.min((stats.confirmed / profile.annualGoal) * 100, 100)}%` }}
+                      style={{ width: `${Math.min((stats.actualYTD / profile.annualGoal) * 100, 100)}%` }}
                     />
                   </div>
                   {goalProjection && (
@@ -2275,7 +2275,7 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bo
                         : 'border-slate-200 hover:border-slate-300'
                     }`}
                   >
-                    <span className="text-xl">{reason.icon}</span>
+                    <span className="flex-shrink-0">{reason.icon}</span>
                     <div className="text-left">
                       <div className="font-medium text-maroon">{reason.label}</div>
                       <div className="text-xs text-slate-500">{reason.description}</div>

@@ -1856,28 +1856,8 @@ const App: React.FC = () => {
             </h1>
 
             <p className="hero-animate hero-animate-delay-3 text-base sm:text-lg lg:text-xl text-maroon/70 mb-6 max-w-2xl mx-auto leading-relaxed px-2">
-              No-shows are stealing <span className="font-bold text-maroon">$500+/month</span> from your business.<br className="hidden sm:block" />
-              Recur shows you exactly what you'll make next month—and protects your income with deposits.
+              For professionals with recurring clients. Map your rotations, forecast your income, plan with confidence.
             </p>
-
-            {/* Sub-hero pain points */}
-            <div className="hero-animate hero-animate-delay-3 bg-red-50 border border-red-200 rounded-2xl p-4 sm:p-6 max-w-xl mx-auto mb-8 sm:mb-10">
-              <p className="text-sm sm:text-base font-bold text-red-800 mb-3">Every week without a system:</p>
-              <ul className="text-left text-sm sm:text-base text-red-700 space-y-2">
-                <li className="flex items-start gap-2">
-                  <span className="text-red-500 mt-0.5">•</span>
-                  <span>2 no-shows = <span className="font-bold">$150 lost forever</span></span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-red-500 mt-0.5">•</span>
-                  <span>3 overdue clients = <span className="font-bold">$500 walking to competitors</span></span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-red-500 mt-0.5">•</span>
-                  <span>Unpredictable income = <span className="font-bold">stress, bad decisions, burnout</span></span>
-                </li>
-              </ul>
-            </div>
 
             <div className="hero-animate hero-animate-delay-4 flex flex-col items-center gap-3">
               <button
@@ -1889,7 +1869,6 @@ const App: React.FC = () => {
               >
                 See Your Predicted Income Free
               </button>
-              <p className="text-xs sm:text-sm text-maroon/50">No credit card required • Cancel anytime</p>
               <button
                 onClick={handleStartDemo}
                 className="text-maroon/60 hover:text-maroon text-sm font-medium underline underline-offset-4 transition-colors"
@@ -2399,7 +2378,6 @@ const App: React.FC = () => {
               >
                 See Your Predicted Income Free
               </button>
-              <p className="text-center text-xs sm:text-sm text-slate-400 mt-3">No credit card required • Cancel anytime</p>
             </div>
           </div>
         </section>

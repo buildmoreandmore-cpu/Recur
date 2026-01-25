@@ -118,7 +118,7 @@ interface AppDashboardProps {
   onUpdateBookingRequest?: (id: string, status: 'confirmed' | 'declined') => void;
   // New appointment completion handlers
   onCompleteAppointment?: (clientId: string, appointmentDate: string, paymentMethod: PaymentMethod, paymentAmount: number, paymentNote?: string) => void;
-  onMissedAppointment?: (clientId: string, appointmentDate: string, missedReason: MissedReason, options?: { chargeFee?: boolean; flagAtRisk?: boolean; sendMessage?: boolean }) => void;
+  onMissedAppointment?: (clientId: string, appointmentDate: string, missedReason: MissedReason, options?: { chargeFee?: boolean; flagAtRisk?: boolean; sendMessage?: boolean; rescheduleDate?: string }) => void;
 }
 
 const TUTORIAL_STEPS = [
@@ -208,7 +208,8 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bo
   const [missedOptions, setMissedOptions] = useState({
     chargeFee: false,
     flagAtRisk: false,
-    sendMessage: false
+    sendMessage: false,
+    rescheduleDate: ''
   });
 
   // NEW: End-of-day unmarked appointments prompt
@@ -821,7 +822,7 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bo
                             onClick={() => {
                               setMissedClient(client);
                               setSelectedMissedReason(null);
-                              setMissedOptions({ chargeFee: false, flagAtRisk: false, sendMessage: false });
+                              setMissedOptions({ chargeFee: false, flagAtRisk: false, sendMessage: false, rescheduleDate: '' });
                             }}
                             className="py-2.5 px-4 bg-red-100 text-red-600 font-medium rounded-xl text-sm hover:bg-red-200 transition-colors"
                           >
@@ -2289,6 +2290,25 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bo
                 ))}
               </div>
 
+              {/* Reschedule Date Picker - shows when "rescheduled" is selected */}
+              {selectedMissedReason === 'rescheduled' && (
+                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                  <label className="block text-sm font-medium text-blue-800 mb-2">
+                    New appointment date
+                  </label>
+                  <input
+                    type="date"
+                    value={missedOptions.rescheduleDate}
+                    onChange={(e) => setMissedOptions({ ...missedOptions, rescheduleDate: e.target.value })}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="w-full px-3 py-2 border-2 border-blue-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                  />
+                  {!missedOptions.rescheduleDate && (
+                    <p className="text-xs text-blue-600 mt-1">Select the new appointment date</p>
+                  )}
+                </div>
+              )}
+
               <hr className="border-slate-200 my-4" />
 
               {/* Follow-up Options */}
@@ -2328,7 +2348,7 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bo
                   onClick={() => {
                     setMissedClient(null);
                     setSelectedMissedReason(null);
-                    setMissedOptions({ chargeFee: false, flagAtRisk: false, sendMessage: false });
+                    setMissedOptions({ chargeFee: false, flagAtRisk: false, sendMessage: false, rescheduleDate: '' });
                   }}
                   className="flex-1 py-3 border-2 border-slate-200 text-maroon font-bold rounded-xl hover:bg-slate-50 transition-colors"
                 >
@@ -2345,19 +2365,22 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bo
                       );
                     }
                     const reasonLabel = MISSED_REASONS.find(r => r.id === selectedMissedReason)?.label || 'Missed';
-                    showToast(`Appointment marked as ${reasonLabel}${missedOptions.flagAtRisk ? '. Client flagged.' : ''}`, 'info');
+                    const rescheduleMsg = selectedMissedReason === 'rescheduled' && missedOptions.rescheduleDate
+                      ? `. Rescheduled to ${new Date(missedOptions.rescheduleDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+                      : '';
+                    showToast(`Appointment marked as ${reasonLabel}${rescheduleMsg}${missedOptions.flagAtRisk ? '. Client flagged.' : ''}`, 'info');
                     setMissedClient(null);
                     setSelectedMissedReason(null);
-                    setMissedOptions({ chargeFee: false, flagAtRisk: false, sendMessage: false });
+                    setMissedOptions({ chargeFee: false, flagAtRisk: false, sendMessage: false, rescheduleDate: '' });
                   }}
-                  disabled={!selectedMissedReason}
+                  disabled={!selectedMissedReason || (selectedMissedReason === 'rescheduled' && !missedOptions.rescheduleDate)}
                   className={`flex-1 py-3 font-bold rounded-xl transition-colors ${
-                    selectedMissedReason
+                    selectedMissedReason && !(selectedMissedReason === 'rescheduled' && !missedOptions.rescheduleDate)
                       ? 'bg-red-500 text-white hover:bg-red-600'
                       : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                   }`}
                 >
-                  Confirm
+                  {selectedMissedReason === 'rescheduled' ? 'Reschedule' : 'Confirm'}
                 </button>
               </div>
             </div>

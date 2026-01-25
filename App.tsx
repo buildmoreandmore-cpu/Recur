@@ -799,7 +799,7 @@ const App: React.FC = () => {
     clientId: string,
     appointmentDate: string,
     missedReason: MissedReason,
-    options?: { chargeFee?: boolean; flagAtRisk?: boolean; sendMessage?: boolean }
+    options?: { chargeFee?: boolean; flagAtRisk?: boolean; sendMessage?: boolean; rescheduleDate?: string }
   ) => {
     const clientIndex = clients.findIndex(c => c.id === clientId);
     if (clientIndex < 0) return;
@@ -814,6 +814,9 @@ const App: React.FC = () => {
       'rescheduled': 'cancelled',
     };
 
+    // Find the original appointment to get service/price info for rescheduling
+    const originalAppointment = updatedClient.appointments.find(apt => apt.date === appointmentDate);
+
     updatedClient.appointments = updatedClient.appointments.map(apt => {
       if (apt.date === appointmentDate) {
         return {
@@ -825,6 +828,18 @@ const App: React.FC = () => {
       }
       return apt;
     });
+
+    // If rescheduled with a new date, add a new appointment and update nextAppointment
+    if (missedReason === 'rescheduled' && options?.rescheduleDate && originalAppointment) {
+      const newAppointment = {
+        date: options.rescheduleDate,
+        service: originalAppointment.service,
+        price: originalAppointment.price,
+        status: 'upcoming' as const,
+      };
+      updatedClient.appointments.push(newAppointment);
+      updatedClient.nextAppointment = options.rescheduleDate;
+    }
 
     // Flag as at-risk if option selected
     if (options?.flagAtRisk) {

@@ -417,13 +417,13 @@ export const IndustryLandingPage: React.FC<IndustryLandingPageProps> = ({
 
   if (!config) {
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto px-4">
-          <h1 className="text-2xl font-serif text-maroon mb-4">Page Not Found</h1>
-          <p className="text-maroon/60 mb-6">This industry page doesn't exist.</p>
+      <div className="min-h-screen bg-cream flex items-center justify-center px-4">
+        <div className="text-center max-w-md mx-auto">
+          <h1 className="text-xl sm:text-2xl font-serif text-maroon mb-3 sm:mb-4">Page Not Found</h1>
+          <p className="text-sm sm:text-base text-maroon/60 mb-5 sm:mb-6">This industry page doesn't exist.</p>
           <button
             onClick={onBack}
-            className="px-6 py-3 bg-maroon text-white rounded-xl font-bold hover:bg-maroon/90 transition-colors"
+            className="w-full sm:w-auto px-6 py-3 bg-maroon text-white rounded-xl font-bold hover:bg-maroon/90 transition-colors active:scale-[0.98]"
           >
             Go Home
           </button>
@@ -435,25 +435,25 @@ export const IndustryLandingPage: React.FC<IndustryLandingPageProps> = ({
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex justify-between items-center">
-        <div className="flex items-center gap-6">
-          <button onClick={onBack} className="flex items-center gap-3 text-maroon">
-            <div className="w-10 h-10 bg-gradient-to-br from-maroon to-maroon/80 rounded-xl flex items-center justify-center">
-              <span className="text-white font-serif text-lg">R</span>
+      <nav className="max-w-7xl mx-auto px-4 sm:px-6 h-14 sm:h-16 md:h-20 flex justify-between items-center">
+        <div className="flex items-center">
+          <button onClick={onBack} className="flex items-center gap-2 sm:gap-3 text-maroon">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-maroon to-maroon/80 rounded-lg sm:rounded-xl flex items-center justify-center">
+              <span className="text-white font-serif text-base sm:text-lg">R</span>
             </div>
-            <span className="font-serif text-2xl hidden sm:inline">Recur</span>
+            <span className="font-serif text-xl sm:text-2xl hidden sm:inline">Recur</span>
           </button>
         </div>
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
           <button
             onClick={onDemo}
-            className="px-3 sm:px-5 py-2 sm:py-2.5 text-sm sm:text-[15px] font-medium text-maroon hover:opacity-70"
+            className="px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 text-xs sm:text-sm md:text-[15px] font-medium text-maroon hover:opacity-70"
           >
             Demo
           </button>
           <button
             onClick={onSignUp}
-            className="px-4 sm:px-5 py-2 sm:py-2.5 bg-maroon text-white rounded-xl text-sm sm:text-[15px] font-bold shadow-sm hover:bg-maroon/90 transition-colors"
+            className="px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 bg-maroon text-white rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-[15px] font-bold shadow-sm hover:bg-maroon/90 transition-colors active:scale-[0.98]"
           >
             Start Free
           </button>
@@ -461,27 +461,27 @@ export const IndustryLandingPage: React.FC<IndustryLandingPageProps> = ({
       </nav>
 
       {/* Hero Section */}
-      <section className="py-12 sm:py-20 px-4 sm:px-6 text-center bg-cream">
+      <section className="py-10 sm:py-16 md:py-20 px-4 sm:px-6 text-center bg-cream">
         <div className="max-w-4xl mx-auto">
-          <p className="text-sm font-bold uppercase tracking-wider text-maroon/60 mb-4">
+          <p className="text-xs sm:text-sm font-bold uppercase tracking-wider text-maroon/60 mb-3 sm:mb-4">
             For {config.pluralName}
           </p>
-          <h1 className="text-3xl sm:text-5xl font-serif text-maroon mb-6 leading-tight">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-serif text-maroon mb-4 sm:mb-6 leading-tight px-2">
             {config.h1}
           </h1>
-          <p className="text-lg sm:text-xl text-maroon/70 mb-8 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-maroon/70 mb-6 sm:mb-8 max-w-2xl mx-auto leading-relaxed px-2">
             {config.heroSubtitle}
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
             <button
               onClick={onSignUp}
-              className="w-full sm:w-auto px-8 py-4 bg-maroon text-white rounded-full text-lg font-bold shadow-xl hover:bg-maroon/90 transition-colors"
+              className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 bg-maroon text-white rounded-full text-base sm:text-lg font-bold shadow-xl hover:bg-maroon/90 transition-colors active:scale-[0.98]"
             >
               Start Free Trial
             </button>
             <button
               onClick={onDemo}
-              className="text-maroon/60 hover:text-maroon text-sm font-medium underline underline-offset-4"
+              className="text-maroon/60 hover:text-maroon text-sm font-medium underline underline-offset-4 py-2"
             >
               See the demo first
             </button>
@@ -490,16 +490,16 @@ export const IndustryLandingPage: React.FC<IndustryLandingPageProps> = ({
       </section>
 
       {/* Pain Points Section */}
-      <section className="py-12 sm:py-20 px-4 sm:px-6">
+      <section className="py-10 sm:py-16 md:py-20 px-4 sm:px-6">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-serif text-center text-maroon mb-12">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-serif text-center text-maroon mb-8 sm:mb-10 md:mb-12">
             Sound familiar?
           </h2>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
             {config.painPoints.map((point, index) => (
-              <div key={index} className="p-6 sm:p-8 bg-cream rounded-2xl border border-slate-100">
-                <h3 className="text-lg font-bold text-maroon mb-3">{point.title}</h3>
-                <p className="text-maroon/70">{point.description}</p>
+              <div key={index} className="p-5 sm:p-6 md:p-8 bg-cream rounded-xl sm:rounded-2xl border border-slate-100">
+                <h3 className="text-base sm:text-lg font-bold text-maroon mb-2 sm:mb-3">{point.title}</h3>
+                <p className="text-sm sm:text-base text-maroon/70 leading-relaxed">{point.description}</p>
               </div>
             ))}
           </div>
@@ -507,23 +507,23 @@ export const IndustryLandingPage: React.FC<IndustryLandingPageProps> = ({
       </section>
 
       {/* Features Section */}
-      <section className="py-12 sm:py-20 px-4 sm:px-6 bg-cream">
+      <section className="py-10 sm:py-16 md:py-20 px-4 sm:px-6 bg-cream">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-serif text-center text-maroon mb-4">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-serif text-center text-maroon mb-3 sm:mb-4">
             How Recur helps {config.pluralName.toLowerCase()}
           </h2>
-          <p className="text-center text-maroon/60 mb-12 max-w-2xl mx-auto">
+          <p className="text-center text-sm sm:text-base text-maroon/60 mb-8 sm:mb-10 md:mb-12 max-w-2xl mx-auto px-2">
             Everything you need to run your business professionally
           </p>
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid sm:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
             {config.features.map((feature, index) => (
-              <div key={index} className="p-6 sm:p-8 bg-white rounded-2xl border border-slate-100 shadow-sm flex gap-4">
-                <div className="w-12 h-12 bg-[#fff38a] rounded-xl flex items-center justify-center text-maroon flex-shrink-0">
-                  <IconComponent icon={feature.icon} />
+              <div key={index} className="p-5 sm:p-6 md:p-8 bg-white rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm flex gap-3 sm:gap-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#fff38a] rounded-lg sm:rounded-xl flex items-center justify-center text-maroon flex-shrink-0">
+                  <IconComponent icon={feature.icon} className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
-                <div>
-                  <h3 className="text-lg font-bold text-maroon mb-2">{feature.title}</h3>
-                  <p className="text-maroon/70">{feature.description}</p>
+                <div className="min-w-0">
+                  <h3 className="text-base sm:text-lg font-bold text-maroon mb-1.5 sm:mb-2">{feature.title}</h3>
+                  <p className="text-sm sm:text-base text-maroon/70 leading-relaxed">{feature.description}</p>
                 </div>
               </div>
             ))}
@@ -533,30 +533,30 @@ export const IndustryLandingPage: React.FC<IndustryLandingPageProps> = ({
 
       {/* Testimonial Section */}
       {config.testimonial && (
-        <section className="py-12 sm:py-20 px-4 sm:px-6">
-          <div className="max-w-3xl mx-auto text-center">
-            <blockquote className="text-xl sm:text-2xl font-serif text-maroon mb-6 italic">
+        <section className="py-10 sm:py-16 md:py-20 px-4 sm:px-6">
+          <div className="max-w-3xl mx-auto text-center px-2">
+            <blockquote className="text-lg sm:text-xl md:text-2xl font-serif text-maroon mb-4 sm:mb-6 italic leading-relaxed">
               "{config.testimonial.quote}"
             </blockquote>
             <div>
-              <p className="font-bold text-maroon">{config.testimonial.author}</p>
-              <p className="text-maroon/60 text-sm">{config.testimonial.role}</p>
+              <p className="font-bold text-maroon text-sm sm:text-base">{config.testimonial.author}</p>
+              <p className="text-maroon/60 text-xs sm:text-sm">{config.testimonial.role}</p>
             </div>
           </div>
         </section>
       )}
 
       {/* FAQ Section */}
-      <section className="py-12 sm:py-20 px-4 sm:px-6 bg-cream">
+      <section className="py-10 sm:py-16 md:py-20 px-4 sm:px-6 bg-cream">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-serif text-center text-maroon mb-12">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-serif text-center text-maroon mb-8 sm:mb-10 md:mb-12">
             Frequently asked questions
           </h2>
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-5 md:space-y-6">
             {config.faqs.map((faq, index) => (
-              <div key={index} className="bg-white p-6 rounded-xl border border-slate-100">
-                <h3 className="font-bold text-maroon mb-3">{faq.question}</h3>
-                <p className="text-maroon/70">{faq.answer}</p>
+              <div key={index} className="bg-white p-4 sm:p-5 md:p-6 rounded-lg sm:rounded-xl border border-slate-100">
+                <h3 className="font-bold text-maroon mb-2 sm:mb-3 text-sm sm:text-base">{faq.question}</h3>
+                <p className="text-maroon/70 text-sm sm:text-base leading-relaxed">{faq.answer}</p>
               </div>
             ))}
           </div>
@@ -564,17 +564,17 @@ export const IndustryLandingPage: React.FC<IndustryLandingPageProps> = ({
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 sm:py-24 px-4 sm:px-6 bg-maroon text-white text-center">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl sm:text-4xl font-serif mb-6">
+      <section className="py-12 sm:py-16 md:py-24 px-4 sm:px-6 bg-maroon text-white text-center">
+        <div className="max-w-3xl mx-auto px-2">
+          <h2 className="text-xl sm:text-2xl md:text-4xl font-serif mb-4 sm:mb-6 leading-snug">
             Ready to grow your {config.name.toLowerCase()} business?
           </h2>
-          <p className="text-white/70 mb-8 text-lg">
+          <p className="text-white/70 mb-6 sm:mb-8 text-base sm:text-lg">
             Start your free trial today. No credit card required.
           </p>
           <button
             onClick={onSignUp}
-            className="px-8 py-4 bg-[#fff38a] text-maroon rounded-full text-lg font-bold shadow-xl hover:bg-[#fff38a]/90 transition-colors"
+            className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 bg-[#fff38a] text-maroon rounded-full text-base sm:text-lg font-bold shadow-xl hover:bg-[#fff38a]/90 transition-colors active:scale-[0.98]"
           >
             Get Started Free
           </button>
@@ -582,17 +582,18 @@ export const IndustryLandingPage: React.FC<IndustryLandingPageProps> = ({
       </section>
 
       {/* Footer */}
-      <footer className="py-8 px-4 sm:px-6 bg-white border-t border-slate-100">
-        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <footer className="py-6 sm:py-8 px-4 sm:px-6 bg-white border-t border-slate-100">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-maroon to-maroon/80 rounded-lg flex items-center justify-center">
-              <span className="text-white font-serif text-sm">R</span>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-maroon to-maroon/80 rounded-lg flex items-center justify-center">
+              <span className="text-white font-serif text-xs sm:text-sm">R</span>
             </div>
-            <span className="text-maroon/60 text-sm">Recur - Booking software for service professionals</span>
+            <span className="text-maroon/60 text-xs sm:text-sm">Recur - Booking software for service professionals</span>
           </div>
-          <div className="flex items-center gap-6 text-sm">
-            <button onClick={onBack} className="text-maroon/60 hover:text-maroon">Home</button>
-            <a href="/about" className="text-maroon/60 hover:text-maroon">About</a>
+          <div className="flex items-center gap-5 sm:gap-6 text-xs sm:text-sm">
+            <button onClick={onBack} className="text-maroon/60 hover:text-maroon py-1">Home</button>
+            <a href="/about" className="text-maroon/60 hover:text-maroon py-1">About</a>
+            <a href="/privacy" className="text-maroon/60 hover:text-maroon py-1">Privacy</a>
           </div>
         </div>
       </footer>

@@ -10,6 +10,7 @@ import { ClientBookingFlow } from './components/ClientBookingFlow';
 import { AboutPage } from './components/AboutPage';
 import { PrivacyPage } from './components/PrivacyPage';
 import { IndustryLandingPage, INDUSTRY_CONFIGS } from './components/seo/IndustryLandingPage';
+import { ComparisonPage, COMPARISON_CONFIGS } from './components/seo/ComparisonPage';
 import { AuthModal } from './components/AuthModal';
 import { TrialBanner, Paywall } from './components/TrialBanner';
 import { createCheckoutSession } from './lib/stripe';
@@ -388,6 +389,7 @@ const App: React.FC = () => {
     if (path === '/privacy' || path === '/privacy/') return 'privacy';
     if (path.startsWith('/book/')) return 'client-booking';
     if (path.startsWith('/for/')) return 'industry-landing';
+    if (path.startsWith('/compare/')) return 'comparison';
     return 'landing';
   };
   const [screen, setScreen] = useState<AppScreen>(getInitialScreen);
@@ -454,6 +456,16 @@ const App: React.FC = () => {
   };
   const [industrySlug, setIndustrySlug] = useState<string | null>(getInitialIndustrySlug);
 
+  // Comparison page state (for /compare/[competitor] URLs)
+  const getInitialComparisonSlug = (): string | null => {
+    const path = window.location.pathname;
+    if (path.startsWith('/compare/')) {
+      return path.split('/')[2] || null;
+    }
+    return null;
+  };
+  const [comparisonSlug, setComparisonSlug] = useState<string | null>(getInitialComparisonSlug);
+
   // Navigate to a new screen (adds to history)
   const navigateTo = useCallback((newScreen: AppScreen) => {
     setScreenHistory(prev => [...prev, newScreen]);
@@ -495,6 +507,13 @@ const App: React.FC = () => {
         setIndustrySlug(slug);
         setScreen('industry-landing');
         setScreenHistory(['industry-landing']);
+      }
+    } else if (path.startsWith('/compare/')) {
+      const slug = path.split('/')[2];
+      if (slug && COMPARISON_CONFIGS[slug]) {
+        setComparisonSlug(slug);
+        setScreen('comparison');
+        setScreenHistory(['comparison']);
       }
     }
   }, []);
@@ -1306,6 +1325,25 @@ const App: React.FC = () => {
           setScreen('landing');
           setScreenHistory(['landing']);
           setIndustrySlug(null);
+          window.history.replaceState({}, '', '/');
+        }}
+      />
+    );
+  }
+
+  if (screen === 'comparison' && comparisonSlug) {
+    return (
+      <ComparisonPage
+        competitorSlug={comparisonSlug}
+        onSignUp={() => {
+          setAuthModalMode('signup');
+          setShowAuthModal(true);
+        }}
+        onDemo={handleStartDemo}
+        onBack={() => {
+          setScreen('landing');
+          setScreenHistory(['landing']);
+          setComparisonSlug(null);
           window.history.replaceState({}, '', '/');
         }}
       />

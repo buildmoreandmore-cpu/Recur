@@ -136,7 +136,7 @@ export interface DashboardStats {
   missedCount: number;         // Number of missed appointments YTD
 }
 
-export type AppScreen = 'landing' | 'onboarding' | 'guided-demo' | 'dashboard' | 'client-intake' | 'client-profile' | 'settings' | 'public-profile' | 'client-booking' | 'about' | 'industry-landing' | 'privacy';
+export type AppScreen = 'landing' | 'onboarding' | 'guided-demo' | 'dashboard' | 'client-intake' | 'client-profile' | 'settings' | 'public-profile' | 'client-booking' | 'about' | 'industry-landing' | 'privacy' | 'comparison';
 
 export interface RotationTier {
   type: RotationType;

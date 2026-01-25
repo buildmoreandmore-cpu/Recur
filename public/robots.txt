@@ -1,7 +1,9 @@
 User-agent: *
 Allow: /
 Allow: /about
+Allow: /privacy
 Allow: /for/*
+Allow: /compare/*
 Disallow: /book/
 
 Sitemap: https://bookrecur.com/sitemap.xml

@@ -1,10 +1,31 @@
 import React from 'react';
-import { RotationType, IndustryType, Client, Service } from './types';
+import { RotationType, IndustryType, Client, Service, PaymentMethod, MissedReason } from './types';
+
+// Payment method options with icons and labels
+export const PAYMENT_METHODS: { id: PaymentMethod; label: string; icon: string; color: string }[] = [
+  { id: 'cash', label: 'Cash', icon: '💵', color: 'bg-emerald-100 text-emerald-700 border-emerald-300' },
+  { id: 'card', label: 'Card', icon: '💳', color: 'bg-blue-100 text-blue-700 border-blue-300' },
+  { id: 'zelle', label: 'Zelle', icon: '🏦', color: 'bg-purple-100 text-purple-700 border-purple-300' },
+  { id: 'venmo', label: 'Venmo', icon: '📱', color: 'bg-cyan-100 text-cyan-700 border-cyan-300' },
+  { id: 'cashapp', label: 'CashApp', icon: '💲', color: 'bg-lime-100 text-lime-700 border-lime-300' },
+  { id: 'check', label: 'Check', icon: '📝', color: 'bg-slate-100 text-slate-700 border-slate-300' },
+  { id: 'stripe', label: 'Stripe', icon: '⚡', color: 'bg-indigo-100 text-indigo-700 border-indigo-300' },
+  { id: 'other', label: 'Other', icon: '📋', color: 'bg-gray-100 text-gray-700 border-gray-300' },
+];
+
+// Missed appointment reason options
+export const MISSED_REASONS: { id: MissedReason; label: string; description: string; icon: string }[] = [
+  { id: 'no-show', label: 'No-Show', description: "Didn't come, no notice", icon: '❌' },
+  { id: 'late-cancel', label: 'Late Cancel', description: 'Cancelled last-minute', icon: '⏰' },
+  { id: 'cancelled', label: 'Cancelled', description: 'Cancelled with notice', icon: '📅' },
+  { id: 'rescheduled', label: 'Rescheduled', description: 'Already rebooked', icon: '🔄' },
+];
 
 export const ROTATION_WEEKS: Record<RotationType, number> = {
   [RotationType.PRIORITY]: 8,
   [RotationType.STANDARD]: 10,
   [RotationType.FLEX]: 12,
+  [RotationType.CUSTOM]: 4, // Default custom value
 };
 
 // Industry templates for services
@@ -16,14 +37,21 @@ export const INDUSTRY_TEMPLATES: Record<IndustryType, {
   eventServices: string[];
 }> = {
   'hair-stylist': {
-    label: 'Hair Stylist / Barber',
-    icon: '💇',
-    baseServices: ['Shampoo + Style', 'Cut + Style', 'Color + Cut', 'Color + Cut + Gloss', 'Partial Highlights + Cut', 'Full Highlights + Cut', 'Balayage + Cut', 'Silk Press', 'Fade', 'Lineup / Edge Up', 'Beard Trim', 'Hot Towel Shave', 'Kids Cut'],
-    addonServices: ['Deep conditioner', 'Scalp treatment', 'Gloss/Toner refresh', 'Olaplex/Bond treatment', 'Bang trim', 'Beard oil treatment', 'Razor line detail', 'Eyebrow cleanup'],
+    label: 'Hair Stylist',
+    icon: '💇‍♀️',
+    baseServices: ['Shampoo + Style', 'Cut + Style', 'Color + Cut', 'Color + Cut + Gloss', 'Partial Highlights + Cut', 'Full Highlights + Cut', 'Balayage + Cut', 'Silk Press', 'Color Correction', 'Keratin Treatment', 'Deep Conditioning Treatment'],
+    addonServices: ['Deep conditioner', 'Scalp treatment', 'Gloss/Toner refresh', 'Olaplex/Bond treatment', 'Bang trim', 'Blowout upgrade'],
     eventServices: ['Wedding trial', 'Wedding day styling', 'Photoshoot prep', 'Birthday styling', 'Prom/Special event', 'Other event'],
   },
+  'barber': {
+    label: 'Barber',
+    icon: '💈',
+    baseServices: ['Fade', 'Taper', 'Buzz Cut', 'Scissor Cut', 'Beard Trim', 'Beard Shape', 'Lineup / Edge Up', 'Hot Towel Shave', 'Kids Cut'],
+    addonServices: ['Beard oil treatment', 'Scalp massage', 'Gray blending', 'Eyebrow cleanup', 'Razor line detail', 'Neck shave'],
+    eventServices: ['Wedding grooming', 'Prom prep', 'Photoshoot prep', 'Event grooming'],
+  },
   'personal-trainer': {
-    label: 'Personal Trainer / Fitness Coach',
+    label: 'Personal Trainer',
     icon: '💪',
     baseServices: ['1-on-1 Session', 'Partner Session', 'Group Session (small)', 'Assessment', 'Program Design'],
     addonServices: ['Nutrition plan', 'Body composition scan', 'Recovery session', 'Video form check'],
@@ -32,9 +60,44 @@ export const INDUSTRY_TEMPLATES: Record<IndustryType, {
   'massage-therapist': {
     label: 'Massage Therapist',
     icon: '💆',
-    baseServices: ['60-min Massage', '90-min Massage', '30-min Focus Session', 'Couples Massage'],
+    baseServices: ['60-min Massage', '90-min Massage', '30-min Focus Session', 'Couples Massage', 'Deep Tissue', 'Swedish Massage'],
     addonServices: ['Hot stones', 'Aromatherapy', 'CBD upgrade', 'Cupping'],
     eventServices: ['Bridal party', 'Corporate event', 'Sports event recovery'],
+  },
+  'esthetician': {
+    label: 'Esthetician',
+    icon: '✨',
+    baseServices: ['Basic Facial', 'Signature Facial', 'Chemical Peel', 'Microdermabrasion', 'Dermaplaning', 'HydraFacial'],
+    addonServices: ['LED therapy', 'Extractions', 'Mask upgrade', 'Eye treatment', 'Lip treatment'],
+    eventServices: ['Bridal prep', 'Event prep', 'Photoshoot prep'],
+  },
+  'lash-technician': {
+    label: 'Lash Technician',
+    icon: '👁️',
+    baseServices: ['Classic Full Set', 'Volume Full Set', 'Hybrid Full Set', 'Classic Fill', 'Volume Fill', 'Hybrid Fill', 'Lash Lift', 'Lash Tint', 'Lash Lift + Tint'],
+    addonServices: ['Lash bath', 'Under-eye treatment', 'Colored lashes', 'Bottom lashes'],
+    eventServices: ['Bridal lashes', 'Event lashes', 'Photoshoot lashes'],
+  },
+  'nail-technician': {
+    label: 'Nail Technician',
+    icon: '💅',
+    baseServices: ['Classic Manicure', 'Gel Manicure', 'Acrylic Full Set', 'Acrylic Fill', 'Dip Powder', 'Classic Pedicure', 'Gel Pedicure', 'Spa Pedicure'],
+    addonServices: ['Nail art', 'Paraffin treatment', 'Extended massage', 'Cuticle treatment', 'Chrome/specialty finish', 'Nail repair'],
+    eventServices: ['Bridal nails', 'Prom nails', 'Event nails', 'Nail party'],
+  },
+  'tattoo-artist': {
+    label: 'Tattoo Artist',
+    icon: '🎨',
+    baseServices: ['Small Tattoo (1-2 hrs)', 'Medium Tattoo (2-4 hrs)', 'Large Tattoo (4+ hrs)', 'Touch-up', 'Cover-up Consultation', 'Custom Design Session'],
+    addonServices: ['Color pack upgrade', 'Fine line detail', 'Aftercare kit', 'Design revision'],
+    eventServices: ['Memorial piece', 'Matching tattoos', 'Group booking'],
+  },
+  'pet-groomer': {
+    label: 'Pet Groomer',
+    icon: '🐕',
+    baseServices: ['Bath & Brush', 'Full Groom', 'Puppy Groom', 'Nail Trim', 'De-shedding Treatment', 'Teeth Brushing', 'Sanitary Trim', 'Face Trim'],
+    addonServices: ['Flea treatment', 'De-matting', 'Paw balm', 'Cologne', 'Teeth cleaning', 'Ear cleaning', 'Blueberry facial'],
+    eventServices: ['Show prep', 'Holiday styling', 'Photoshoot prep'],
   },
   'therapist-counselor': {
     label: 'Therapist / Counselor',
@@ -43,19 +106,19 @@ export const INDUSTRY_TEMPLATES: Record<IndustryType, {
     addonServices: ['Between-session support', 'Assessment/testing', 'Letter/documentation'],
     eventServices: ['Intensive session', 'Crisis support'],
   },
-  'esthetician': {
-    label: 'Esthetician / Skincare',
-    icon: '✨',
-    baseServices: ['Basic Facial', 'Signature Facial', 'Chemical Peel', 'Microdermabrasion', 'Dermaplaning'],
-    addonServices: ['LED therapy', 'Extractions', 'Mask upgrade', 'Eye treatment'],
-    eventServices: ['Bridal prep', 'Event prep', 'Photoshoot prep'],
-  },
   'consultant-coach': {
     label: 'Consultant / Coach',
     icon: '💼',
     baseServices: ['Strategy Session (1 hr)', 'Half-day Intensive', 'Full-day Workshop', 'Monthly Retainer'],
     addonServices: ['Rush delivery', 'Additional revisions', 'Travel', 'Async support'],
     eventServices: ['Speaking engagement', 'Team workshop', 'Annual planning'],
+  },
+  'auto-detailer': {
+    label: 'Auto Detailer',
+    icon: '🚗',
+    baseServices: ['Exterior Wash', 'Interior Clean', 'Full Detail', 'Paint Correction', 'Ceramic Coating', 'Engine Bay Clean', 'Express Detail'],
+    addonServices: ['Leather conditioning', 'Headlight restoration', 'Odor removal', 'Pet hair removal', 'Clay bar treatment', 'Wheel coating'],
+    eventServices: ['Pre-sale detail', 'Show prep', 'Wedding car prep'],
   },
   'other': {
     label: 'Other (Custom)',
@@ -97,6 +160,21 @@ export const INDUSTRY_INTAKE_QUESTIONS: Record<IndustryType, {
       tertiaryQuestion: { label: 'How do you feel about grow-out?', placeholder: 'Prefer seamless grow-out, okay with visible roots...' },
     },
   },
+  'barber': {
+    lifestyle: {
+      timeQuestion: { label: 'How often do you currently get cuts?', placeholder: 'Every 2 weeks, monthly...' },
+      concernsLabel: 'Scalp / Skin Concerns',
+      concernsPlaceholder: 'Sensitive skin, ingrown hairs, razor bumps...',
+      toolsQuestion: { label: 'Styling products used?', options: ['Pomade', 'Gel', 'Wax', 'Oil', 'None'] },
+    },
+    goals: {
+      mainGoalQuestion: "What's your go-to style?",
+      mainGoalPlaceholder: 'Low fade, skin fade, classic taper, textured top...',
+      showColorFields: false,
+      secondaryQuestion: { label: 'Beard maintenance', options: ['Full beard', 'Stubble', 'Goatee/partial', 'Clean shaven', 'No beard'] },
+      tertiaryQuestion: { label: 'Anything specific for upcoming events?', placeholder: 'Wedding next month, job interview, photoshoot...' },
+    },
+  },
   'personal-trainer': {
     lifestyle: {
       timeQuestion: { label: 'Current workout frequency?', placeholder: '3x per week, mostly cardio' },
@@ -127,20 +205,6 @@ export const INDUSTRY_INTAKE_QUESTIONS: Record<IndustryType, {
       tertiaryQuestion: { label: 'What outcome would make this worthwhile?', placeholder: 'Better sleep, less tension headaches, improved mobility...' },
     },
   },
-  'therapist-counselor': {
-    lifestyle: {
-      timeQuestion: { label: 'Current support system?', placeholder: 'Partner, close friends, family nearby...' },
-      concernsLabel: 'Important Context',
-      concernsPlaceholder: 'Previous therapy experience, medications, specific triggers...',
-    },
-    goals: {
-      mainGoalQuestion: 'What brings you to therapy?',
-      mainGoalPlaceholder: 'Anxiety, relationship issues, life transition, grief...',
-      showColorFields: false,
-      secondaryQuestion: { label: 'Therapy experience', options: ['First time', 'Some previous', 'Extensive history', 'Returning after break'] },
-      tertiaryQuestion: { label: 'What would success look like for you?', placeholder: 'Better coping skills, improved relationships, less anxiety...' },
-    },
-  },
   'esthetician': {
     lifestyle: {
       timeQuestion: { label: 'Current skincare routine time?', placeholder: '5 minutes AM, 10 minutes PM' },
@@ -156,6 +220,80 @@ export const INDUSTRY_INTAKE_QUESTIONS: Record<IndustryType, {
       tertiaryQuestion: { label: "What have you tried that worked/didn't work?", placeholder: 'Salicylic acid helped, vitamin C caused irritation...' },
     },
   },
+  'lash-technician': {
+    lifestyle: {
+      timeQuestion: { label: 'Current lash routine?', placeholder: 'Mascara daily, strip lashes for events, extensions...' },
+      concernsLabel: 'Eye Sensitivities / Allergies',
+      concernsPlaceholder: 'Allergic to adhesive, sensitive eyes, contact lens wearer...',
+      toolsQuestion: { label: 'Lifestyle factors?', options: ['Active/sweaty workouts', 'Side sleeper', 'Rubs eyes often', 'Wears glasses', 'None'] },
+    },
+    goals: {
+      mainGoalQuestion: 'What lash look are you going for?',
+      mainGoalPlaceholder: 'Natural enhancement, wispy, dramatic, cat-eye...',
+      showColorFields: false,
+      secondaryQuestion: { label: 'Fill frequency preference', options: ['Every 2 weeks', 'Every 3 weeks', 'Monthly', 'As needed'] },
+      tertiaryQuestion: { label: 'Any past experiences with lashes?', placeholder: 'Had extensions before, loved the volume but...' },
+    },
+  },
+  'nail-technician': {
+    lifestyle: {
+      timeQuestion: { label: 'How hard are you on your nails?', placeholder: 'Office work, gardening, typing all day...' },
+      concernsLabel: 'Nail / Skin Concerns',
+      concernsPlaceholder: 'Brittle nails, peeling, allergies to products...',
+      toolsQuestion: { label: 'Current nail type?', options: ['Natural only', 'Gel polish', 'Acrylics', 'Dip powder', 'Press-ons'] },
+    },
+    goals: {
+      mainGoalQuestion: 'What nail look do you prefer?',
+      mainGoalPlaceholder: 'Short and natural, long acrylics, trendy designs...',
+      showColorFields: false,
+      secondaryQuestion: { label: 'Shape preference', options: ['Square', 'Round', 'Oval', 'Almond', 'Coffin/Ballerina', 'Stiletto'] },
+      tertiaryQuestion: { label: 'Any special requests or inspiration?', placeholder: 'Matching my wedding colors, minimalist French tips...' },
+    },
+  },
+  'tattoo-artist': {
+    lifestyle: {
+      timeQuestion: { label: 'Any previous tattoos?', placeholder: 'First tattoo, 5+ existing pieces...' },
+      concernsLabel: 'Skin / Health Concerns',
+      concernsPlaceholder: 'Keloid scarring, blood thinners, skin conditions...',
+      toolsQuestion: { label: 'Pain tolerance?', options: ['Low - first timer nervous', 'Medium - can handle it', 'High - experienced', 'Not sure'] },
+    },
+    goals: {
+      mainGoalQuestion: 'What are you looking to get done?',
+      mainGoalPlaceholder: 'Sleeve continuation, memorial piece, cover-up...',
+      showColorFields: false,
+      secondaryQuestion: { label: 'Style preference', options: ['Traditional', 'Fine line', 'Realism', 'Blackwork', 'Watercolor', 'Mixed'] },
+      tertiaryQuestion: { label: 'Placement and size ideas?', placeholder: 'Inner forearm, about 4 inches, flowing with existing...' },
+    },
+  },
+  'pet-groomer': {
+    lifestyle: {
+      timeQuestion: { label: 'How often is your pet currently groomed?', placeholder: 'Monthly, every 6 weeks, only when matted...' },
+      concernsLabel: 'Pet Health / Behavior Notes',
+      concernsPlaceholder: 'Anxious around clippers, sensitive skin, recent surgery...',
+      toolsQuestion: { label: 'Pet type?', options: ['Small dog', 'Medium dog', 'Large dog', 'Cat', 'Other'] },
+    },
+    goals: {
+      mainGoalQuestion: "What's the ideal look for your pet?",
+      mainGoalPlaceholder: 'Breed-specific cut, teddy bear face, short all over...',
+      showColorFields: false,
+      secondaryQuestion: { label: 'Coat type', options: ['Short/smooth', 'Double coat', 'Curly/wavy', 'Long/silky', 'Wire/rough'] },
+      tertiaryQuestion: { label: 'Any special instructions or concerns?', placeholder: 'Extra careful around ears, tends to bite, needs sanitary trim...' },
+    },
+  },
+  'therapist-counselor': {
+    lifestyle: {
+      timeQuestion: { label: 'Current support system?', placeholder: 'Partner, close friends, family nearby...' },
+      concernsLabel: 'Important Context',
+      concernsPlaceholder: 'Previous therapy experience, medications, specific triggers...',
+    },
+    goals: {
+      mainGoalQuestion: 'What brings you to therapy?',
+      mainGoalPlaceholder: 'Anxiety, relationship issues, life transition, grief...',
+      showColorFields: false,
+      secondaryQuestion: { label: 'Therapy experience', options: ['First time', 'Some previous', 'Extensive history', 'Returning after break'] },
+      tertiaryQuestion: { label: 'What would success look like for you?', placeholder: 'Better coping skills, improved relationships, less anxiety...' },
+    },
+  },
   'consultant-coach': {
     lifestyle: {
       timeQuestion: { label: 'Business stage?', placeholder: 'Startup, growing, established, pivoting...' },
@@ -169,6 +307,21 @@ export const INDUSTRY_INTAKE_QUESTIONS: Record<IndustryType, {
       showColorFields: false,
       secondaryQuestion: { label: 'Engagement preference', options: ['Intensive sprint', 'Ongoing support', 'As-needed consulting', 'Team workshops'] },
       tertiaryQuestion: { label: 'What does success look like in 6 months?', placeholder: '2x revenue, hired team lead, automated operations...' },
+    },
+  },
+  'auto-detailer': {
+    lifestyle: {
+      timeQuestion: { label: 'How often do you get your vehicle detailed?', placeholder: 'Monthly, quarterly, only before selling...' },
+      concernsLabel: 'Vehicle Concerns',
+      concernsPlaceholder: 'Paint scratches, pet hair, smoke smell, leather cracking...',
+      toolsQuestion: { label: 'Vehicle type?', options: ['Sedan', 'SUV/Crossover', 'Truck', 'Sports car', 'Luxury', 'Motorcycle'] },
+    },
+    goals: {
+      mainGoalQuestion: 'What are you hoping to achieve with this detail?',
+      mainGoalPlaceholder: 'Showroom finish, remove dog smell, prep for sale...',
+      showColorFields: false,
+      secondaryQuestion: { label: 'Priority area', options: ['Exterior only', 'Interior only', 'Both equally', 'Paint correction focus'] },
+      tertiaryQuestion: { label: 'Any specific problem areas?', placeholder: 'Coffee stains on seats, water spots on paint, oxidized headlights...' },
     },
   },
   'other': {
@@ -229,11 +382,18 @@ const createSampleClient = (
 
 export const INDUSTRY_SAMPLE_CLIENTS: Record<IndustryType, Client[]> = {
   'hair-stylist': [
-    { ...createSampleClient('1', 'Jasmine Carter', RotationType.PRIORITY, 8, { id: 'base-2', name: 'Color + Cut', price: 185, category: 'base' }, 1917, '2026-01-14', 'confirmed'), occupation: 'Marketing Director', serviceGoal: 'Go lighter for summer' },
-    { ...createSampleClient('2', 'Marcus Rivera', RotationType.STANDARD, 10, { id: 'base-1', name: 'Cut + Style', price: 85, category: 'base' }, 1240, '2026-01-22', 'confirmed'), occupation: 'Teacher', serviceGoal: 'Keep it healthy and easy' },
-    { ...createSampleClient('3', 'Dr. Sarah Chen', RotationType.PRIORITY, 8, { id: 'base-5', name: 'Full Highlights + Cut', price: 285, category: 'base' }, 2100, '2026-01-11', 'confirmed'), occupation: 'Real Estate Agent', serviceGoal: 'Stay bright blonde' },
-    { ...createSampleClient('4', 'Sienna West', RotationType.FLEX, 12, { id: 'base-0', name: 'Shampoo + Style', price: 55, category: 'base' }, 720, '2026-01-25', 'pending'), occupation: 'Freelance Writer', serviceGoal: 'Low maintenance' },
-    { ...createSampleClient('5', 'Rachel Kim', RotationType.STANDARD, 8, { id: 'base-7', name: 'Silk Press', price: 95, category: 'base' }, 845, '2026-01-15', 'at-risk'), occupation: 'Software Engineer', serviceGoal: 'Healthy, sleek styles' },
+    { ...createSampleClient('1', 'Jasmine Carter', RotationType.PRIORITY, 6, { id: 'base-2', name: 'Color + Cut', price: 185, category: 'base' }, 1603, '2026-01-14', 'confirmed'), occupation: 'Marketing Director', serviceGoal: 'Go lighter for summer' },
+    { ...createSampleClient('2', 'Lauren Mitchell', RotationType.STANDARD, 8, { id: 'base-1', name: 'Cut + Style', price: 85, category: 'base' }, 553, '2026-01-22', 'confirmed'), occupation: 'Teacher', serviceGoal: 'Keep it healthy and easy' },
+    { ...createSampleClient('3', 'Dr. Sarah Chen', RotationType.PRIORITY, 6, { id: 'base-5', name: 'Full Highlights + Cut', price: 285, category: 'base' }, 2470, '2026-01-11', 'confirmed'), occupation: 'Real Estate Agent', serviceGoal: 'Stay bright blonde' },
+    { ...createSampleClient('4', 'Sienna West', RotationType.FLEX, 10, { id: 'base-0', name: 'Shampoo + Style', price: 55, category: 'base' }, 286, '2026-01-25', 'pending'), occupation: 'Freelance Writer', serviceGoal: 'Low maintenance' },
+    { ...createSampleClient('5', 'Rachel Kim', RotationType.STANDARD, 8, { id: 'base-7', name: 'Silk Press', price: 95, category: 'base' }, 617, '2026-01-15', 'at-risk'), occupation: 'Software Engineer', serviceGoal: 'Healthy, sleek styles' },
+  ],
+  'barber': [
+    { ...createSampleClient('1', 'Marcus Williams', RotationType.PRIORITY, 2, { id: 'base-0', name: 'Fade', price: 35, category: 'base' }, 910, '2026-01-14', 'confirmed'), occupation: 'Account Executive', serviceGoal: 'Fresh fade every 2 weeks' },
+    { ...createSampleClient('2', 'Darnell Jackson', RotationType.PRIORITY, 3, { id: 'base-4', name: 'Beard Shape', price: 25, category: 'base' }, 433, '2026-01-18', 'confirmed'), occupation: 'Entrepreneur', serviceGoal: 'Keep the beard tight' },
+    { ...createSampleClient('3', 'Tyler Rodriguez', RotationType.STANDARD, 3, { id: 'base-0', name: 'Fade', price: 35, category: 'base' }, 607, '2026-01-20', 'confirmed'), occupation: 'Personal Trainer', serviceGoal: 'Always camera-ready' },
+    { ...createSampleClient('4', 'Chris Thompson', RotationType.STANDARD, 4, { id: 'base-3', name: 'Scissor Cut', price: 30, category: 'base' }, 390, '2026-01-25', 'pending'), occupation: 'Software Developer', serviceGoal: 'Classic professional look' },
+    { ...createSampleClient('5', 'Andre Mitchell', RotationType.FLEX, 4, { id: 'base-7', name: 'Hot Towel Shave', price: 40, category: 'base' }, 520, '2026-01-22', 'at-risk'), occupation: 'Lawyer', serviceGoal: 'Clean shave for court' },
   ],
   'personal-trainer': [
     { ...createSampleClient('1', 'Michael Torres', RotationType.PRIORITY, 1, { id: 'base-0', name: '1-on-1 Session', price: 85, category: 'base' }, 4420, '2026-01-13', 'confirmed'), occupation: 'VP of Sales', serviceGoal: 'Lose 20 lbs, build strength' },
@@ -243,18 +403,11 @@ export const INDUSTRY_SAMPLE_CLIENTS: Record<IndustryType, Client[]> = {
     { ...createSampleClient('5', 'James Wilson', RotationType.STANDARD, 2, { id: 'base-2', name: 'Group Session (small)', price: 45, category: 'base' }, 1170, '2026-01-15', 'at-risk'), occupation: 'Retired', serviceGoal: 'Stay active, improve mobility' },
   ],
   'massage-therapist': [
-    { ...createSampleClient('1', 'Jennifer Adams', RotationType.PRIORITY, 4, { id: 'base-1', name: '90-min Massage', price: 140, category: 'base' }, 1820, '2026-01-16', 'confirmed'), occupation: 'Executive', serviceGoal: 'Chronic neck pain relief' },
-    { ...createSampleClient('2', 'Robert Martinez', RotationType.STANDARD, 6, { id: 'base-0', name: '60-min Massage', price: 95, category: 'base' }, 823, '2026-01-20', 'confirmed'), occupation: 'Construction Manager', serviceGoal: 'Lower back maintenance' },
-    { ...createSampleClient('3', 'Sarah Thompson', RotationType.PRIORITY, 4, { id: 'base-0', name: '60-min Massage', price: 95, category: 'base' }, 1235, '2026-01-12', 'confirmed'), occupation: 'Athlete', serviceGoal: 'Sports recovery' },
-    { ...createSampleClient('4', 'Michelle Lee', RotationType.FLEX, 8, { id: 'base-1', name: '90-min Massage', price: 140, category: 'base' }, 910, '2026-01-28', 'pending'), occupation: 'Writer', serviceGoal: 'Stress management' },
-    { ...createSampleClient('5', 'Brian Cooper', RotationType.STANDARD, 6, { id: 'base-2', name: '30-min Focus Session', price: 55, category: 'base' }, 477, '2026-01-19', 'at-risk'), occupation: 'Software Dev', serviceGoal: 'Shoulder tension from desk work' },
-  ],
-  'therapist-counselor': [
-    { ...createSampleClient('1', 'Emily Watson', RotationType.PRIORITY, 1, { id: 'base-0', name: 'Individual Session (50 min)', price: 175, category: 'base' }, 9100, '2026-01-14', 'confirmed'), occupation: 'Marketing Manager', serviceGoal: 'Anxiety management' },
-    { ...createSampleClient('2', 'The Johnsons', RotationType.STANDARD, 2, { id: 'base-2', name: 'Couples Session', price: 225, category: 'base' }, 5850, '2026-01-17', 'confirmed'), occupation: 'Various', serviceGoal: 'Improve communication' },
-    { ...createSampleClient('3', 'Kevin Brown', RotationType.PRIORITY, 1, { id: 'base-0', name: 'Individual Session (50 min)', price: 175, category: 'base' }, 9100, '2026-01-13', 'confirmed'), occupation: 'Teacher', serviceGoal: 'Work-life balance' },
-    { ...createSampleClient('4', 'Maria Garcia', RotationType.STANDARD, 2, { id: 'base-0', name: 'Individual Session (50 min)', price: 175, category: 'base' }, 4550, '2026-01-21', 'pending'), occupation: 'Nurse', serviceGoal: 'Processing grief' },
-    { ...createSampleClient('5', 'Daniel Kim', RotationType.FLEX, 4, { id: 'base-0', name: 'Individual Session (50 min)', price: 175, category: 'base' }, 2275, '2026-01-28', 'at-risk'), occupation: 'Student', serviceGoal: 'Life transition support' },
+    { ...createSampleClient('1', 'Jennifer Adams', RotationType.PRIORITY, 3, { id: 'base-1', name: '90-min Massage', price: 140, category: 'base' }, 2427, '2026-01-16', 'confirmed'), occupation: 'Executive', serviceGoal: 'Chronic neck pain relief' },
+    { ...createSampleClient('2', 'Robert Martinez', RotationType.STANDARD, 4, { id: 'base-0', name: '60-min Massage', price: 95, category: 'base' }, 1235, '2026-01-20', 'confirmed'), occupation: 'Construction Manager', serviceGoal: 'Lower back maintenance' },
+    { ...createSampleClient('3', 'Sarah Thompson', RotationType.PRIORITY, 2, { id: 'base-0', name: '60-min Massage', price: 95, category: 'base' }, 2470, '2026-01-12', 'confirmed'), occupation: 'Athlete', serviceGoal: 'Sports recovery' },
+    { ...createSampleClient('4', 'Michelle Lee', RotationType.FLEX, 6, { id: 'base-1', name: '90-min Massage', price: 140, category: 'base' }, 1213, '2026-01-28', 'pending'), occupation: 'Writer', serviceGoal: 'Stress management' },
+    { ...createSampleClient('5', 'Brian Cooper', RotationType.STANDARD, 4, { id: 'base-2', name: '30-min Focus Session', price: 55, category: 'base' }, 715, '2026-01-19', 'at-risk'), occupation: 'Software Dev', serviceGoal: 'Shoulder tension from desk work' },
   ],
   'esthetician': [
     { ...createSampleClient('1', 'Olivia Martinez', RotationType.PRIORITY, 4, { id: 'base-1', name: 'Signature Facial', price: 145, category: 'base' }, 1885, '2026-01-15', 'confirmed'), occupation: 'TV Host', serviceGoal: 'Anti-aging maintenance' },
@@ -263,12 +416,54 @@ export const INDUSTRY_SAMPLE_CLIENTS: Record<IndustryType, Client[]> = {
     { ...createSampleClient('4', 'Brittany Wilson', RotationType.FLEX, 8, { id: 'base-1', name: 'Signature Facial', price: 145, category: 'base' }, 942, '2026-01-26', 'pending'), occupation: 'Accountant', serviceGoal: 'Seasonal maintenance' },
     { ...createSampleClient('5', 'Samantha Lee', RotationType.STANDARD, 6, { id: 'base-4', name: 'Dermaplaning', price: 125, category: 'base' }, 1083, '2026-01-18', 'at-risk'), occupation: 'Teacher', serviceGoal: 'Smooth texture' },
   ],
+  'lash-technician': [
+    { ...createSampleClient('1', 'Madison Brooks', RotationType.PRIORITY, 2, { id: 'base-0', name: 'Classic Full Set', price: 150, category: 'base' }, 3900, '2026-01-14', 'confirmed'), occupation: 'Influencer', serviceGoal: 'Always photo-ready' },
+    { ...createSampleClient('2', 'Sophia Anderson', RotationType.PRIORITY, 2, { id: 'base-3', name: 'Classic Fill', price: 65, category: 'base' }, 1690, '2026-01-18', 'confirmed'), occupation: 'Flight Attendant', serviceGoal: 'Low-maintenance glam' },
+    { ...createSampleClient('3', 'Emma Johnson', RotationType.STANDARD, 3, { id: 'base-1', name: 'Volume Full Set', price: 200, category: 'base' }, 3467, '2026-01-20', 'confirmed'), occupation: 'Realtor', serviceGoal: 'Dramatic but professional' },
+    { ...createSampleClient('4', 'Chloe Williams', RotationType.STANDARD, 3, { id: 'base-4', name: 'Volume Fill', price: 85, category: 'base' }, 1473, '2026-01-25', 'pending'), occupation: 'Nurse', serviceGoal: 'Natural enhancement' },
+    { ...createSampleClient('5', 'Ava Martinez', RotationType.FLEX, 4, { id: 'base-6', name: 'Lash Lift', price: 75, category: 'base' }, 975, '2026-01-22', 'at-risk'), occupation: 'Teacher', serviceGoal: 'No-makeup look' },
+  ],
+  'nail-technician': [
+    { ...createSampleClient('1', 'Taylor Swift', RotationType.PRIORITY, 2, { id: 'base-1', name: 'Gel Manicure', price: 45, category: 'base' }, 1170, '2026-01-14', 'confirmed'), occupation: 'Marketing Manager', serviceGoal: 'Always polished for meetings' },
+    { ...createSampleClient('2', 'Nicole Brown', RotationType.PRIORITY, 3, { id: 'base-2', name: 'Acrylic Full Set', price: 85, category: 'base' }, 1473, '2026-01-18', 'confirmed'), occupation: 'Hairstylist', serviceGoal: 'Long nails that last' },
+    { ...createSampleClient('3', 'Brittany Davis', RotationType.STANDARD, 3, { id: 'base-5', name: 'Classic Pedicure', price: 40, category: 'base' }, 693, '2026-01-20', 'confirmed'), occupation: 'Yoga Instructor', serviceGoal: 'Clean, healthy feet' },
+    { ...createSampleClient('4', 'Jessica Miller', RotationType.STANDARD, 2, { id: 'base-4', name: 'Dip Powder', price: 55, category: 'base' }, 1430, '2026-01-22', 'pending'), occupation: 'Lawyer', serviceGoal: 'Chip-free for court' },
+    { ...createSampleClient('5', 'Megan Wilson', RotationType.FLEX, 4, { id: 'base-0', name: 'Classic Manicure', price: 30, category: 'base' }, 390, '2026-01-25', 'at-risk'), occupation: 'Writer', serviceGoal: 'Occasional pampering' },
+  ],
+  'tattoo-artist': [
+    { ...createSampleClient('1', 'Jake Thompson', RotationType.CUSTOM, 8, { id: 'base-1', name: 'Medium Tattoo (2-4 hrs)', price: 400, category: 'base' }, 2600, '2026-01-20', 'confirmed'), occupation: 'Musician', serviceGoal: 'Building a sleeve' },
+    { ...createSampleClient('2', 'Ryan Mitchell', RotationType.CUSTOM, 12, { id: 'base-2', name: 'Large Tattoo (4+ hrs)', price: 800, category: 'base' }, 3467, '2026-02-15', 'confirmed'), occupation: 'Chef', serviceGoal: 'Back piece sessions' },
+    { ...createSampleClient('3', 'Alyssa Garcia', RotationType.FLEX, 16, { id: 'base-0', name: 'Small Tattoo (1-2 hrs)', price: 200, category: 'base' }, 650, '2026-01-25', 'confirmed'), occupation: 'Nurse', serviceGoal: 'Adding small pieces' },
+    { ...createSampleClient('4', 'Derek Wang', RotationType.CUSTOM, 6, { id: 'base-3', name: 'Touch-up', price: 100, category: 'base' }, 867, '2026-01-18', 'pending'), occupation: 'Firefighter', serviceGoal: 'Color refresh' },
+    { ...createSampleClient('5', 'Samantha Brown', RotationType.FLEX, 20, { id: 'base-0', name: 'Small Tattoo (1-2 hrs)', price: 200, category: 'base' }, 520, '2026-02-10', 'at-risk'), occupation: 'Teacher', serviceGoal: 'Memorial piece' },
+  ],
+  'pet-groomer': [
+    { ...createSampleClient('1', 'Bella (Golden)', RotationType.PRIORITY, 6, { id: 'base-1', name: 'Full Groom', price: 85, category: 'base' }, 737, '2026-01-15', 'confirmed'), occupation: 'Family Pet', serviceGoal: 'Fluffy and clean' },
+    { ...createSampleClient('2', 'Max (Poodle)', RotationType.PRIORITY, 4, { id: 'base-1', name: 'Full Groom', price: 95, category: 'base' }, 1235, '2026-01-18', 'confirmed'), occupation: 'Show Dog', serviceGoal: 'Competition ready' },
+    { ...createSampleClient('3', 'Luna (Shih Tzu)', RotationType.STANDARD, 6, { id: 'base-1', name: 'Full Groom', price: 75, category: 'base' }, 650, '2026-01-20', 'confirmed'), occupation: 'Family Pet', serviceGoal: 'Puppy cut maintained' },
+    { ...createSampleClient('4', 'Cooper (Lab)', RotationType.STANDARD, 8, { id: 'base-0', name: 'Bath & Brush', price: 55, category: 'base' }, 357, '2026-01-28', 'pending'), occupation: 'Family Pet', serviceGoal: 'De-shedding control' },
+    { ...createSampleClient('5', 'Daisy (Yorkie)', RotationType.FLEX, 8, { id: 'base-2', name: 'Puppy Groom', price: 65, category: 'base' }, 423, '2026-01-25', 'at-risk'), occupation: 'Senior Dog', serviceGoal: 'Gentle grooming' },
+  ],
+  'therapist-counselor': [
+    { ...createSampleClient('1', 'Emily Watson', RotationType.PRIORITY, 1, { id: 'base-0', name: 'Individual Session (50 min)', price: 175, category: 'base' }, 9100, '2026-01-14', 'confirmed'), occupation: 'Marketing Manager', serviceGoal: 'Anxiety management' },
+    { ...createSampleClient('2', 'The Johnsons', RotationType.STANDARD, 2, { id: 'base-2', name: 'Couples Session', price: 225, category: 'base' }, 5850, '2026-01-17', 'confirmed'), occupation: 'Various', serviceGoal: 'Improve communication' },
+    { ...createSampleClient('3', 'Kevin Brown', RotationType.PRIORITY, 1, { id: 'base-0', name: 'Individual Session (50 min)', price: 175, category: 'base' }, 9100, '2026-01-13', 'confirmed'), occupation: 'Teacher', serviceGoal: 'Work-life balance' },
+    { ...createSampleClient('4', 'Maria Garcia', RotationType.STANDARD, 2, { id: 'base-0', name: 'Individual Session (50 min)', price: 175, category: 'base' }, 4550, '2026-01-21', 'pending'), occupation: 'Nurse', serviceGoal: 'Processing grief' },
+    { ...createSampleClient('5', 'Daniel Kim', RotationType.FLEX, 4, { id: 'base-0', name: 'Individual Session (50 min)', price: 175, category: 'base' }, 2275, '2026-01-28', 'at-risk'), occupation: 'Student', serviceGoal: 'Life transition support' },
+  ],
   'consultant-coach': [
     { ...createSampleClient('1', 'TechStart Inc', RotationType.PRIORITY, 4, { id: 'base-0', name: 'Strategy Session (1 hr)', price: 350, category: 'base' }, 4550, '2026-01-16', 'confirmed'), occupation: 'Startup', serviceGoal: 'Scale from 10 to 50 employees' },
     { ...createSampleClient('2', 'Green Leaf Agency', RotationType.STANDARD, 4, { id: 'base-3', name: 'Monthly Retainer', price: 2500, category: 'base' }, 30000, '2026-01-20', 'confirmed'), occupation: 'Marketing Agency', serviceGoal: 'Operations optimization' },
     { ...createSampleClient('3', 'Sarah Mitchell', RotationType.PRIORITY, 2, { id: 'base-0', name: 'Strategy Session (1 hr)', price: 350, category: 'base' }, 9100, '2026-01-14', 'confirmed'), occupation: 'Entrepreneur', serviceGoal: 'Launch new product line' },
     { ...createSampleClient('4', 'Bright Future LLC', RotationType.FLEX, 8, { id: 'base-1', name: 'Half-day Intensive', price: 1200, category: 'base' }, 7800, '2026-01-28', 'pending'), occupation: 'Healthcare', serviceGoal: 'Team alignment' },
     { ...createSampleClient('5', 'James Rodriguez', RotationType.STANDARD, 4, { id: 'base-0', name: 'Strategy Session (1 hr)', price: 350, category: 'base' }, 4550, '2026-01-17', 'at-risk'), occupation: 'Executive', serviceGoal: 'Career transition' },
+  ],
+  'auto-detailer': [
+    { ...createSampleClient('1', 'BMW M5 (Mike)', RotationType.PRIORITY, 4, { id: 'base-2', name: 'Full Detail', price: 250, category: 'base' }, 3250, '2026-01-15', 'confirmed'), occupation: 'Executive', serviceGoal: 'Always showroom condition' },
+    { ...createSampleClient('2', 'Tesla Model Y (Sarah)', RotationType.STANDARD, 4, { id: 'base-2', name: 'Full Detail', price: 200, category: 'base' }, 2600, '2026-01-20', 'confirmed'), occupation: 'Realtor', serviceGoal: 'Clean for client drives' },
+    { ...createSampleClient('3', 'Ford F-150 (Jake)', RotationType.STANDARD, 6, { id: 'base-1', name: 'Interior Clean', price: 120, category: 'base' }, 1040, '2026-01-22', 'confirmed'), occupation: 'Contractor', serviceGoal: 'Keep work truck presentable' },
+    { ...createSampleClient('4', 'Porsche 911 (David)', RotationType.PRIORITY, 4, { id: 'base-4', name: 'Ceramic Coating', price: 800, category: 'base' }, 10400, '2026-02-01', 'pending'), occupation: 'Investor', serviceGoal: 'Paint protection' },
+    { ...createSampleClient('5', 'Honda Accord (Lisa)', RotationType.FLEX, 8, { id: 'base-0', name: 'Exterior Wash', price: 50, category: 'base' }, 325, '2026-01-28', 'at-risk'), occupation: 'Teacher', serviceGoal: 'Monthly clean' },
   ],
   'other': [
     { ...createSampleClient('1', 'Client A', RotationType.PRIORITY, 4, { id: 'base-0', name: 'Service 1', price: 100, category: 'base' }, 1300, '2026-01-14', 'confirmed'), serviceGoal: 'Regular maintenance' },

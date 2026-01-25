@@ -1689,7 +1689,7 @@ const App: React.FC = () => {
             </h1>
 
             <p className="hero-animate hero-animate-delay-3 text-base sm:text-lg lg:text-xl text-maroon/70 mb-8 sm:mb-10 max-w-2xl mx-auto leading-relaxed px-2">
-              For professionals with recurring clients. Map your rotations, forecast your income, know your year.
+              For professionals with recurring clients. Map your rotations, forecast your income, plan with confidence.
             </p>
 
             <div className="hero-animate hero-animate-delay-4 flex flex-col items-center gap-4">

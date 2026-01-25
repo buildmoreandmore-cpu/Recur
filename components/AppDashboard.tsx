@@ -703,7 +703,12 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bo
                           {getInitials(client.name)}
                         </div>
                         <div>
-                          <h4 className="font-bold text-maroon text-base sm:text-lg">{client.name}</h4>
+                          <button
+                            onClick={() => onSelectClient(client)}
+                            className="font-bold text-maroon text-base sm:text-lg hover:text-maroon/70 hover:underline transition-colors text-left"
+                          >
+                            {client.name}
+                          </button>
                           <p className="text-sm text-maroon/60">
                             {client.preferredTime || '10:00 AM'} • {client.baseService?.name} • {formatCurrency(client.baseService?.price || 0)}
                           </p>

@@ -291,6 +291,7 @@ ALTER TABLE appointments ADD COLUMN IF NOT EXISTS completed_at TIMESTAMPTZ;
 ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_method TEXT;
 ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_amount NUMERIC;
 ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_note TEXT;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS arrived_late BOOLEAN DEFAULT false;
 ALTER TABLE appointments ADD COLUMN IF NOT EXISTS missed_reason TEXT CHECK (missed_reason IN ('no-show', 'late-cancel', 'cancelled', 'rescheduled'));
 ALTER TABLE appointments ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ;
 

@@ -317,6 +317,7 @@ export async function saveClient(client: Client): Promise<{ error: Error | null 
       payment_method: a.paymentMethod || null,
       payment_amount: a.paymentAmount || null,
       payment_note: a.paymentNote || null,
+      arrived_late: a.arrivedLate || false,
       missed_reason: a.missedReason || null,
       updated_at: a.updatedAt || null,
     }));
@@ -642,6 +643,7 @@ function dbToClient(
       paymentMethod: a.payment_method || undefined,
       paymentAmount: a.payment_amount ? Number(a.payment_amount) : undefined,
       paymentNote: a.payment_note || undefined,
+      arrivedLate: a.arrived_late || false,
       missedReason: a.missed_reason || undefined,
       updatedAt: a.updated_at || undefined,
     })),

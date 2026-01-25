@@ -33,6 +33,7 @@ export interface Appointment {
   paymentMethod?: PaymentMethod;
   paymentAmount?: number;      // Actual amount paid (could differ from price)
   paymentNote?: string;        // "Tipped $20", "Paid via Venmo @username"
+  arrivedLate?: boolean;       // Client arrived late to appointment
   missedReason?: MissedReason; // For no-shows/cancellations
   updatedAt?: string;          // Audit trail
   updatedBy?: string;          // Who made the update

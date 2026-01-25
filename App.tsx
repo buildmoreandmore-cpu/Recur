@@ -761,7 +761,8 @@ const App: React.FC = () => {
     appointmentDate: string,
     paymentMethod: PaymentMethod,
     paymentAmount: number,
-    paymentNote?: string
+    paymentNote?: string,
+    arrivedLate?: boolean
   ) => {
     const clientIndex = clients.findIndex(c => c.id === clientId);
     if (clientIndex < 0) return;
@@ -776,6 +777,7 @@ const App: React.FC = () => {
           paymentMethod,
           paymentAmount,
           paymentNote,
+          arrivedLate: arrivedLate || false,
           updatedAt: new Date().toISOString(),
         };
       }

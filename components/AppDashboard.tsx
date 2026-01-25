@@ -117,7 +117,7 @@ interface AppDashboardProps {
   onTutorialComplete?: () => void;
   onUpdateBookingRequest?: (id: string, status: 'confirmed' | 'declined') => void;
   // New appointment completion handlers
-  onCompleteAppointment?: (clientId: string, appointmentDate: string, paymentMethod: PaymentMethod, paymentAmount: number, paymentNote?: string) => void;
+  onCompleteAppointment?: (clientId: string, appointmentDate: string, paymentMethod: PaymentMethod, paymentAmount: number, paymentNote?: string, arrivedLate?: boolean) => void;
   onMissedAppointment?: (clientId: string, appointmentDate: string, missedReason: MissedReason, options?: { chargeFee?: boolean; flagAtRisk?: boolean; sendMessage?: boolean; rescheduleDate?: string }) => void;
 }
 
@@ -201,6 +201,7 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bo
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
   const [paymentAmount, setPaymentAmount] = useState<string>('');
   const [paymentNote, setPaymentNote] = useState<string>('');
+  const [arrivedLate, setArrivedLate] = useState(false);
 
   // NEW: Missed appointment modal state
   const [missedClient, setMissedClient] = useState<Client | null>(null);
@@ -813,6 +814,7 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bo
                               setSelectedPaymentMethod(client.preferredPaymentMethod || null);
                               setPaymentAmount((client.baseService?.price || 0).toString());
                               setPaymentNote('');
+                    setArrivedLate(false);
                             }}
                             className="flex-1 py-2.5 bg-emerald-500 text-white font-bold rounded-xl text-sm hover:bg-emerald-600 transition-colors"
                           >
@@ -2041,6 +2043,22 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bo
                 </div>
               </div>
 
+              {/* Late Arrival Checkbox */}
+              <label className="flex items-center gap-3 cursor-pointer mb-4 p-3 rounded-xl hover:bg-slate-50 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={arrivedLate}
+                  onChange={(e) => setArrivedLate(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-300 text-amber-500 focus:ring-amber-500"
+                />
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-sm text-maroon">Client arrived late</span>
+                </div>
+              </label>
+
               <hr className="border-slate-200 my-6" />
 
               <h4 className="font-bold text-maroon text-lg mb-4 text-center">
@@ -2081,7 +2099,8 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bo
                         completedClient.nextAppointment,
                         selectedPaymentMethod,
                         parseFloat(paymentAmount) || completedClient.baseService?.price || 0,
-                        paymentNote || undefined
+                        paymentNote || undefined,
+                        arrivedLate
                       );
                     }
                     showToast(`Appointment completed! Next visit booked for ${suggestedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`);
@@ -2089,6 +2108,7 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bo
                     setSelectedPaymentMethod(null);
                     setPaymentAmount('');
                     setPaymentNote('');
+                    setArrivedLate(false);
                   }}
                   className="w-full py-3.5 bg-emerald-500 text-white font-bold rounded-xl hover:bg-emerald-600 transition-colors flex items-center justify-center gap-2"
                 >
@@ -2110,7 +2130,8 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bo
                         completedClient.nextAppointment,
                         selectedPaymentMethod,
                         parseFloat(paymentAmount) || completedClient.baseService?.price || 0,
-                        paymentNote || undefined
+                        paymentNote || undefined,
+                        arrivedLate
                       );
                     }
                     setCompletedClient(null);
@@ -2118,6 +2139,7 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bo
                     setSelectedPaymentMethod(null);
                     setPaymentAmount('');
                     setPaymentNote('');
+                    setArrivedLate(false);
                   }}
                   className="w-full py-3 border-2 border-slate-200 text-maroon font-bold rounded-xl hover:bg-slate-50 transition-colors"
                 >
@@ -2132,7 +2154,8 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bo
                         completedClient.nextAppointment,
                         selectedPaymentMethod,
                         parseFloat(paymentAmount) || completedClient.baseService?.price || 0,
-                        paymentNote || undefined
+                        paymentNote || undefined,
+                        arrivedLate
                       );
                     }
                     showToast('Appointment marked complete');
@@ -2140,6 +2163,7 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bo
                     setSelectedPaymentMethod(null);
                     setPaymentAmount('');
                     setPaymentNote('');
+                    setArrivedLate(false);
                   }}
                   className="w-full py-3 text-slate-400 font-medium rounded-xl hover:text-maroon hover:bg-slate-50 transition-colors text-sm"
                 >

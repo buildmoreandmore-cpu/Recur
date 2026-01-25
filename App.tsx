@@ -14,6 +14,8 @@ import { ComparisonPage, COMPARISON_CONFIGS } from './components/seo/ComparisonP
 import { LearnPage, LEARN_ARTICLES } from './components/seo/LearnPage';
 import { AuthModal } from './components/AuthModal';
 import { TrialBanner, Paywall } from './components/TrialBanner';
+import { Testimonials } from './components/Testimonials';
+import { StatsCounter } from './components/StatsCounter';
 import { createCheckoutSession } from './lib/stripe';
 import { Client, StylistProfile, RotationType, AppScreen, Service, BookingSettings, BookingRequest, PaymentMethod, MissedReason, Appointment } from './types';
 import { ICONS, LOGOS, INDUSTRY_SAMPLE_CLIENTS } from './constants';
@@ -1853,11 +1855,31 @@ const App: React.FC = () => {
               <span className="hero-animate hero-animate-delay-3 inline-block">before you earn it.</span>
             </h1>
 
-            <p className="hero-animate hero-animate-delay-3 text-base sm:text-lg lg:text-xl text-maroon/70 mb-8 sm:mb-10 max-w-2xl mx-auto leading-relaxed px-2">
-              For professionals with recurring clients. Map your rotations, forecast your income, plan with confidence.
+            <p className="hero-animate hero-animate-delay-3 text-base sm:text-lg lg:text-xl text-maroon/70 mb-6 max-w-2xl mx-auto leading-relaxed px-2">
+              No-shows are stealing <span className="font-bold text-maroon">$500+/month</span> from your business.<br className="hidden sm:block" />
+              Recur shows you exactly what you'll make next month—and protects your income with deposits.
             </p>
 
-            <div className="hero-animate hero-animate-delay-4 flex flex-col items-center gap-4">
+            {/* Sub-hero pain points */}
+            <div className="hero-animate hero-animate-delay-3 bg-red-50 border border-red-200 rounded-2xl p-4 sm:p-6 max-w-xl mx-auto mb-8 sm:mb-10">
+              <p className="text-sm sm:text-base font-bold text-red-800 mb-3">Every week without a system:</p>
+              <ul className="text-left text-sm sm:text-base text-red-700 space-y-2">
+                <li className="flex items-start gap-2">
+                  <span className="text-red-500 mt-0.5">•</span>
+                  <span>2 no-shows = <span className="font-bold">$150 lost forever</span></span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-red-500 mt-0.5">•</span>
+                  <span>3 overdue clients = <span className="font-bold">$500 walking to competitors</span></span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-red-500 mt-0.5">•</span>
+                  <span>Unpredictable income = <span className="font-bold">stress, bad decisions, burnout</span></span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="hero-animate hero-animate-delay-4 flex flex-col items-center gap-3">
               <button
                 onClick={() => {
                   setAuthModalMode('signup');
@@ -1865,8 +1887,9 @@ const App: React.FC = () => {
                 }}
                 className="btn-primary inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-maroon text-white rounded-full text-base sm:text-lg font-bold shadow-xl"
               >
-                Get Started Free
+                See Your Predicted Income Free
               </button>
+              <p className="text-xs sm:text-sm text-maroon/50">No credit card required • Cancel anytime</p>
               <button
                 onClick={handleStartDemo}
                 className="text-maroon/60 hover:text-maroon text-sm font-medium underline underline-offset-4 transition-colors"
@@ -1886,6 +1909,50 @@ const App: React.FC = () => {
             <p className="scroll-reveal delay-1 mt-4 sm:mt-6 text-lg sm:text-xl lg:text-2xl text-maroon font-bold">
               It's exhausting. And it doesn't have to be this way.
             </p>
+          </div>
+        </section>
+
+        {/* SECTION: Competitor Differentiation */}
+        <section className="py-12 sm:py-20 px-4 sm:px-6 bg-white">
+          <div className="max-w-3xl mx-auto">
+            <h2 className="scroll-reveal text-xl sm:text-2xl lg:text-3xl font-serif text-center text-maroon mb-8 sm:mb-12">
+              Unlike booking apps that just schedule appointments...
+            </h2>
+            <div className="scroll-reveal delay-1 space-y-4 sm:space-y-6">
+              <div className="flex items-start gap-4 p-4 sm:p-6 bg-emerald-50 rounded-xl sm:rounded-2xl border border-emerald-200">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-bold text-maroon text-base sm:text-lg">Revenue forecasting</h3>
+                  <p className="text-maroon/70 text-sm sm:text-base">See what you'll make next month <span className="text-maroon/50">(Calendly doesn't do this)</span></p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4 p-4 sm:p-6 bg-emerald-50 rounded-xl sm:rounded-2xl border border-emerald-200">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-bold text-maroon text-base sm:text-lg">Client rotation tracking</h3>
+                  <p className="text-maroon/70 text-sm sm:text-base">Know when regulars are overdue <span className="text-maroon/50">(Acuity doesn't do this)</span></p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4 p-4 sm:p-6 bg-emerald-50 rounded-xl sm:rounded-2xl border border-emerald-200">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-bold text-maroon text-base sm:text-lg">Zero commission on deposits</h3>
+                  <p className="text-maroon/70 text-sm sm:text-base">100% goes to you <span className="text-maroon/50">(Fresha takes 20%)</span></p>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -2287,6 +2354,12 @@ const App: React.FC = () => {
           </div>
         </section>
 
+        {/* SECTION: Testimonials */}
+        <Testimonials />
+
+        {/* SECTION: Stats Counter */}
+        <StatsCounter />
+
         {/* SECTION 7: Pricing */}
         <section className="py-12 sm:py-24 px-4 sm:px-6 bg-cream" id="pricing">
           <div className="max-w-xl mx-auto text-center">
@@ -2324,8 +2397,9 @@ const App: React.FC = () => {
                 }}
                 className="btn-primary w-full py-3 sm:py-4 bg-maroon text-white rounded-xl font-bold text-base sm:text-lg"
               >
-                Get Started Free
+                See Your Predicted Income Free
               </button>
+              <p className="text-center text-xs sm:text-sm text-slate-400 mt-3">No credit card required • Cancel anytime</p>
             </div>
           </div>
         </section>

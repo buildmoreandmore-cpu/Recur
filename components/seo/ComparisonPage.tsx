@@ -1,4 +1,13 @@
 import React, { useEffect } from 'react';
+import { Breadcrumbs } from './Breadcrumbs';
+import {
+  generateFAQSchema,
+  generateBreadcrumbSchema,
+  generateComparisonSchema,
+  injectSchema,
+  removeSchema
+} from './schemaHelpers';
+import { INDUSTRY_CONFIGS } from './IndustryLandingPage';
 
 export interface ComparisonConfig {
   slug: string;
@@ -263,16 +272,20 @@ interface ComparisonPageProps {
   onSignUp: () => void;
   onDemo: () => void;
   onBack: () => void;
+  onNavigateToIndustry?: (slug: string) => void;
+  onNavigateToComparison?: (slug: string) => void;
 }
 
 const CheckIcon = () => (
-  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+    <title>Feature available</title>
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
   </svg>
 );
 
 const XIcon = () => (
-  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+    <title>Feature not available</title>
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
   </svg>
 );
@@ -281,11 +294,13 @@ export const ComparisonPage: React.FC<ComparisonPageProps> = ({
   competitorSlug,
   onSignUp,
   onDemo,
-  onBack
+  onBack,
+  onNavigateToIndustry,
+  onNavigateToComparison
 }) => {
   const config = COMPARISON_CONFIGS[competitorSlug];
 
-  // Update page title and meta description for SEO
+  // Update page title, meta description, and inject schemas for SEO
   useEffect(() => {
     if (config) {
       document.title = config.title;
@@ -298,7 +313,35 @@ export const ComparisonPage: React.FC<ComparisonPageProps> = ({
       if (canonical) {
         canonical.setAttribute('href', `https://bookrecur.com/compare/${config.slug}`);
       }
+      // Set robots meta
+      const robotsMeta = document.querySelector('meta[name="robots"]');
+      if (robotsMeta) {
+        robotsMeta.setAttribute('content', 'index, follow');
+      }
+
+      // Inject FAQ schema for rich snippets
+      const faqSchema = generateFAQSchema(config.faqs);
+      injectSchema('comparison-faq-schema', faqSchema);
+
+      // Inject breadcrumb schema
+      const breadcrumbSchema = generateBreadcrumbSchema([
+        { name: 'Home', url: 'https://bookrecur.com' },
+        { name: 'Compare', url: 'https://bookrecur.com/compare' },
+        { name: `vs ${config.competitorName}`, url: `https://bookrecur.com/compare/${config.slug}` }
+      ]);
+      injectSchema('comparison-breadcrumb-schema', breadcrumbSchema);
+
+      // Inject comparison/software schema
+      const comparisonSchema = generateComparisonSchema(config.competitorName, config.comparisonTable);
+      injectSchema('comparison-software-schema', comparisonSchema);
     }
+
+    // Cleanup schemas on unmount
+    return () => {
+      removeSchema('comparison-faq-schema');
+      removeSchema('comparison-breadcrumb-schema');
+      removeSchema('comparison-software-schema');
+    };
   }, [config]);
 
   if (!config) {
@@ -324,6 +367,14 @@ export const ComparisonPage: React.FC<ComparisonPageProps> = ({
     }
     return <span className="text-xs sm:text-sm">{value}</span>;
   };
+
+  // Get other comparison options for internal linking
+  const otherComparisons = Object.values(COMPARISON_CONFIGS)
+    .filter(c => c.slug !== competitorSlug)
+    .slice(0, 4);
+
+  // Popular industries to link to
+  const popularIndustries = Object.values(INDUSTRY_CONFIGS).slice(0, 6);
 
   return (
     <div className="min-h-screen bg-white">
@@ -353,6 +404,17 @@ export const ComparisonPage: React.FC<ComparisonPageProps> = ({
         </div>
       </nav>
 
+      {/* Breadcrumbs */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2">
+        <Breadcrumbs
+          items={[
+            { label: 'Home', onClick: onBack },
+            { label: 'Compare' },
+            { label: `vs ${config.competitorName}` }
+          ]}
+        />
+      </div>
+
       {/* Hero Section */}
       <section className="py-10 sm:py-16 md:py-20 px-4 sm:px-6 text-center bg-cream">
         <div className="max-w-4xl mx-auto">
@@ -370,7 +432,7 @@ export const ComparisonPage: React.FC<ComparisonPageProps> = ({
               onClick={onSignUp}
               className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 bg-maroon text-white rounded-full text-base sm:text-lg font-bold shadow-xl hover:bg-maroon/90 transition-colors active:scale-[0.98]"
             >
-              Try Recur Free
+              See Your Predicted Income Free
             </button>
             <button
               onClick={onDemo}
@@ -399,34 +461,50 @@ export const ComparisonPage: React.FC<ComparisonPageProps> = ({
         </div>
       </section>
 
-      {/* Comparison Table Section */}
+      {/* Comparison Table Section - Using Semantic HTML Table */}
       <section className="py-10 sm:py-16 md:py-20 px-4 sm:px-6 bg-cream">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-serif text-center text-maroon mb-8 sm:mb-10 md:mb-12">
             Feature Comparison
           </h2>
           <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
-            {/* Table Header */}
-            <div className="grid grid-cols-3 bg-slate-50 border-b border-slate-100">
-              <div className="p-3 sm:p-4 md:p-5 font-bold text-maroon text-xs sm:text-sm md:text-base">Feature</div>
-              <div className="p-3 sm:p-4 md:p-5 font-bold text-maroon text-center text-xs sm:text-sm md:text-base">Recur</div>
-              <div className="p-3 sm:p-4 md:p-5 font-bold text-maroon/60 text-center text-xs sm:text-sm md:text-base">{config.competitorName}</div>
-            </div>
-            {/* Table Rows */}
-            {config.comparisonTable.map((row, index) => (
-              <div
-                key={index}
-                className={`grid grid-cols-3 ${index !== config.comparisonTable.length - 1 ? 'border-b border-slate-100' : ''}`}
-              >
-                <div className="p-3 sm:p-4 md:p-5 text-maroon/80 text-xs sm:text-sm md:text-base">{row.feature}</div>
-                <div className="p-3 sm:p-4 md:p-5 flex items-center justify-center text-maroon">
-                  {renderCellValue(row.recur)}
-                </div>
-                <div className="p-3 sm:p-4 md:p-5 flex items-center justify-center text-maroon/60">
-                  {renderCellValue(row.competitor)}
-                </div>
-              </div>
-            ))}
+            <table className="w-full" role="grid" aria-label={`Feature comparison between Recur and ${config.competitorName}`}>
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-100">
+                  <th scope="col" className="p-3 sm:p-4 md:p-5 font-bold text-maroon text-left text-xs sm:text-sm md:text-base">
+                    Feature
+                  </th>
+                  <th scope="col" className="p-3 sm:p-4 md:p-5 font-bold text-maroon text-center text-xs sm:text-sm md:text-base">
+                    Recur
+                  </th>
+                  <th scope="col" className="p-3 sm:p-4 md:p-5 font-bold text-maroon/60 text-center text-xs sm:text-sm md:text-base">
+                    {config.competitorName}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {config.comparisonTable.map((row, index) => (
+                  <tr
+                    key={index}
+                    className={index !== config.comparisonTable.length - 1 ? 'border-b border-slate-100' : ''}
+                  >
+                    <td className="p-3 sm:p-4 md:p-5 text-maroon/80 text-xs sm:text-sm md:text-base">
+                      {row.feature}
+                    </td>
+                    <td className="p-3 sm:p-4 md:p-5 text-center text-maroon">
+                      <span className="inline-flex items-center justify-center">
+                        {renderCellValue(row.recur)}
+                      </span>
+                    </td>
+                    <td className="p-3 sm:p-4 md:p-5 text-center text-maroon/60">
+                      <span className="inline-flex items-center justify-center">
+                        {renderCellValue(row.competitor)}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </section>
@@ -448,11 +526,51 @@ export const ComparisonPage: React.FC<ComparisonPageProps> = ({
         </div>
       </section>
 
+      {/* Popular Industries Section - Internal Linking */}
+      <section className="py-10 sm:py-12 px-4 sm:px-6 bg-slate-50">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-lg sm:text-xl font-serif text-maroon mb-4 sm:mb-6">
+            Popular industries using Recur
+          </h2>
+          <div className="flex flex-wrap gap-3">
+            {popularIndustries.map((industry) => (
+              <button
+                key={industry.slug}
+                onClick={() => onNavigateToIndustry?.(industry.slug)}
+                className="px-4 py-2 bg-white text-maroon rounded-lg hover:bg-maroon/5 transition-colors text-sm font-medium border border-slate-200"
+              >
+                {industry.pluralName}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Other Comparisons Section - Internal Linking */}
+      <section className="py-10 sm:py-12 px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-lg sm:text-xl font-serif text-maroon mb-4 sm:mb-6">
+            Compare Recur to other alternatives
+          </h2>
+          <div className="flex flex-wrap gap-3">
+            {otherComparisons.map((comp) => (
+              <button
+                key={comp.slug}
+                onClick={() => onNavigateToComparison?.(comp.slug)}
+                className="px-4 py-2 bg-cream text-maroon rounded-lg hover:bg-maroon/10 transition-colors text-sm font-medium"
+              >
+                vs {comp.competitorName}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-12 sm:py-16 md:py-24 px-4 sm:px-6 bg-maroon text-white text-center">
         <div className="max-w-3xl mx-auto px-2">
           <h2 className="text-xl sm:text-2xl md:text-4xl font-serif mb-4 sm:mb-6 leading-snug">
-            Ready to make the switch?
+            Ready to know what you'll make next month?
           </h2>
           <p className="text-white/70 mb-6 sm:mb-8 text-base sm:text-lg">
             Start your free trial today. No credit card required.
@@ -461,24 +579,42 @@ export const ComparisonPage: React.FC<ComparisonPageProps> = ({
             onClick={onSignUp}
             className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 bg-[#fff38a] text-maroon rounded-full text-base sm:text-lg font-bold shadow-xl hover:bg-[#fff38a]/90 transition-colors active:scale-[0.98]"
           >
-            Try Recur Free
+            See Your Predicted Income Free
           </button>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-6 sm:py-8 px-4 sm:px-6 bg-white border-t border-slate-100">
-        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-maroon to-maroon/80 rounded-lg flex items-center justify-center">
-              <span className="text-white font-serif text-xs sm:text-sm">R</span>
+      {/* Footer with Enhanced Internal Links */}
+      <footer className="py-8 sm:py-10 px-4 sm:px-6 bg-white border-t border-slate-100">
+        <div className="max-w-5xl mx-auto">
+          {/* Comparison Quick Links */}
+          <div className="mb-6 pb-6 border-b border-slate-100">
+            <h3 className="text-sm font-bold text-maroon mb-3">Compare Recur</h3>
+            <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs sm:text-sm">
+              {Object.values(COMPARISON_CONFIGS).slice(0, 6).map((comp) => (
+                <button
+                  key={comp.slug}
+                  onClick={() => onNavigateToComparison?.(comp.slug)}
+                  className={`text-maroon/60 hover:text-maroon ${comp.slug === competitorSlug ? 'font-bold text-maroon' : ''}`}
+                >
+                  vs {comp.competitorName}
+                </button>
+              ))}
             </div>
-            <span className="text-maroon/60 text-xs sm:text-sm">Recur - Booking software for service professionals</span>
           </div>
-          <div className="flex items-center gap-5 sm:gap-6 text-xs sm:text-sm">
-            <button onClick={onBack} className="text-maroon/60 hover:text-maroon py-1">Home</button>
-            <a href="/about" className="text-maroon/60 hover:text-maroon py-1">About</a>
-            <a href="/privacy" className="text-maroon/60 hover:text-maroon py-1">Privacy</a>
+
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-maroon to-maroon/80 rounded-lg flex items-center justify-center">
+                <span className="text-white font-serif text-xs sm:text-sm">R</span>
+              </div>
+              <span className="text-maroon/60 text-xs sm:text-sm">Recur - Booking software for service professionals</span>
+            </div>
+            <div className="flex items-center gap-5 sm:gap-6 text-xs sm:text-sm">
+              <button onClick={onBack} className="text-maroon/60 hover:text-maroon py-1">Home</button>
+              <a href="/about" className="text-maroon/60 hover:text-maroon py-1">About</a>
+              <a href="/privacy" className="text-maroon/60 hover:text-maroon py-1">Privacy</a>
+            </div>
           </div>
         </div>
       </footer>

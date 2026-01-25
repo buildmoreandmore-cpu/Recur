@@ -11,6 +11,7 @@ import { AboutPage } from './components/AboutPage';
 import { PrivacyPage } from './components/PrivacyPage';
 import { IndustryLandingPage, INDUSTRY_CONFIGS } from './components/seo/IndustryLandingPage';
 import { ComparisonPage, COMPARISON_CONFIGS } from './components/seo/ComparisonPage';
+import { LearnPage, LEARN_ARTICLES } from './components/seo/LearnPage';
 import { AuthModal } from './components/AuthModal';
 import { TrialBanner, Paywall } from './components/TrialBanner';
 import { createCheckoutSession } from './lib/stripe';
@@ -466,6 +467,16 @@ const App: React.FC = () => {
   };
   const [comparisonSlug, setComparisonSlug] = useState<string | null>(getInitialComparisonSlug);
 
+  // Learn page state (for /learn/[article] URLs)
+  const getInitialLearnSlug = (): string | null => {
+    const path = window.location.pathname;
+    if (path.startsWith('/learn/')) {
+      return path.split('/')[2] || null;
+    }
+    return null;
+  };
+  const [learnSlug, setLearnSlug] = useState<string | null>(getInitialLearnSlug);
+
   // Navigate to a new screen (adds to history)
   const navigateTo = useCallback((newScreen: AppScreen) => {
     setScreenHistory(prev => [...prev, newScreen]);
@@ -514,6 +525,13 @@ const App: React.FC = () => {
         setComparisonSlug(slug);
         setScreen('comparison');
         setScreenHistory(['comparison']);
+      }
+    } else if (path.startsWith('/learn/')) {
+      const slug = path.split('/')[2];
+      if (slug && LEARN_ARTICLES[slug]) {
+        setLearnSlug(slug);
+        setScreen('learn');
+        setScreenHistory(['learn']);
       }
     }
   }, []);
@@ -1327,6 +1345,18 @@ const App: React.FC = () => {
           setIndustrySlug(null);
           window.history.replaceState({}, '', '/');
         }}
+        onNavigateToIndustry={(slug) => {
+          setIndustrySlug(slug);
+          setScreen('industry-landing');
+          setScreenHistory(['industry-landing']);
+          window.history.replaceState({}, '', `/for/${slug}`);
+        }}
+        onNavigateToComparison={(slug) => {
+          setComparisonSlug(slug);
+          setScreen('comparison');
+          setScreenHistory(['comparison']);
+          window.history.replaceState({}, '', `/compare/${slug}`);
+        }}
       />
     );
   }
@@ -1345,6 +1375,48 @@ const App: React.FC = () => {
           setScreenHistory(['landing']);
           setComparisonSlug(null);
           window.history.replaceState({}, '', '/');
+        }}
+        onNavigateToIndustry={(slug) => {
+          setIndustrySlug(slug);
+          setScreen('industry-landing');
+          setScreenHistory(['industry-landing']);
+          window.history.replaceState({}, '', `/for/${slug}`);
+        }}
+        onNavigateToComparison={(slug) => {
+          setComparisonSlug(slug);
+          setScreen('comparison');
+          setScreenHistory(['comparison']);
+          window.history.replaceState({}, '', `/compare/${slug}`);
+        }}
+      />
+    );
+  }
+
+  if (screen === 'learn' && learnSlug) {
+    return (
+      <LearnPage
+        articleSlug={learnSlug}
+        onSignUp={() => {
+          setAuthModalMode('signup');
+          setShowAuthModal(true);
+        }}
+        onBack={() => {
+          setScreen('landing');
+          setScreenHistory(['landing']);
+          setLearnSlug(null);
+          window.history.replaceState({}, '', '/');
+        }}
+        onNavigateToIndustry={(slug) => {
+          setIndustrySlug(slug);
+          setScreen('industry-landing');
+          setScreenHistory(['industry-landing']);
+          window.history.replaceState({}, '', `/for/${slug}`);
+        }}
+        onNavigateToLearn={(slug) => {
+          setLearnSlug(slug);
+          setScreen('learn');
+          setScreenHistory(['learn']);
+          window.history.replaceState({}, '', `/learn/${slug}`);
         }}
       />
     );

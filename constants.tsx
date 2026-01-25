@@ -2,15 +2,55 @@ import React from 'react';
 import { RotationType, IndustryType, Client, Service, PaymentMethod, MissedReason } from './types';
 
 // Payment method options with icons and labels
-export const PAYMENT_METHODS: { id: PaymentMethod; label: string; icon: string; color: string }[] = [
-  { id: 'cash', label: 'Cash', icon: '💵', color: 'bg-emerald-100 text-emerald-700 border-emerald-300' },
-  { id: 'card', label: 'Card', icon: '💳', color: 'bg-blue-100 text-blue-700 border-blue-300' },
-  { id: 'zelle', label: 'Zelle', icon: '🏦', color: 'bg-purple-100 text-purple-700 border-purple-300' },
-  { id: 'venmo', label: 'Venmo', icon: '📱', color: 'bg-cyan-100 text-cyan-700 border-cyan-300' },
-  { id: 'cashapp', label: 'CashApp', icon: '💲', color: 'bg-lime-100 text-lime-700 border-lime-300' },
-  { id: 'check', label: 'Check', icon: '📝', color: 'bg-slate-100 text-slate-700 border-slate-300' },
-  { id: 'stripe', label: 'Stripe', icon: '⚡', color: 'bg-indigo-100 text-indigo-700 border-indigo-300' },
-  { id: 'other', label: 'Other', icon: '📋', color: 'bg-gray-100 text-gray-700 border-gray-300' },
+export const PAYMENT_METHODS: { id: PaymentMethod; label: string; icon: React.ReactNode; color: string }[] = [
+  {
+    id: 'cash',
+    label: 'Cash',
+    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>,
+    color: 'bg-emerald-100 text-emerald-700 border-emerald-300'
+  },
+  {
+    id: 'card',
+    label: 'Card',
+    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>,
+    color: 'bg-blue-100 text-blue-700 border-blue-300'
+  },
+  {
+    id: 'zelle',
+    label: 'Zelle',
+    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>,
+    color: 'bg-purple-100 text-purple-700 border-purple-300'
+  },
+  {
+    id: 'venmo',
+    label: 'Venmo',
+    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>,
+    color: 'bg-cyan-100 text-cyan-700 border-cyan-300'
+  },
+  {
+    id: 'cashapp',
+    label: 'CashApp',
+    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+    color: 'bg-lime-100 text-lime-700 border-lime-300'
+  },
+  {
+    id: 'check',
+    label: 'Check',
+    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>,
+    color: 'bg-slate-100 text-slate-700 border-slate-300'
+  },
+  {
+    id: 'stripe',
+    label: 'Stripe',
+    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>,
+    color: 'bg-indigo-100 text-indigo-700 border-indigo-300'
+  },
+  {
+    id: 'other',
+    label: 'Other',
+    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" /></svg>,
+    color: 'bg-gray-100 text-gray-700 border-gray-300'
+  },
 ];
 
 // Missed appointment reason options

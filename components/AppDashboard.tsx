@@ -2002,7 +2002,7 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bo
                           : 'border-slate-200 hover:border-slate-300'
                       }`}
                     >
-                      <span className="text-xl">{method.icon}</span>
+                      <span className="flex-shrink-0">{method.icon}</span>
                       <span className="text-xs font-medium text-maroon">{method.label}</span>
                     </button>
                   ))}

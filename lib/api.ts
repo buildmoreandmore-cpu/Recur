@@ -313,6 +313,12 @@ export async function saveClient(client: Client): Promise<{ error: Error | null 
       service_name: a.service,
       price: a.price,
       status: a.status,
+      completed_at: a.completedAt || null,
+      payment_method: a.paymentMethod || null,
+      payment_amount: a.paymentAmount || null,
+      payment_note: a.paymentNote || null,
+      missed_reason: a.missedReason || null,
+      updated_at: a.updatedAt || null,
     }));
     await supabase.from('appointments').insert(appointmentsData);
   }
@@ -632,6 +638,12 @@ function dbToClient(
       service: a.service_name || '',
       price: Number(a.price),
       status: a.status as 'completed' | 'upcoming' | 'scheduled' | 'event',
+      completedAt: a.completed_at || undefined,
+      paymentMethod: a.payment_method || undefined,
+      paymentAmount: a.payment_amount ? Number(a.payment_amount) : undefined,
+      paymentNote: a.payment_note || undefined,
+      missedReason: a.missed_reason || undefined,
+      updatedAt: a.updated_at || undefined,
     })),
     notes: db.notes || '',
     status: db.status,

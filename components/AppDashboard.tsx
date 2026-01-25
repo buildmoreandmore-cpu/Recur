@@ -2152,12 +2152,12 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bo
                 </button>
                 <button
                   onClick={() => {
-                    // Save payment only
-                    if (onCompleteAppointment && selectedPaymentMethod) {
+                    // Save payment only (no rebooking)
+                    if (onCompleteAppointment) {
                       onCompleteAppointment(
                         completedClient.id,
                         completedClient.nextAppointment,
-                        selectedPaymentMethod,
+                        selectedPaymentMethod || 'cash',
                         parseFloat(paymentAmount) || completedClient.baseService?.price || 0,
                         paymentNote || undefined,
                         arrivedLate
@@ -2175,12 +2175,6 @@ export const AppDashboard: React.FC<AppDashboardProps> = ({ profile, clients, bo
                   Skip Rebooking
                 </button>
               </div>
-
-              {/* Checkbox */}
-              <label className="flex items-center gap-2 mt-4 text-sm text-maroon/70 cursor-pointer">
-                <input type="checkbox" defaultChecked className="w-4 h-4 rounded border-slate-300 text-emerald-500 focus:ring-emerald-500" />
-                <span>Send confirmation to client</span>
-              </label>
             </div>
           </div>
         </div>

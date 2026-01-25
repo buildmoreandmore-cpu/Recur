@@ -8,6 +8,8 @@ import { Settings } from './components/Settings';
 import { PublicProfile } from './components/PublicProfile';
 import { ClientBookingFlow } from './components/ClientBookingFlow';
 import { AboutPage } from './components/AboutPage';
+import { PrivacyPage } from './components/PrivacyPage';
+import { IndustryLandingPage, INDUSTRY_CONFIGS } from './components/seo/IndustryLandingPage';
 import { AuthModal } from './components/AuthModal';
 import { TrialBanner, Paywall } from './components/TrialBanner';
 import { createCheckoutSession } from './lib/stripe';
@@ -383,7 +385,9 @@ const App: React.FC = () => {
   const getInitialScreen = (): AppScreen => {
     const path = window.location.pathname;
     if (path === '/about' || path === '/about/') return 'about';
+    if (path === '/privacy' || path === '/privacy/') return 'privacy';
     if (path.startsWith('/book/')) return 'client-booking';
+    if (path.startsWith('/for/')) return 'industry-landing';
     return 'landing';
   };
   const [screen, setScreen] = useState<AppScreen>(getInitialScreen);
@@ -440,6 +444,16 @@ const App: React.FC = () => {
   const [publicBookingLoading, setPublicBookingLoading] = useState(getInitialSlug() !== null);
   const [publicBookingError, setPublicBookingError] = useState<string | null>(null);
 
+  // Industry landing page state (for /for/[industry] URLs)
+  const getInitialIndustrySlug = (): string | null => {
+    const path = window.location.pathname;
+    if (path.startsWith('/for/')) {
+      return path.split('/')[2] || null;
+    }
+    return null;
+  };
+  const [industrySlug, setIndustrySlug] = useState<string | null>(getInitialIndustrySlug);
+
   // Navigate to a new screen (adds to history)
   const navigateTo = useCallback((newScreen: AppScreen) => {
     setScreenHistory(prev => [...prev, newScreen]);
@@ -465,12 +479,22 @@ const App: React.FC = () => {
     if (path === '/about' || path === '/about/') {
       setScreen('about');
       setScreenHistory(['about']);
+    } else if (path === '/privacy' || path === '/privacy/') {
+      setScreen('privacy');
+      setScreenHistory(['privacy']);
     } else if (path.startsWith('/book/')) {
       const slug = path.split('/')[2];
       if (slug) {
         setPublicBookingSlug(slug);
         setScreen('client-booking');
         setScreenHistory(['client-booking']);
+      }
+    } else if (path.startsWith('/for/')) {
+      const slug = path.split('/')[2];
+      if (slug && INDUSTRY_CONFIGS[slug]) {
+        setIndustrySlug(slug);
+        setScreen('industry-landing');
+        setScreenHistory(['industry-landing']);
       }
     }
   }, []);
@@ -1251,6 +1275,37 @@ const App: React.FC = () => {
         onBack={() => {
           setScreen('landing');
           setScreenHistory(['landing']);
+          window.history.replaceState({}, '', '/');
+        }}
+      />
+    );
+  }
+
+  if (screen === 'privacy') {
+    return (
+      <PrivacyPage
+        onBack={() => {
+          setScreen('landing');
+          setScreenHistory(['landing']);
+          window.history.replaceState({}, '', '/');
+        }}
+      />
+    );
+  }
+
+  if (screen === 'industry-landing' && industrySlug) {
+    return (
+      <IndustryLandingPage
+        industrySlug={industrySlug}
+        onSignUp={() => {
+          setAuthModalMode('signup');
+          setShowAuthModal(true);
+        }}
+        onDemo={handleStartDemo}
+        onBack={() => {
+          setScreen('landing');
+          setScreenHistory(['landing']);
+          setIndustrySlug(null);
           window.history.replaceState({}, '', '/');
         }}
       />
@@ -2049,16 +2104,15 @@ const App: React.FC = () => {
               </div>
 
               {/* Card 4: Accept payments */}
-              <div className="scroll-reveal delay-3 card-hover p-6 sm:p-8 rounded-2xl sm:rounded-[28px] bg-white border-2 border-slate-100 shadow-sm relative">
-                <span className="absolute top-4 right-4 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded bg-[#C4B5A4]/30 text-maroon/70">Coming Soon</span>
-                <div className="card-icon w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center mb-4 sm:mb-6" style={{ backgroundColor: '#C4B5A415' }}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C4B5A4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <div className="scroll-reveal delay-3 card-hover p-6 sm:p-8 rounded-2xl sm:rounded-[28px] bg-white border-2 border-slate-100 shadow-sm">
+                <div className="card-icon w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center mb-4 sm:mb-6" style={{ backgroundColor: '#C17F5915' }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C17F59" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
                     <line x1="1" y1="10" x2="23" y2="10"/>
                   </svg>
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold text-maroon mb-2">Accept payments</h3>
-                <p className="text-sm sm:text-base text-maroon/70">Connect Square to send invoices and collect deposits — without leaving Recur.</p>
+                <p className="text-sm sm:text-base text-maroon/70">Connect Stripe to send invoices and collect deposits — without leaving Recur.</p>
               </div>
             </div>
 

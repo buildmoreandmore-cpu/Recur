@@ -9,6 +9,11 @@ const INDUSTRY_ICONS: Record<IndustryType, React.FC<{ className?: string }>> = {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z" />
     </svg>
   ),
+  'barber': ({ className }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 4v16M4 8h2.5a4.5 4.5 0 010 9H4M20 4v16M20 8h-2.5a4.5 4.5 0 000 9H20M4 12h16" />
+    </svg>
+  ),
   'personal-trainer': ({ className }) => (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 6h18M3 6v12a2 2 0 002 2h14a2 2 0 002-2V6M3 6l3-3h12l3 3M12 10v6m-3-3h6" />
@@ -24,6 +29,32 @@ const INDUSTRY_ICONS: Record<IndustryType, React.FC<{ className?: string }>> = {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
     </svg>
   ),
+  'lash-technician': ({ className }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2 12c0-3.5 4.5-6 10-6s10 2.5 10 6" />
+      <ellipse cx="12" cy="12" rx="3" ry="2" strokeWidth={1.5} />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6V3M8 7l-2-3M16 7l2-3M5 9l-3-2M19 9l3-2" />
+    </svg>
+  ),
+  'nail-technician': ({ className }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 22c-4-3-7-6-7-10a7 7 0 0114 0c0 4-3 7-7 10zM12 6v8M8 10h8" />
+    </svg>
+  ),
+  'tattoo-artist': ({ className }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 21h8M12 17v4M7 4h10M17 4v8a5 5 0 01-10 0V4M12 4v4" />
+    </svg>
+  ),
+  'pet-groomer': ({ className }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <circle cx="11" cy="4" r="2" strokeWidth={1.5} />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 8l-2 8 6 1 6-1-2-8M6 17l-1 4M18 17l1 4" />
+      <circle cx="8" cy="11" r="1" strokeWidth={1.5} />
+      <circle cx="14" cy="11" r="1" strokeWidth={1.5} />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 14h2" />
+    </svg>
+  ),
   'therapist-counselor': ({ className }) => (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
@@ -32,6 +63,14 @@ const INDUSTRY_ICONS: Record<IndustryType, React.FC<{ className?: string }>> = {
   'consultant-coach': ({ className }) => (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+    </svg>
+  ),
+  'auto-detailer': ({ className }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9L18 10l-3-5H9L6 10l-2.5 1.1C2.7 11.3 2 12.1 2 13v3c0 .6.4 1 1 1h2" />
+      <circle cx="7" cy="17" r="2" strokeWidth={1.5} />
+      <circle cx="17" cy="17" r="2" strokeWidth={1.5} />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14 17H10" />
     </svg>
   ),
   'other': ({ className }) => (
@@ -64,28 +103,20 @@ const INDUSTRY_DATA: Record<IndustryType, {
   intakeQuestions: { question: string; answer: string }[];
 }> = {
   'hair-stylist': {
-    label: 'Hair Stylist / Barber',
+    label: 'Hair Stylist',
     services: [
-      // Salon Services
       { id: 'color-cut', name: 'Color + Cut', price: 185, category: 'base' },
       { id: 'cut-style', name: 'Cut + Style', price: 85, category: 'base' },
       { id: 'color-only', name: 'Full Color', price: 120, category: 'base' },
       { id: 'highlights', name: 'Highlights', price: 200, category: 'base' },
+      { id: 'balayage', name: 'Balayage', price: 250, category: 'base' },
       { id: 'silk-press', name: 'Silk Press', price: 95, category: 'base' },
-      // Barber Services
-      { id: 'fade', name: 'Fade', price: 35, category: 'base' },
-      { id: 'lineup', name: 'Lineup / Edge Up', price: 20, category: 'base' },
-      { id: 'beard-trim', name: 'Beard Trim', price: 25, category: 'base' },
-      { id: 'hot-towel-shave', name: 'Hot Towel Shave', price: 40, category: 'base' },
-      { id: 'kids-cut', name: 'Kids Cut', price: 25, category: 'base' },
-      // Add-ons
       { id: 'treatment', name: 'Deep Treatment', price: 35, category: 'addon' },
       { id: 'gloss', name: 'Gloss Refresh', price: 45, category: 'addon' },
       { id: 'blowout', name: 'Blowout', price: 55, category: 'addon' },
-      { id: 'beard-oil', name: 'Beard Oil Treatment', price: 15, category: 'addon' },
     ],
     suggestedGoal: 120000,
-    rotations: { priority: 6, standard: 8, flex: 12 },
+    rotations: { priority: 4, standard: 6, flex: 8 },
     sampleClient: {
       name: 'Jessica Chen',
       phone: '(555) 234-5678',
@@ -98,8 +129,8 @@ const INDUSTRY_DATA: Record<IndustryType, {
       preferredDays: ['Tue', 'Sat'],
       preferredTime: 'Morning',
     },
-    specialties: ['Balayage', 'Color Correction', 'Curly Hair', 'Bridal', 'Fades', 'Beard Styling'],
-    bio: 'Creating personalized cuts and styles that fit your lifestyle.',
+    specialties: ['Balayage', 'Color Correction', 'Curly Hair', 'Bridal'],
+    bio: 'Creating personalized color and cuts that fit your lifestyle.',
     intakeQuestions: [
       { question: 'What is your natural hair color?', answer: 'Dark brown' },
       { question: 'Current hair color/treatment?', answer: 'Warm brunette with highlights' },
@@ -107,6 +138,46 @@ const INDUSTRY_DATA: Record<IndustryType, {
       { question: 'Any allergies or sensitivities?', answer: 'Sensitive scalp - gentle products only' },
       { question: 'What hair goal are you working toward?', answer: 'Go lighter for summer, cover grays' },
       { question: 'How much time for morning styling?', answer: '15 minutes' },
+    ],
+  },
+  'barber': {
+    label: 'Barber',
+    services: [
+      { id: 'fade', name: 'Fade', price: 35, category: 'base' },
+      { id: 'taper', name: 'Taper', price: 30, category: 'base' },
+      { id: 'scissor-cut', name: 'Scissor Cut', price: 30, category: 'base' },
+      { id: 'lineup', name: 'Lineup / Edge Up', price: 20, category: 'base' },
+      { id: 'beard-trim', name: 'Beard Trim', price: 20, category: 'base' },
+      { id: 'beard-shape', name: 'Beard Shape', price: 25, category: 'base' },
+      { id: 'hot-towel-shave', name: 'Hot Towel Shave', price: 40, category: 'base' },
+      { id: 'kids-cut', name: 'Kids Cut', price: 25, category: 'base' },
+      { id: 'beard-oil', name: 'Beard Oil Treatment', price: 15, category: 'addon' },
+      { id: 'scalp-massage', name: 'Scalp Massage', price: 10, category: 'addon' },
+      { id: 'gray-blending', name: 'Gray Blending', price: 25, category: 'addon' },
+    ],
+    suggestedGoal: 85000,
+    rotations: { priority: 2, standard: 3, flex: 4 },
+    sampleClient: {
+      name: 'Marcus Williams',
+      phone: '(555) 345-6789',
+      email: 'marcus.w@email.com',
+      occupation: 'Account Executive',
+      lifestyle: 'Client-facing role, always needs to look sharp',
+      goals: 'Fresh fade every 2 weeks, clean beard shape',
+      upcomingEvent: 'Wedding groomsman - March 20',
+      notes: 'Sensitive skin, razor bumps on neck - careful with lineup',
+      preferredDays: ['Sat', 'Tue'],
+      preferredTime: 'Morning',
+    },
+    specialties: ['Fades', 'Beard Styling', 'Hot Towel Shaves', 'Designs'],
+    bio: 'Precision cuts and grooming for the modern man.',
+    intakeQuestions: [
+      { question: 'How often do you currently get cuts?', answer: 'Every 2 weeks' },
+      { question: 'Preferred style?', answer: 'Mid fade, textured top' },
+      { question: 'Beard maintenance?', answer: 'Full beard, shaped every visit' },
+      { question: 'Any skin sensitivities?', answer: 'Razor bumps on neck' },
+      { question: 'Products used at home?', answer: 'Pomade for styling' },
+      { question: 'Upcoming events?', answer: 'Wedding groomsman next month' },
     ],
   },
   'personal-trainer': {
@@ -212,6 +283,155 @@ const INDUSTRY_DATA: Record<IndustryType, {
       { question: 'Previous treatments?', answer: 'Occasional facials' },
     ],
   },
+  'lash-technician': {
+    label: 'Lash Technician',
+    services: [
+      { id: 'classic-full', name: 'Classic Full Set', price: 150, category: 'base' },
+      { id: 'volume-full', name: 'Volume Full Set', price: 200, category: 'base' },
+      { id: 'hybrid-full', name: 'Hybrid Full Set', price: 175, category: 'base' },
+      { id: 'classic-fill', name: 'Classic Fill', price: 65, category: 'base' },
+      { id: 'volume-fill', name: 'Volume Fill', price: 85, category: 'base' },
+      { id: 'lash-lift', name: 'Lash Lift', price: 75, category: 'base' },
+      { id: 'lash-tint', name: 'Lash Tint', price: 25, category: 'addon' },
+      { id: 'lash-bath', name: 'Lash Bath', price: 15, category: 'addon' },
+    ],
+    suggestedGoal: 90000,
+    rotations: { priority: 2, standard: 3, flex: 4 },
+    sampleClient: {
+      name: 'Madison Brooks',
+      phone: '(555) 678-9012',
+      email: 'madison.b@email.com',
+      occupation: 'Content Creator',
+      lifestyle: 'Always on camera, needs to look photo-ready',
+      goals: 'Natural-looking volume, saves time on makeup',
+      upcomingEvent: 'Brand partnership shoot - Next week',
+      notes: 'Side sleeper, needs durable application',
+      preferredDays: ['Mon', 'Thu'],
+      preferredTime: 'Morning',
+    },
+    specialties: ['Volume Lashes', 'Natural Looks', 'Mega Volume', 'Lash Lifts'],
+    bio: 'Beautiful lashes that enhance your natural beauty.',
+    intakeQuestions: [
+      { question: 'Current lash routine?', answer: 'Mascara daily, strip lashes for shoots' },
+      { question: 'Desired look?', answer: 'Wispy, natural-looking volume' },
+      { question: 'Eye sensitivities?', answer: 'None' },
+      { question: 'Sleep position?', answer: 'Side sleeper' },
+      { question: 'Fill frequency preference?', answer: 'Every 2 weeks' },
+      { question: 'Activities that might affect retention?', answer: 'Gym, occasional swimming' },
+    ],
+  },
+  'nail-technician': {
+    label: 'Nail Technician',
+    services: [
+      { id: 'classic-mani', name: 'Classic Manicure', price: 30, category: 'base' },
+      { id: 'gel-mani', name: 'Gel Manicure', price: 45, category: 'base' },
+      { id: 'acrylic-full', name: 'Acrylic Full Set', price: 85, category: 'base' },
+      { id: 'acrylic-fill', name: 'Acrylic Fill', price: 55, category: 'base' },
+      { id: 'dip-powder', name: 'Dip Powder', price: 55, category: 'base' },
+      { id: 'pedicure', name: 'Classic Pedicure', price: 40, category: 'base' },
+      { id: 'gel-pedi', name: 'Gel Pedicure', price: 55, category: 'base' },
+      { id: 'nail-art', name: 'Nail Art', price: 15, category: 'addon' },
+      { id: 'paraffin', name: 'Paraffin Treatment', price: 15, category: 'addon' },
+    ],
+    suggestedGoal: 75000,
+    rotations: { priority: 2, standard: 3, flex: 4 },
+    sampleClient: {
+      name: 'Nicole Brown',
+      phone: '(555) 789-0123',
+      email: 'nicole.b@email.com',
+      occupation: 'Hairstylist',
+      lifestyle: 'Works with hands, needs durable nails',
+      goals: 'Long-lasting acrylics that can handle work',
+      upcomingEvent: 'Vacation to Mexico - April',
+      notes: 'Loves trendy designs, almond shape',
+      preferredDays: ['Mon', 'Sun'],
+      preferredTime: 'Afternoon',
+    },
+    specialties: ['Acrylics', 'Nail Art', 'Dip Powder', 'Gel Extensions'],
+    bio: 'Stunning nails that express your personality.',
+    intakeQuestions: [
+      { question: 'Current nail type?', answer: 'Acrylics' },
+      { question: 'How hard are you on your nails?', answer: 'Very - work as a hairstylist' },
+      { question: 'Preferred shape?', answer: 'Almond' },
+      { question: 'Length preference?', answer: 'Medium-long' },
+      { question: 'Any allergies?', answer: 'None' },
+      { question: 'Design preferences?', answer: 'Trendy, loves nail art' },
+    ],
+  },
+  'tattoo-artist': {
+    label: 'Tattoo Artist',
+    services: [
+      { id: 'small', name: 'Small Tattoo (1-2 hrs)', price: 200, category: 'base' },
+      { id: 'medium', name: 'Medium Tattoo (2-4 hrs)', price: 400, category: 'base' },
+      { id: 'large', name: 'Large Tattoo (4+ hrs)', price: 800, category: 'base' },
+      { id: 'touchup', name: 'Touch-up', price: 100, category: 'base' },
+      { id: 'consultation', name: 'Cover-up Consultation', price: 50, category: 'base' },
+      { id: 'custom-design', name: 'Custom Design Session', price: 150, category: 'base' },
+      { id: 'color-pack', name: 'Color Pack Upgrade', price: 50, category: 'addon' },
+      { id: 'aftercare', name: 'Aftercare Kit', price: 25, category: 'addon' },
+    ],
+    suggestedGoal: 110000,
+    rotations: { priority: 8, standard: 12, flex: 16 },
+    sampleClient: {
+      name: 'Jake Thompson',
+      phone: '(555) 890-1234',
+      email: 'jake.t@email.com',
+      occupation: 'Musician',
+      lifestyle: 'Creative, expressive, values meaningful art',
+      goals: 'Building a cohesive sleeve, one session at a time',
+      upcomingEvent: 'Album release party - May',
+      notes: 'High pain tolerance, prefers long sessions',
+      preferredDays: ['Thu', 'Sat'],
+      preferredTime: 'Midday',
+    },
+    specialties: ['Traditional', 'Fine Line', 'Blackwork', 'Cover-ups'],
+    bio: 'Creating meaningful art that tells your story.',
+    intakeQuestions: [
+      { question: 'Previous tattoos?', answer: 'Multiple - building a sleeve' },
+      { question: 'Style preference?', answer: 'Traditional with modern touches' },
+      { question: 'Pain tolerance?', answer: 'High - can do long sessions' },
+      { question: 'Placement idea?', answer: 'Continuing left arm sleeve' },
+      { question: 'Reference images?', answer: 'Has Pinterest board ready' },
+      { question: 'Any skin conditions?', answer: 'None' },
+    ],
+  },
+  'pet-groomer': {
+    label: 'Pet Groomer',
+    services: [
+      { id: 'bath-brush', name: 'Bath & Brush', price: 55, category: 'base' },
+      { id: 'full-groom', name: 'Full Groom', price: 85, category: 'base' },
+      { id: 'puppy-groom', name: 'Puppy Groom', price: 65, category: 'base' },
+      { id: 'nail-trim', name: 'Nail Trim', price: 20, category: 'base' },
+      { id: 'deshedding', name: 'De-shedding Treatment', price: 35, category: 'addon' },
+      { id: 'teeth-brush', name: 'Teeth Brushing', price: 15, category: 'addon' },
+      { id: 'flea-treatment', name: 'Flea Treatment', price: 25, category: 'addon' },
+      { id: 'cologne', name: 'Cologne', price: 10, category: 'addon' },
+    ],
+    suggestedGoal: 70000,
+    rotations: { priority: 4, standard: 6, flex: 8 },
+    sampleClient: {
+      name: 'Max (Golden Retriever)',
+      phone: '(555) 901-2345',
+      email: 'sarah.owner@email.com',
+      occupation: 'Family Pet',
+      lifestyle: 'Active outdoor dog, loves swimming',
+      goals: 'Keep shedding under control, smell fresh',
+      upcomingEvent: 'Family photos - Holiday season',
+      notes: 'Nervous around clippers - go slow',
+      preferredDays: ['Sat', 'Wed'],
+      preferredTime: 'Morning',
+    },
+    specialties: ['Breed-Specific Cuts', 'De-shedding', 'Puppy Training', 'Senior Pet Care'],
+    bio: 'Gentle grooming for happy, healthy pets.',
+    intakeQuestions: [
+      { question: 'Pet type and breed?', answer: 'Golden Retriever, 4 years old' },
+      { question: 'How often currently groomed?', answer: 'Every 6-8 weeks' },
+      { question: 'Any behavior notes?', answer: 'Nervous around clippers' },
+      { question: 'Coat type?', answer: 'Double coat, heavy shedder' },
+      { question: 'Desired look?', answer: 'Neat but natural' },
+      { question: 'Any health issues?', answer: 'Healthy, no issues' },
+    ],
+  },
   'therapist-counselor': {
     label: 'Therapist',
     services: [
@@ -276,6 +496,44 @@ const INDUSTRY_DATA: Record<IndustryType, {
       { question: 'Revenue goal?', answer: '$1M in 12 months' },
       { question: 'Leadership style?', answer: 'Hands-on, learning to delegate' },
       { question: 'Accountability needs?', answer: 'Weekly check-ins, direct feedback' },
+    ],
+  },
+  'auto-detailer': {
+    label: 'Auto Detailer',
+    services: [
+      { id: 'exterior', name: 'Exterior Wash', price: 50, category: 'base' },
+      { id: 'interior', name: 'Interior Clean', price: 80, category: 'base' },
+      { id: 'full-detail', name: 'Full Detail', price: 200, category: 'base' },
+      { id: 'paint-correction', name: 'Paint Correction', price: 400, category: 'base' },
+      { id: 'ceramic', name: 'Ceramic Coating', price: 800, category: 'base' },
+      { id: 'engine-bay', name: 'Engine Bay Clean', price: 100, category: 'base' },
+      { id: 'leather', name: 'Leather Conditioning', price: 50, category: 'addon' },
+      { id: 'headlights', name: 'Headlight Restoration', price: 60, category: 'addon' },
+      { id: 'odor', name: 'Odor Removal', price: 75, category: 'addon' },
+    ],
+    suggestedGoal: 95000,
+    rotations: { priority: 4, standard: 6, flex: 8 },
+    sampleClient: {
+      name: 'BMW M5 Owner (Mike)',
+      phone: '(555) 012-3456',
+      email: 'mike.c@email.com',
+      occupation: 'Executive',
+      lifestyle: 'Takes pride in his car, wants showroom condition',
+      goals: 'Keep the car in pristine condition year-round',
+      upcomingEvent: 'Car show entry - Summer',
+      notes: 'Black paint shows everything - needs extra attention',
+      preferredDays: ['Sat', 'Sun'],
+      preferredTime: 'Morning',
+    },
+    specialties: ['Paint Correction', 'Ceramic Coating', 'Interior Restoration', 'Luxury Vehicles'],
+    bio: 'Bringing out the best in your vehicle.',
+    intakeQuestions: [
+      { question: 'Vehicle type?', answer: 'BMW M5, black exterior' },
+      { question: 'Current condition?', answer: 'Light swirl marks, needs correction' },
+      { question: 'How often detailed?', answer: 'Monthly maintenance' },
+      { question: 'Priority areas?', answer: 'Paint protection, interior leather' },
+      { question: 'Problem areas?', answer: 'Black paint shows everything' },
+      { question: 'Garage or outdoor parked?', answer: 'Garaged' },
     ],
   },
   'other': {

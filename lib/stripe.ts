@@ -20,6 +20,11 @@ const getSupabaseUrl = () => {
   return import.meta.env.VITE_SUPABASE_URL || '';
 };
 
+// Get Supabase Anon Key for Edge Functions
+const getSupabaseAnonKey = () => {
+  return import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+};
+
 // ============ STRIPE CONNECT FUNCTIONS ============
 
 /**
@@ -50,6 +55,7 @@ export async function getStripeAccountStatus(): Promise<StripeAccountStatus> {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${session.access_token}`,
+        'apikey': getSupabaseAnonKey(),
         'Content-Type': 'application/json',
       },
     });
@@ -96,6 +102,7 @@ export async function startStripeOnboarding(): Promise<{ url: string | null; err
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${session.access_token}`,
+        'apikey': getSupabaseAnonKey(),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -105,8 +112,14 @@ export async function startStripeOnboarding(): Promise<{ url: string | null; err
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      return { url: null, error: errorData.error || 'Failed to start onboarding' };
+      const text = await response.text();
+      console.error('Stripe onboarding error:', response.status, text);
+      try {
+        const errorData = JSON.parse(text);
+        return { url: null, error: errorData.error || `Server error: ${response.status}` };
+      } catch {
+        return { url: null, error: `Server error: ${response.status} - ${text.substring(0, 100)}` };
+      }
     }
 
     const data = await response.json();
@@ -135,6 +148,7 @@ export async function disconnectStripeAccount(): Promise<{ error: string | null 
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${session.access_token}`,
+        'apikey': getSupabaseAnonKey(),
         'Content-Type': 'application/json',
       },
     });
@@ -172,6 +186,7 @@ export async function createPaymentIntent(
     const response = await fetch(`${getSupabaseUrl()}/functions/v1/stripe-create-payment-intent`, {
       method: 'POST',
       headers: {
+        'apikey': getSupabaseAnonKey(),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -214,6 +229,8 @@ export async function getProfessionalStripeStatus(professionalId: string): Promi
       {
         method: 'GET',
         headers: {
+          'apikey': getSupabaseAnonKey(),
+          'Authorization': `Bearer ${getSupabaseAnonKey()}`,
           'Content-Type': 'application/json',
         },
       }
@@ -272,6 +289,7 @@ export async function createCheckoutSession(
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${activeSession.access_token}`,
+        'apikey': getSupabaseAnonKey(),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -312,6 +330,7 @@ export async function createCustomerPortalSession(): Promise<{ url: string | nul
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${session.access_token}`,
+        'apikey': getSupabaseAnonKey(),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

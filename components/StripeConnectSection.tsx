@@ -206,6 +206,30 @@ export const StripeConnectSection: React.FC<StripeConnectSectionProps> = ({ onSt
         </button>
       </div>
       {error && <p className="text-red-500 text-sm mt-3">{error}</p>}
+
+      {/* Help tip for Stripe onboarding */}
+      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="flex gap-2">
+          <svg className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div className="text-sm">
+            <p className="font-medium text-blue-800">Tip for Stripe Setup</p>
+            <p className="text-blue-700 mt-1">
+              When Stripe asks for your website, you can use your Recur booking page URL or{' '}
+              <a
+                href="https://bookrecur.com/about"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-blue-900"
+              >
+                bookrecur.com/about
+              </a>
+              {' '}to verify your business.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

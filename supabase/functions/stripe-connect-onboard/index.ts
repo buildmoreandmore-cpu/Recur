@@ -49,8 +49,11 @@ serve(async (req) => {
       .single();
 
     if (profError || !professional) {
+      console.error('Professional lookup failed:', profError);
       throw new Error('Professional profile not found');
     }
+
+    console.log('Found professional:', professional.id, professional.email);
 
     const { returnUrl, refreshUrl } = await req.json();
 
@@ -65,9 +68,11 @@ serve(async (req) => {
 
     if (existingAccount?.stripe_account_id) {
       // Use existing account
+      console.log('Using existing Stripe account:', existingAccount.stripe_account_id);
       stripeAccountId = existingAccount.stripe_account_id;
     } else {
       // Create new Stripe Connect Standard account
+      console.log('Creating new Stripe account for:', professional.email);
       const account = await stripe.accounts.create({
         type: 'standard',
         email: professional.email,
@@ -97,10 +102,15 @@ serve(async (req) => {
     }
 
     // Create account link for onboarding
+    // Ensure URLs use HTTPS for live mode
+    const ensureHttps = (url: string) => url.replace(/^http:/, 'https:');
+    const finalRefreshUrl = ensureHttps(refreshUrl || `${req.headers.get('origin')}/settings?tab=integrations&stripe=refresh`);
+    const finalReturnUrl = ensureHttps(returnUrl || `${req.headers.get('origin')}/settings?tab=integrations&stripe=success`);
+
     const accountLink = await stripe.accountLinks.create({
       account: stripeAccountId,
-      refresh_url: refreshUrl || `${req.headers.get('origin')}/settings?tab=integrations&stripe=refresh`,
-      return_url: returnUrl || `${req.headers.get('origin')}/settings?tab=integrations&stripe=success`,
+      refresh_url: finalRefreshUrl,
+      return_url: finalReturnUrl,
       type: 'account_onboarding',
     });
 
@@ -113,8 +123,12 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error('Error in stripe-connect-onboard:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({
+        error: errorMessage,
+        details: error instanceof Error ? error.stack : undefined
+      }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,

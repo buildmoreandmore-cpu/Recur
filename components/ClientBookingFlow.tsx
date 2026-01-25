@@ -58,12 +58,12 @@ export const ClientBookingFlow: React.FC<ClientBookingFlowProps> = ({
     phone: '',
     email: '',
     referralSource: '',
-    contactMethod: 'text',
+    contactMethods: [] as string[],
     preferredDays: [] as string[],
     preferredTime: '',
     // Lifestyle
     occupation: '',
-    upcomingEvents: '',
+    upcomingEvents: [] as { name: string; date: string }[],
     morningTime: '',
     // Goals
     serviceGoal: '',
@@ -74,7 +74,7 @@ export const ClientBookingFlow: React.FC<ClientBookingFlowProps> = ({
     // Appointment
     requestedService: null as Service | null,
     requestedAddOns: [] as Service[],
-    requestedDate: '',
+    requestedDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Default to 1 week from now
     requestedTimeSlot: '',
     additionalNotes: '',
     // Payment
@@ -126,21 +126,41 @@ export const ClientBookingFlow: React.FC<ClientBookingFlowProps> = ({
     }));
   };
 
+  const toggleContactMethod = (method: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      contactMethods: prev.contactMethods.includes(method)
+        ? prev.contactMethods.filter((m) => m !== method)
+        : [...prev.contactMethods, method],
+    }));
+  };
+
+  const addEvent = () => {
+    setFormData((prev) => ({
+      ...prev,
+      upcomingEvents: [...prev.upcomingEvents, { name: '', date: '' }],
+    }));
+  };
+
+  const updateEvent = (index: number, field: 'name' | 'date', value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      upcomingEvents: prev.upcomingEvents.map((event, i) =>
+        i === index ? { ...event, [field]: value } : event
+      ),
+    }));
+  };
+
+  const removeEvent = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      upcomingEvents: prev.upcomingEvents.filter((_, i) => i !== index),
+    }));
+  };
+
   const canProceed = () => {
-    switch (currentStep) {
-      case 'about':
-        return formData.name && formData.phone && formData.email && formData.contactMethod;
-      case 'lifestyle':
-        return true; // Optional fields
-      case 'goals':
-        return formData.serviceGoal; // At least main goal
-      case 'appointment':
-        return formData.requestedService && formData.requestedDate;
-      case 'payment':
-        return true; // Can skip
-      default:
-        return true;
-    }
+    // All fields are optional - always allow proceeding
+    return true;
   };
 
   const nextStep = () => {
@@ -172,18 +192,18 @@ export const ClientBookingFlow: React.FC<ClientBookingFlowProps> = ({
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
     const request: BookingRequest = {
-      id: `req-${Date.now()}`,
+      id: crypto.randomUUID(),
       status: 'pending',
       createdAt: new Date().toISOString(),
       clientName: formData.name,
       clientPhone: formData.phone,
       clientEmail: formData.email,
       referralSource: formData.referralSource,
-      contactMethod: formData.contactMethod,
+      contactMethod: formData.contactMethods.join(', '),
       preferredDays: formData.preferredDays,
       preferredTime: formData.preferredTime,
       occupation: formData.occupation,
-      upcomingEvents: formData.upcomingEvents,
+      upcomingEvents: formData.upcomingEvents.map(e => e.date ? `${e.name} (${e.date})` : e.name).join(', '),
       morningTime: formData.morningTime,
       serviceGoal: formData.serviceGoal,
       maintenanceLevel: formData.maintenanceLevel,
@@ -356,7 +376,7 @@ export const ClientBookingFlow: React.FC<ClientBookingFlowProps> = ({
             </div>
 
             <p className="text-sm text-slate-500 mb-6">
-              You'll receive a confirmation via {submittedRequest.contactMethod}.
+              You'll receive a confirmation via {submittedRequest.contactMethod || 'your preferred method'}.
             </p>
 
             <button
@@ -449,7 +469,7 @@ export const ClientBookingFlow: React.FC<ClientBookingFlowProps> = ({
 
             <div>
               <label className="block text-sm font-bold text-maroon mb-2">
-                Your Name *
+                Your Name
               </label>
               <input
                 type="text"
@@ -461,7 +481,7 @@ export const ClientBookingFlow: React.FC<ClientBookingFlowProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-maroon mb-2">Phone *</label>
+              <label className="block text-sm font-bold text-maroon mb-2">Phone</label>
               <input
                 type="tel"
                 value={formData.phone}
@@ -472,7 +492,7 @@ export const ClientBookingFlow: React.FC<ClientBookingFlowProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-maroon mb-2">Email *</label>
+              <label className="block text-sm font-bold text-maroon mb-2">Email</label>
               <input
                 type="email"
                 value={formData.email}
@@ -502,16 +522,16 @@ export const ClientBookingFlow: React.FC<ClientBookingFlowProps> = ({
 
             <div>
               <label className="block text-sm font-bold text-maroon mb-2">
-                Preferred contact method *
+                Preferred contact method (select all that apply)
               </label>
               <div className="flex gap-3">
                 {['text', 'call', 'email'].map((method) => (
                   <button
                     key={method}
                     type="button"
-                    onClick={() => updateFormData('contactMethod', method)}
+                    onClick={() => toggleContactMethod(method)}
                     className={`flex-1 py-3 rounded-xl font-medium transition-all ${
-                      formData.contactMethod === method
+                      formData.contactMethods.includes(method)
                         ? 'bg-maroon text-white'
                         : 'bg-slate-100 text-maroon hover:bg-slate-200'
                     }`}
@@ -581,13 +601,54 @@ export const ClientBookingFlow: React.FC<ClientBookingFlowProps> = ({
                 <label className="block text-sm font-bold text-maroon mb-2">
                   {q.label}
                 </label>
-                <input
-                  type="text"
-                  value={(formData as Record<string, unknown>)[q.field] as string || ''}
-                  onChange={(e) => updateFormData(q.field, e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-maroon focus:outline-none transition-colors"
-                  placeholder={q.placeholder}
-                />
+                {q.field === 'upcomingEvents' ? (
+                  <div className="space-y-3">
+                    {formData.upcomingEvents.map((event, index) => (
+                      <div key={index} className="flex gap-2 items-start">
+                        <input
+                          type="text"
+                          value={event.name}
+                          onChange={(e) => updateEvent(index, 'name', e.target.value)}
+                          className="flex-1 px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-maroon focus:outline-none transition-colors"
+                          placeholder="Event name (e.g., Wedding)"
+                        />
+                        <input
+                          type="date"
+                          value={event.date}
+                          onChange={(e) => updateEvent(index, 'date', e.target.value)}
+                          className="px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-maroon focus:outline-none transition-colors"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeEvent(index)}
+                          className="p-3 text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={addEvent}
+                      className="w-full py-3 border-2 border-dashed border-slate-300 text-maroon/60 rounded-xl hover:border-maroon hover:text-maroon transition-colors flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      Add Event
+                    </button>
+                  </div>
+                ) : (
+                  <input
+                    type="text"
+                    value={(formData as Record<string, unknown>)[q.field] as string || ''}
+                    onChange={(e) => updateFormData(q.field, e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-maroon focus:outline-none transition-colors"
+                    placeholder={q.placeholder}
+                  />
+                )}
               </div>
             ))}
 
@@ -626,7 +687,7 @@ export const ClientBookingFlow: React.FC<ClientBookingFlowProps> = ({
             {industryQuestions.goals.map((q) => (
               <div key={q.field}>
                 <label className="block text-sm font-bold text-maroon mb-2">
-                  {q.label} {q.required && '*'}
+                  {q.label}
                 </label>
                 <textarea
                   value={(formData as Record<string, unknown>)[q.field] as string || ''}
@@ -685,7 +746,7 @@ export const ClientBookingFlow: React.FC<ClientBookingFlowProps> = ({
 
             <div>
               <label className="block text-sm font-bold text-maroon mb-2">
-                Service you're interested in *
+                Service you're interested in
               </label>
               <div className="space-y-2">
                 {baseServices.map((service) => (
@@ -765,7 +826,7 @@ export const ClientBookingFlow: React.FC<ClientBookingFlowProps> = ({
 
             <div>
               <label className="block text-sm font-bold text-maroon mb-2">
-                Preferred date *
+                Preferred date
               </label>
               <input
                 type="date"
@@ -881,18 +942,18 @@ export const ClientBookingFlow: React.FC<ClientBookingFlowProps> = ({
                 // Submit the booking request after successful payment
                 setIsSubmitting(true);
                 const request: BookingRequest = {
-                  id: `req-${Date.now()}`,
+                  id: crypto.randomUUID(),
                   status: 'pending',
                   createdAt: new Date().toISOString(),
                   clientName: formData.name,
                   clientPhone: formData.phone,
                   clientEmail: formData.email,
                   referralSource: formData.referralSource,
-                  contactMethod: formData.contactMethod,
+                  contactMethod: formData.contactMethods.join(', '),
                   preferredDays: formData.preferredDays,
                   preferredTime: formData.preferredTime,
                   occupation: formData.occupation,
-                  upcomingEvents: formData.upcomingEvents,
+                  upcomingEvents: formData.upcomingEvents.map(e => e.date ? `${e.name} (${e.date})` : e.name).join(', '),
                   morningTime: formData.morningTime,
                   serviceGoal: formData.serviceGoal,
                   maintenanceLevel: formData.maintenanceLevel,

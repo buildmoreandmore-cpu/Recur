@@ -27,19 +27,23 @@ serve(async (req) => {
     const url = new URL(req.url);
     const professionalId = url.searchParams.get('professionalId');
 
-    // Create Supabase client
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: req.headers.get('Authorization') || '' } } }
-    );
-
     let targetProfessionalId: string;
+    let supabaseClient;
 
     if (professionalId) {
-      // Public request - checking a specific professional's status
+      // Public request - use service role to bypass RLS
+      supabaseClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      );
       targetProfessionalId = professionalId;
     } else {
+      // Authenticated request - use user's auth
+      supabaseClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+        { global: { headers: { Authorization: req.headers.get('Authorization') || '' } } }
+      );
       // Authenticated request - get current user's professional profile
       const authHeader = req.headers.get('Authorization');
       if (!authHeader) {

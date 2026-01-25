@@ -97,7 +97,7 @@ export interface Database {
           email: string | null;
           notes: string | null;
           status: 'confirmed' | 'pending' | 'at-risk';
-          rotation: 'PRIORITY' | 'STANDARD' | 'FLEX';
+          rotation: 'PRIORITY' | 'STANDARD' | 'FLEX' | 'CUSTOM';
           rotation_weeks: number;
           annual_value: number;
           base_service_id: string | null;
@@ -126,7 +126,7 @@ export interface Database {
           email?: string | null;
           notes?: string | null;
           status?: 'confirmed' | 'pending' | 'at-risk';
-          rotation?: 'PRIORITY' | 'STANDARD' | 'FLEX';
+          rotation?: 'PRIORITY' | 'STANDARD' | 'FLEX' | 'CUSTOM';
           rotation_weeks?: number;
           annual_value?: number;
           base_service_id?: string | null;
@@ -155,7 +155,7 @@ export interface Database {
           email?: string | null;
           notes?: string | null;
           status?: 'confirmed' | 'pending' | 'at-risk';
-          rotation?: 'PRIORITY' | 'STANDARD' | 'FLEX';
+          rotation?: 'PRIORITY' | 'STANDARD' | 'FLEX' | 'CUSTOM';
           rotation_weeks?: number;
           annual_value?: number;
           base_service_id?: string | null;

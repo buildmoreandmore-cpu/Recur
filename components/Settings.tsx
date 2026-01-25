@@ -87,7 +87,8 @@ const DEFAULT_BILLING: BillingInfo = {
 const BillingSection: React.FC<{
   subscriptionStatus?: string;
   subscriptionCurrentPeriodEnd?: string;
-}> = ({ subscriptionStatus, subscriptionCurrentPeriodEnd }) => {
+  trialEndsAt?: string;
+}> = ({ subscriptionStatus, subscriptionCurrentPeriodEnd, trialEndsAt }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -131,6 +132,12 @@ const BillingSection: React.FC<{
 
   const isActive = subscriptionStatus === 'active' || subscriptionStatus === 'trialing';
   const isPastDue = subscriptionStatus === 'past_due';
+
+  // Check if user is on a free trial (has trialEndsAt and it hasn't expired)
+  const isOnTrial = trialEndsAt && new Date(trialEndsAt) > new Date() && !isActive;
+  const trialDaysRemaining = trialEndsAt
+    ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))
+    : 0;
 
   const formatPeriodEnd = (dateStr?: string) => {
     if (!dateStr) return 'N/A';
@@ -178,8 +185,42 @@ const BillingSection: React.FC<{
             </div>
           )}
 
-          {/* No Subscription */}
-          {!isActive && !isPastDue && (
+          {/* Free Trial Active */}
+          {isOnTrial && (
+            <div className="text-center py-8">
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-sm font-bold rounded-full">
+                  Free Trial Active
+                </span>
+                <span className="px-3 py-1 bg-slate-100 text-slate-600 text-sm font-medium rounded-full">
+                  {trialDaysRemaining} {trialDaysRemaining === 1 ? 'day' : 'days'} left
+                </span>
+              </div>
+              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-serif text-maroon mb-2">You Have Full Access</h3>
+              <p className="text-maroon/60 mb-6 max-w-sm mx-auto">
+                Enjoy all Recur Pro features during your trial. Add a payment method to continue after your trial ends.
+              </p>
+              <div className="mb-4">
+                <p className="text-3xl font-serif text-maroon">$29<span className="text-lg font-normal text-maroon/60">/month</span></p>
+                <p className="text-xs text-slate-500 mt-1">after trial ends</p>
+              </div>
+              <button
+                onClick={handleSubscribe}
+                disabled={isLoading}
+                className="px-8 py-3 bg-maroon text-white rounded-xl font-bold hover:bg-maroon/90 transition-colors disabled:opacity-50"
+              >
+                {isLoading ? 'Loading...' : 'Add Payment Method'}
+              </button>
+            </div>
+          )}
+
+          {/* No Subscription (and no trial) */}
+          {!isActive && !isPastDue && !isOnTrial && (
             <div className="text-center py-8">
               <div className="w-16 h-16 bg-maroon/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg className="w-8 h-8 text-maroon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1500,6 +1541,7 @@ export const Settings: React.FC<SettingsProps> = ({ profile, bookingSettings: bo
               <BillingSection
                 subscriptionStatus={profile.subscriptionStatus}
                 subscriptionCurrentPeriodEnd={profile.subscriptionCurrentPeriodEnd}
+                trialEndsAt={profile.trialEndsAt}
               />
             )}
 

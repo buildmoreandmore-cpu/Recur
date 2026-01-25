@@ -747,8 +747,9 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client, industry, 
               {/* Status Selection */}
               <div className="mb-6">
                 <h4 className="font-bold text-maroon text-sm mb-3">Status</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {[
+                    { id: 'scheduled', label: 'Scheduled', icon: '📅', color: 'blue' },
                     { id: 'completed', label: 'Completed', icon: '✓', color: 'emerald' },
                     { id: 'no-show', label: 'No-Show', icon: '✗', color: 'red' },
                     { id: 'cancelled', label: 'Cancelled', icon: '⊘', color: 'slate' },

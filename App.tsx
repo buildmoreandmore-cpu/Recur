@@ -1167,7 +1167,10 @@ const App: React.FC = () => {
         onUpdateBookingSettings={async (settings) => {
           setBookingSettings(settings);
           if (user && isSupabaseConfigured) {
-            await saveBookingSettingsToDb(settings);
+            const { error } = await saveBookingSettingsToDb(settings);
+            if (error) {
+              throw error;
+            }
           }
         }}
         onLogoClick={() => {

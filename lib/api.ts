@@ -54,6 +54,7 @@ export async function saveProfile(profile: StylistProfile): Promise<{ error: Err
     annual_goal: profile.annualGoal,
     monthly_goal: profile.monthlyGoal,
     default_rotation: profile.defaultRotation,
+    profile_photo: profile.profilePhoto || null,
     updated_at: new Date().toISOString(),
   };
 
@@ -90,6 +91,48 @@ export async function saveProfile(profile: StylistProfile): Promise<{ error: Err
   await syncServices(profileId, profile.services);
 
   return { error: null, profileId };
+}
+
+export async function uploadProfilePhoto(file: File): Promise<{ url: string | null; error: string | null }> {
+  if (!isSupabaseConfigured) {
+    return { url: null, error: 'Supabase not configured' };
+  }
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { url: null, error: 'Not authenticated' };
+
+  // Validate file
+  if (!file.type.startsWith('image/')) {
+    return { url: null, error: 'File must be an image' };
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    return { url: null, error: 'File must be less than 2MB' };
+  }
+
+  // Generate unique filename
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+  const filePath = `profile-photos/${fileName}`;
+
+  // Upload to Supabase Storage
+  const { error: uploadError } = await supabase.storage
+    .from('avatars')
+    .upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: true,
+    });
+
+  if (uploadError) {
+    console.error('Upload error:', uploadError);
+    return { url: null, error: 'Failed to upload photo' };
+  }
+
+  // Get public URL
+  const { data: { publicUrl } } = supabase.storage
+    .from('avatars')
+    .getPublicUrl(filePath);
+
+  return { url: publicUrl, error: null };
 }
 
 async function syncServices(professionalId: string, services: Service[]): Promise<void> {
@@ -210,7 +253,7 @@ export async function saveClient(client: Client): Promise<{ error: Error | null 
     email: client.email || null,
     notes: client.notes || null,
     status: client.status,
-    rotation: client.rotation.toString().toUpperCase() as 'PRIORITY' | 'STANDARD' | 'FLEX',
+    rotation: client.rotation.toString().toUpperCase() as 'PRIORITY' | 'STANDARD' | 'FLEX' | 'CUSTOM',
     rotation_weeks: client.rotationWeeks,
     annual_value: client.annualValue,
     base_service_id: client.baseService?.id || null,
@@ -430,10 +473,11 @@ export async function saveBookingSettings(settings: BookingSettings): Promise<{ 
 export async function fetchPublicBookingSettings(slug: string): Promise<{
   settings: BookingSettings | null;
   profile: StylistProfile | null;
+  professionalId: string | null;
   services: Service[];
 }> {
   if (!isSupabaseConfigured) {
-    return { settings: null, profile: null, services: [] };
+    return { settings: null, profile: null, professionalId: null, services: [] };
   }
 
   const { data: settings } = await supabase
@@ -443,7 +487,7 @@ export async function fetchPublicBookingSettings(slug: string): Promise<{
     .single();
 
   if (!settings) {
-    return { settings: null, profile: null, services: [] };
+    return { settings: null, profile: null, professionalId: null, services: [] };
   }
 
   const professional = (settings as any).professionals;
@@ -456,6 +500,7 @@ export async function fetchPublicBookingSettings(slug: string): Promise<{
   return {
     settings: dbToBookingSettings(settings),
     profile: dbToProfile(professional, services || []),
+    professionalId: professional?.id || null,
     services: (services || []).map((s: any) => dbToService(s)),
   };
 }
@@ -517,6 +562,7 @@ function dbToProfile(db: any, services: any[]): StylistProfile {
     monthlyGoal: Number(db.monthly_goal),
     defaultRotation: db.default_rotation,
     services: services.map(dbToService),
+    profilePhoto: db.profile_photo || undefined,
     // Subscription fields
     stripeCustomerId: db.stripe_customer_id || undefined,
     subscriptionId: db.subscription_id || undefined,
@@ -546,6 +592,7 @@ function dbToClient(
     'PRIORITY': 'Priority' as unknown as RotationType,
     'STANDARD': 'Standard' as unknown as RotationType,
     'FLEX': 'Flex' as unknown as RotationType,
+    'CUSTOM': 'Custom' as unknown as RotationType,
   };
 
   return {
@@ -635,4 +682,204 @@ function dbToBookingSettings(db: any): BookingSettings {
     maximumAdvanceBooking: db.maximum_advance_booking as '14' | '30' | '60' | '90',
     autoConfirmExisting: db.auto_confirm_existing,
   };
+}
+
+// ============ EXPORT DATA FUNCTIONS ============
+
+export async function exportClientsCSV(): Promise<{ data: string | null; error: string | null }> {
+  if (!isSupabaseConfigured) {
+    return { data: null, error: 'Supabase not configured' };
+  }
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: 'Not authenticated' };
+
+  const { data: profile } = await supabase
+    .from('professionals')
+    .select('id')
+    .eq('user_id', user.id)
+    .single();
+
+  if (!profile) return { data: null, error: 'Profile not found' };
+
+  const { data: clients, error } = await supabase
+    .from('clients')
+    .select('*')
+    .eq('professional_id', profile.id);
+
+  if (error) return { data: null, error: error.message };
+  if (!clients || clients.length === 0) return { data: null, error: 'No clients to export' };
+
+  // CSV headers
+  const headers = [
+    'Name',
+    'Email',
+    'Phone',
+    'Status',
+    'Rotation',
+    'Rotation Weeks',
+    'Annual Value',
+    'Client Since',
+    'Next Appointment',
+    'Preferred Days',
+    'Preferred Time',
+    'Contact Method',
+    'Occupation',
+    'Service Goal',
+    'Notes'
+  ];
+
+  // Build CSV rows
+  const rows = clients.map(c => [
+    c.name || '',
+    c.email || '',
+    c.phone || '',
+    c.status || '',
+    c.rotation || '',
+    c.rotation_weeks || '',
+    c.annual_value || '',
+    c.client_since || '',
+    c.next_appointment || '',
+    (c.preferred_days || []).join('; '),
+    c.preferred_time || '',
+    c.contact_method || '',
+    c.occupation || '',
+    c.service_goal || '',
+    (c.notes || '').replace(/"/g, '""') // Escape quotes
+  ]);
+
+  // Build CSV string
+  const csvContent = [
+    headers.join(','),
+    ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+  ].join('\n');
+
+  return { data: csvContent, error: null };
+}
+
+// ============ CALENDAR FEED FUNCTIONS ============
+
+export async function getCalendarFeedUrl(): Promise<{ url: string | null; error: string | null }> {
+  if (!isSupabaseConfigured) {
+    return { url: null, error: 'Supabase not configured' };
+  }
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { url: null, error: 'Not authenticated' };
+
+  // Get or create calendar feed token
+  const { data: profile, error: profError } = await supabase
+    .from('professionals')
+    .select('id, calendar_feed_token')
+    .eq('user_id', user.id)
+    .single();
+
+  if (profError || !profile) {
+    return { url: null, error: 'Profile not found' };
+  }
+
+  let token = profile.calendar_feed_token;
+
+  // Generate new token if none exists
+  if (!token) {
+    token = crypto.randomUUID();
+    const { error: updateError } = await supabase
+      .from('professionals')
+      .update({ calendar_feed_token: token })
+      .eq('id', profile.id);
+
+    if (updateError) {
+      return { url: null, error: 'Failed to generate calendar token' };
+    }
+  }
+
+  // Build the calendar feed URL
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+  const feedUrl = `${supabaseUrl}/functions/v1/calendar-feed?id=${profile.id}&token=${token}`;
+
+  return { url: feedUrl, error: null };
+}
+
+export async function regenerateCalendarFeedToken(): Promise<{ url: string | null; error: string | null }> {
+  if (!isSupabaseConfigured) {
+    return { url: null, error: 'Supabase not configured' };
+  }
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { url: null, error: 'Not authenticated' };
+
+  const { data: profile, error: profError } = await supabase
+    .from('professionals')
+    .select('id')
+    .eq('user_id', user.id)
+    .single();
+
+  if (profError || !profile) {
+    return { url: null, error: 'Profile not found' };
+  }
+
+  // Generate new token
+  const token = crypto.randomUUID();
+  const { error: updateError } = await supabase
+    .from('professionals')
+    .update({ calendar_feed_token: token })
+    .eq('id', profile.id);
+
+  if (updateError) {
+    return { url: null, error: 'Failed to regenerate calendar token' };
+  }
+
+  // Build the calendar feed URL
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+  const feedUrl = `${supabaseUrl}/functions/v1/calendar-feed?id=${profile.id}&token=${token}`;
+
+  return { url: feedUrl, error: null };
+}
+
+// ============ DELETE ACCOUNT FUNCTIONS ============
+
+export async function deleteAccount(): Promise<{ error: string | null }> {
+  if (!isSupabaseConfigured) {
+    return { error: 'Supabase not configured' };
+  }
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Not authenticated' };
+
+  // Get the professional profile
+  const { data: profile } = await supabase
+    .from('professionals')
+    .select('id')
+    .eq('user_id', user.id)
+    .single();
+
+  if (profile) {
+    // Delete all related data (cascading deletes should handle most, but be explicit)
+    await supabase.from('booking_requests').delete().eq('professional_id', profile.id);
+    await supabase.from('booking_settings').delete().eq('professional_id', profile.id);
+    await supabase.from('services').delete().eq('professional_id', profile.id);
+
+    // Delete clients and their related data
+    const { data: clients } = await supabase
+      .from('clients')
+      .select('id')
+      .eq('professional_id', profile.id);
+
+    if (clients) {
+      for (const client of clients) {
+        await supabase.from('client_addons').delete().eq('client_id', client.id);
+        await supabase.from('client_events').delete().eq('client_id', client.id);
+        await supabase.from('appointments').delete().eq('client_id', client.id);
+      }
+      await supabase.from('clients').delete().eq('professional_id', profile.id);
+    }
+
+    // Delete the professional profile
+    await supabase.from('professionals').delete().eq('id', profile.id);
+  }
+
+  // Sign out the user (actual user deletion requires admin API or edge function)
+  await supabase.auth.signOut();
+
+  return { error: null };
 }

@@ -1,13 +1,19 @@
-import React, { useState } from 'react';
-import { StylistProfile, Service, IndustryType, RotationType, UserPreferences, BillingInfo, BookingSettings } from '../types';
+import React, { useState, useRef, useEffect } from 'react';
+import { StylistProfile, Service, IndustryType, RotationType, UserPreferences, BillingInfo, BookingSettings, Client } from '../types';
 import { LOGOS } from '../constants';
 import { StripeConnectSection } from './StripeConnectSection';
 import { createCheckoutSession, createCustomerPortalSession } from '../lib/stripe';
+import { uploadProfilePhoto, exportClientsCSV, deleteAccount, getCalendarFeedUrl, regenerateCalendarFeedToken } from '../lib/api';
+import { generateAllAppointmentsICS, downloadICS } from '../lib/calendar';
+import { isSupabaseConfigured } from '../lib/supabase';
 
 interface SettingsProps {
   profile: StylistProfile;
+  bookingSettings?: BookingSettings;
+  clients?: Client[];
   onBack: () => void;
   onUpdateProfile: (profile: StylistProfile) => void;
+  onUpdateBookingSettings?: (settings: BookingSettings) => void;
   onLogoClick?: () => void;
   onPreviewProfile?: () => void;
   onLogout?: () => void;
@@ -16,12 +22,18 @@ interface SettingsProps {
 type SettingsTab = 'profile' | 'business' | 'services' | 'rotation' | 'booking' | 'integrations' | 'billing' | 'preferences';
 
 const INDUSTRY_OPTIONS: { value: IndustryType; label: string }[] = [
-  { value: 'hair-stylist', label: 'Hair Stylist / Barber' },
+  { value: 'hair-stylist', label: 'Hair Stylist' },
+  { value: 'barber', label: 'Barber' },
   { value: 'personal-trainer', label: 'Personal Trainer' },
   { value: 'massage-therapist', label: 'Massage Therapist' },
-  { value: 'therapist-counselor', label: 'Therapist / Counselor' },
   { value: 'esthetician', label: 'Esthetician' },
+  { value: 'lash-technician', label: 'Lash Technician' },
+  { value: 'nail-technician', label: 'Nail Technician' },
+  { value: 'tattoo-artist', label: 'Tattoo Artist' },
+  { value: 'pet-groomer', label: 'Pet Groomer' },
+  { value: 'therapist-counselor', label: 'Therapist / Counselor' },
   { value: 'consultant-coach', label: 'Consultant / Coach' },
+  { value: 'auto-detailer', label: 'Auto Detailer' },
   { value: 'other', label: 'Other' },
 ];
 
@@ -34,6 +46,30 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   dateFormat: 'MM/DD/YYYY',
   startOfWeek: 'Sunday',
 };
+
+const PREFERENCES_STORAGE_KEY = 'recur_user_preferences';
+
+function loadPreferencesFromStorage(): UserPreferences {
+  if (typeof window === 'undefined') return DEFAULT_PREFERENCES;
+  try {
+    const stored = localStorage.getItem(PREFERENCES_STORAGE_KEY);
+    if (stored) {
+      return { ...DEFAULT_PREFERENCES, ...JSON.parse(stored) };
+    }
+  } catch (e) {
+    console.error('Failed to load preferences:', e);
+  }
+  return DEFAULT_PREFERENCES;
+}
+
+function savePreferencesToStorage(prefs: UserPreferences): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(prefs));
+  } catch (e) {
+    console.error('Failed to save preferences:', e);
+  }
+}
 
 const DEFAULT_BILLING: BillingInfo = {
   plan: 'Recur Pro',
@@ -208,22 +244,115 @@ const DEFAULT_BOOKING_SETTINGS: BookingSettings = {
   autoConfirmExisting: false,
 };
 
-export const Settings: React.FC<SettingsProps> = ({ profile, onBack, onUpdateProfile, onLogoClick, onPreviewProfile, onLogout }) => {
+export const Settings: React.FC<SettingsProps> = ({ profile, bookingSettings: bookingSettingsProp, clients = [], onBack, onUpdateProfile, onUpdateBookingSettings, onLogoClick, onPreviewProfile, onLogout }) => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   const [editedProfile, setEditedProfile] = useState<StylistProfile>(profile);
-  const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFERENCES);
+  const [preferences, setPreferences] = useState<UserPreferences>(loadPreferencesFromStorage);
   const [billing] = useState<BillingInfo>(DEFAULT_BILLING);
-  const [showSquarePreview, setShowSquarePreview] = useState(false);
   const [showServiceModal, setShowServiceModal] = useState<{ type: 'base' | 'addon' | 'event'; service?: Service } | null>(null);
   const [showRotationModal, setShowRotationModal] = useState<{ type: RotationType; weeks: number; description: string } | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
-  const [bookingSettings, setBookingSettings] = useState<BookingSettings>({
-    ...DEFAULT_BOOKING_SETTINGS,
-    profileSlug: profile.businessName?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || 'my-business',
-  });
+  const [bookingSettings, setBookingSettings] = useState<BookingSettings>(
+    bookingSettingsProp || {
+      ...DEFAULT_BOOKING_SETTINGS,
+      profileSlug: profile.businessName?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || 'my-business',
+    }
+  );
   const [copySuccess, setCopySuccess] = useState(false);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [calendarExporting, setCalendarExporting] = useState(false);
+  const [showCalendarInstructions, setShowCalendarInstructions] = useState<'iphone' | 'android' | null>(null);
+  const [calendarFeedUrl, setCalendarFeedUrl] = useState<string | null>(null);
+  const [calendarFeedLoading, setCalendarFeedLoading] = useState(false);
+  const [calendarUrlCopied, setCalendarUrlCopied] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Handle preferences update with persistence
+  const updatePreferences = (newPrefs: UserPreferences) => {
+    setPreferences(newPrefs);
+    savePreferencesToStorage(newPrefs);
+  };
+
+  // Export data handler
+  const handleExportData = async () => {
+    setExportLoading(true);
+    const { data, error } = await exportClientsCSV();
+    setExportLoading(false);
+
+    if (error) {
+      setSaveMessage(error);
+      setTimeout(() => setSaveMessage(null), 3000);
+      return;
+    }
+
+    if (data) {
+      // Create and download CSV file
+      const blob = new Blob([data], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `recur-clients-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      setSaveMessage('Data exported successfully!');
+      setTimeout(() => setSaveMessage(null), 3000);
+    }
+  };
+
+  // Delete account handler
+  const handleDeleteAccount = async () => {
+    setDeleteLoading(true);
+    const { error } = await deleteAccount();
+    setDeleteLoading(false);
+    setShowDeleteConfirm(false);
+
+    if (error) {
+      setSaveMessage(error);
+      setTimeout(() => setSaveMessage(null), 3000);
+      return;
+    }
+
+    // Clear local storage and redirect
+    localStorage.clear();
+    window.location.href = '/';
+  };
+
+  // Sync booking settings when prop changes
+  useEffect(() => {
+    if (bookingSettingsProp) {
+      setBookingSettings(bookingSettingsProp);
+    }
+  }, [bookingSettingsProp]);
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setPhotoUploading(true);
+    const { url, error } = await uploadProfilePhoto(file);
+    setPhotoUploading(false);
+
+    if (error) {
+      setSaveMessage(error);
+      setTimeout(() => setSaveMessage(null), 3000);
+      return;
+    }
+
+    if (url) {
+      const updatedProfile = { ...editedProfile, profilePhoto: url };
+      setEditedProfile(updatedProfile);
+      onUpdateProfile(updatedProfile);
+      setSaveMessage('Photo uploaded!');
+      setTimeout(() => setSaveMessage(null), 3000);
+    }
+  };
 
   const tabs: { id: SettingsTab; label: string; icon: React.ReactNode }[] = [
     { id: 'profile', label: 'Profile', icon: <UserIcon /> },
@@ -236,10 +365,19 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onBack, onUpdatePro
     { id: 'preferences', label: 'Preferences', icon: <SettingsIcon /> },
   ];
 
-  const handleSave = () => {
-    onUpdateProfile(editedProfile);
-    setSaveMessage('Changes saved successfully!');
-    setTimeout(() => setSaveMessage(null), 3000);
+  const handleSave = async () => {
+    try {
+      await onUpdateProfile(editedProfile);
+      if (onUpdateBookingSettings) {
+        await onUpdateBookingSettings(bookingSettings);
+      }
+      setSaveMessage('Changes saved successfully!');
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch (error) {
+      console.error('Save error:', error);
+      setSaveMessage('Failed to save. Please try again.');
+      setTimeout(() => setSaveMessage(null), 5000);
+    }
   };
 
   const formatCurrency = (amount: number) => {
@@ -353,12 +491,31 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onBack, onUpdatePro
                   <div>
                     <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Profile Photo</label>
                     <div className="flex items-center gap-4">
-                      <div className="w-20 h-20 bg-[#c17f59] rounded-2xl flex items-center justify-center text-white text-2xl font-bold">
-                        {editedProfile.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'DU'}
-                      </div>
+                      {editedProfile.profilePhoto ? (
+                        <img
+                          src={editedProfile.profilePhoto}
+                          alt="Profile"
+                          className="w-20 h-20 rounded-2xl object-cover"
+                        />
+                      ) : (
+                        <div className="w-20 h-20 bg-[#c17f59] rounded-2xl flex items-center justify-center text-white text-2xl font-bold">
+                          {editedProfile.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'DU'}
+                        </div>
+                      )}
                       <div>
-                        <button className="px-4 py-2 bg-slate-100 text-maroon rounded-xl text-sm font-medium hover:bg-slate-200 transition-colors">
-                          Upload Photo
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/jpeg,image/png"
+                          onChange={handlePhotoUpload}
+                          className="hidden"
+                        />
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={photoUploading}
+                          className="px-4 py-2 bg-slate-100 text-maroon rounded-xl text-sm font-medium hover:bg-slate-200 transition-colors disabled:opacity-50"
+                        >
+                          {photoUploading ? 'Uploading...' : 'Upload Photo'}
                         </button>
                         <p className="text-xs text-slate-400 mt-1">Max 2MB, JPG or PNG</p>
                       </div>
@@ -488,7 +645,7 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onBack, onUpdatePro
                       value={editedProfile.specialties?.join(', ') || ''}
                       onChange={(e) => setEditedProfile({ ...editedProfile, specialties: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
                       className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-[#c17f59] focus:outline-none transition-colors"
-                      placeholder="Color, Cuts, Extensions (comma-separated)"
+                      placeholder="Your specialties (comma-separated)"
                     />
                   </div>
 
@@ -742,6 +899,20 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onBack, onUpdatePro
                       </div>
                       <p className="text-sm text-maroon/70 mt-2">Occasional clients. They come when you have room.</p>
                     </div>
+
+                    {/* Custom Tier */}
+                    <div className="p-4 bg-[#6b5b95]/10 border-2 border-[#6b5b95]/30 rounded-xl">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-[#6b5b95] rounded-lg flex items-center justify-center text-white font-bold">C</div>
+                          <div>
+                            <h4 className="font-bold text-maroon">Custom</h4>
+                            <p className="text-sm text-maroon/60">Any schedule (1-52 weeks)</p>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-sm text-maroon/70 mt-2">For clients who need weekly, bi-weekly, or any custom schedule. Set during client intake.</p>
+                    </div>
                   </div>
 
                   {/* Default Rotation */}
@@ -752,10 +923,15 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onBack, onUpdatePro
                       onChange={(e) => setEditedProfile({ ...editedProfile, defaultRotation: parseInt(e.target.value) })}
                       className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-[#c17f59] focus:outline-none transition-colors bg-white"
                     >
+                      <option value="1">1 week (Weekly)</option>
+                      <option value="2">2 weeks (Bi-weekly)</option>
+                      <option value="4">4 weeks (Monthly)</option>
+                      <option value="6">6 weeks</option>
                       <option value="8">8 weeks (Priority)</option>
                       <option value="10">10 weeks (Standard)</option>
                       <option value="12">12 weeks (Flex)</option>
                     </select>
+                    <p className="text-xs text-slate-400 mt-2">This sets the default rotation when adding new clients. Clients can use Custom rotation for any other schedule.</p>
                   </div>
 
                   {/* Save Button */}
@@ -1043,59 +1219,278 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onBack, onUpdatePro
 
             {/* Integrations Section */}
             {activeTab === 'integrations' && (
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                <div className="px-6 py-4 border-b border-slate-100">
-                  <h2 className="text-xl font-serif text-maroon">Integrations</h2>
-                </div>
-                <div className="p-6 space-y-4">
-                  {/* Square Integration */}
-                  <div className="p-4 border-2 border-slate-200 rounded-xl">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-black rounded-xl flex items-center justify-center flex-shrink-0">
-                        <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M3 3h18v18H3V3zm16 16V5H5v14h14z"/>
-                          <path d="M7 7h10v10H7V7zm8 8V9H9v6h6z"/>
-                        </svg>
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-bold text-maroon">Square</h4>
-                        <p className="text-sm text-slate-500">Send invoices and collect payments from your clients.</p>
-                      </div>
-                      <button
-                        onClick={() => setShowSquarePreview(true)}
-                        className="px-4 py-2 bg-maroon text-white rounded-xl font-medium text-sm hover:bg-maroon/90 transition-colors"
-                      >
-                        Connect Square
-                      </button>
-                    </div>
+              <div className="space-y-6">
+                {/* Calendar Sync */}
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                  <div className="px-6 py-4 border-b border-slate-100">
+                    <h2 className="text-xl font-serif text-maroon">Calendar Sync</h2>
                   </div>
-
-                  {/* Google Calendar */}
-                  <div className="p-4 border-2 border-slate-200 rounded-xl opacity-60">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-white border-2 border-slate-200 rounded-xl flex items-center justify-center flex-shrink-0">
-                        <svg className="w-6 h-6 text-[#4285F4]" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M19.5 22h-15A2.5 2.5 0 012 19.5v-15A2.5 2.5 0 014.5 2h15A2.5 2.5 0 0122 4.5v15a2.5 2.5 0 01-2.5 2.5zM8 7v10h2v-4h4v4h2V7h-2v4h-4V7H8z"/>
-                        </svg>
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-bold text-maroon">Google Calendar</h4>
-                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-200 text-slate-500">Coming Soon</span>
+                  <div className="p-6 space-y-6">
+                    {/* Native Calendar Integration */}
+                    <div className="p-4 border-2 border-[#7c9a7e]/30 bg-[#7c9a7e]/5 rounded-xl">
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="w-12 h-12 bg-[#7c9a7e] rounded-xl flex items-center justify-center flex-shrink-0">
+                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" strokeWidth={2}/>
+                            <line x1="16" y1="2" x2="16" y2="6" strokeWidth={2}/>
+                            <line x1="8" y1="2" x2="8" y2="6" strokeWidth={2}/>
+                            <line x1="3" y1="10" x2="21" y2="10" strokeWidth={2}/>
+                          </svg>
                         </div>
-                        <p className="text-sm text-slate-500">Sync appointments to your calendar automatically.</p>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-bold text-maroon">Native Calendar Sync</h4>
+                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#7c9a7e] text-white">Universal</span>
+                          </div>
+                          <p className="text-sm text-slate-500">Works with iPhone, Android, Google Calendar, Outlook, and any calendar app.</p>
+                        </div>
                       </div>
-                      <button
-                        disabled
-                        className="px-4 py-2 bg-slate-100 text-slate-400 rounded-xl font-medium text-sm cursor-not-allowed"
-                      >
-                        Join Waitlist
-                      </button>
+
+                      {/* Download Calendar Button */}
+                      <div className="flex flex-wrap gap-3 mb-4">
+                        <button
+                          onClick={() => {
+                            setCalendarExporting(true);
+                            try {
+                              const icsContent = generateAllAppointmentsICS(clients, profile);
+                              const filename = `${profile.businessName?.replace(/\s+/g, '-').toLowerCase() || 'recur'}-appointments.ics`;
+                              downloadICS(icsContent, filename);
+                              setSaveMessage('Calendar file downloaded!');
+                              setTimeout(() => setSaveMessage(null), 3000);
+                            } catch (err) {
+                              setSaveMessage('Failed to generate calendar file');
+                              setTimeout(() => setSaveMessage(null), 3000);
+                            }
+                            setCalendarExporting(false);
+                          }}
+                          disabled={calendarExporting}
+                          className="flex-1 sm:flex-none px-6 py-3 bg-maroon text-white rounded-xl font-bold text-sm hover:bg-maroon/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                          </svg>
+                          {calendarExporting ? 'Exporting...' : 'Download All Appointments'}
+                        </button>
+                      </div>
+
+                      {/* Platform Instructions */}
+                      <div className="border-t border-slate-200 pt-4">
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">How to Add to Your Calendar</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <button
+                            onClick={() => setShowCalendarInstructions(showCalendarInstructions === 'iphone' ? null : 'iphone')}
+                            className="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors text-left"
+                          >
+                            <div className="w-10 h-10 bg-slate-200 rounded-lg flex items-center justify-center">
+                              <svg className="w-5 h-5 text-slate-600" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M18.71 19.5C17.88 20.74 17 21.95 15.66 21.97C14.32 22 13.89 21.18 12.37 21.18C10.84 21.18 10.37 21.95 9.09997 22C7.78997 22.05 6.79997 20.68 5.95997 19.47C4.24997 17 2.93997 12.45 4.69997 9.39C5.56997 7.87 7.12997 6.91 8.81997 6.88C10.1 6.86 11.32 7.75 12.11 7.75C12.89 7.75 14.37 6.68 15.92 6.84C16.57 6.87 18.39 7.1 19.56 8.82C19.47 8.88 17.39 10.1 17.41 12.63C17.44 15.65 20.06 16.66 20.09 16.67C20.06 16.74 19.67 18.11 18.71 19.5ZM13 3.5C13.73 2.67 14.94 2.04 15.94 2C16.07 3.17 15.6 4.35 14.9 5.19C14.21 6.04 13.07 6.7 11.95 6.61C11.8 5.46 12.36 4.26 13 3.5Z"/>
+                              </svg>
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-medium text-maroon text-sm">iPhone / iPad</p>
+                              <p className="text-xs text-slate-500">iOS Calendar app</p>
+                            </div>
+                            <svg className={`w-4 h-4 text-slate-400 transition-transform ${showCalendarInstructions === 'iphone' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+
+                          <button
+                            onClick={() => setShowCalendarInstructions(showCalendarInstructions === 'android' ? null : 'android')}
+                            className="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors text-left"
+                          >
+                            <div className="w-10 h-10 bg-slate-200 rounded-lg flex items-center justify-center">
+                              <svg className="w-5 h-5 text-slate-600" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M17.523 2.378L16.11 4.79C17.21 5.6 18.01 6.79 18.27 8.14H21V10.14H18.27C18 11.54 17.17 12.73 16.03 13.52L17.47 15.93L15.81 16.92L14.37 14.51C13.48 14.83 12.51 15 11.5 15C10.49 15 9.52 14.83 8.63 14.51L7.19 16.92L5.53 15.93L6.97 13.52C5.83 12.73 5 11.54 4.73 10.14H2V8.14H4.73C5 6.79 5.83 5.6 6.97 4.79L5.53 2.37L7.19 1.38L8.63 3.79C9.52 3.47 10.49 3.3 11.5 3.3C12.51 3.3 13.48 3.47 14.37 3.79L15.81 1.38L17.523 2.378ZM11.5 5.3C8.96 5.3 6.9 7.36 6.9 9.9C6.9 12.44 8.96 14.5 11.5 14.5C14.04 14.5 16.1 12.44 16.1 9.9C16.1 7.36 14.04 5.3 11.5 5.3ZM9 8.15C9 8.7 9.45 9.15 10 9.15C10.55 9.15 11 8.7 11 8.15C11 7.6 10.55 7.15 10 7.15C9.45 7.15 9 7.6 9 8.15ZM12 8.15C12 8.7 12.45 9.15 13 9.15C13.55 9.15 14 8.7 14 8.15C14 7.6 13.55 7.15 13 7.15C12.45 7.15 12 7.6 12 8.15Z"/>
+                              </svg>
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-medium text-maroon text-sm">Android</p>
+                              <p className="text-xs text-slate-500">Google Calendar</p>
+                            </div>
+                            <svg className={`w-4 h-4 text-slate-400 transition-transform ${showCalendarInstructions === 'android' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+                        </div>
+
+                        {/* iPhone Instructions */}
+                        {showCalendarInstructions === 'iphone' && (
+                          <div className="mt-4 p-4 bg-slate-50 rounded-xl">
+                            <ol className="space-y-2 text-sm text-maroon/80">
+                              <li className="flex gap-2">
+                                <span className="font-bold text-maroon">1.</span>
+                                <span>Click "Download All Appointments" above</span>
+                              </li>
+                              <li className="flex gap-2">
+                                <span className="font-bold text-maroon">2.</span>
+                                <span>When the file downloads, tap on it or find it in your Downloads</span>
+                              </li>
+                              <li className="flex gap-2">
+                                <span className="font-bold text-maroon">3.</span>
+                                <span>Tap "Add All" when prompted to add events to your Calendar</span>
+                              </li>
+                              <li className="flex gap-2">
+                                <span className="font-bold text-maroon">4.</span>
+                                <span>Your appointments will now appear in the iOS Calendar app</span>
+                              </li>
+                            </ol>
+                          </div>
+                        )}
+
+                        {/* Android Instructions */}
+                        {showCalendarInstructions === 'android' && (
+                          <div className="mt-4 p-4 bg-slate-50 rounded-xl">
+                            <ol className="space-y-2 text-sm text-maroon/80">
+                              <li className="flex gap-2">
+                                <span className="font-bold text-maroon">1.</span>
+                                <span>Click "Download All Appointments" above</span>
+                              </li>
+                              <li className="flex gap-2">
+                                <span className="font-bold text-maroon">2.</span>
+                                <span>Open the downloaded .ics file from your notifications or Downloads folder</span>
+                              </li>
+                              <li className="flex gap-2">
+                                <span className="font-bold text-maroon">3.</span>
+                                <span>Select "Google Calendar" when prompted to choose an app</span>
+                              </li>
+                              <li className="flex gap-2">
+                                <span className="font-bold text-maroon">4.</span>
+                                <span>Confirm importing the events to your calendar</span>
+                              </li>
+                            </ol>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Important Note */}
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                      <div className="flex gap-2">
+                        <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p className="text-sm text-amber-800">
+                          <strong>Note:</strong> Downloaded calendars are a snapshot. After adding new clients or appointments, download again to update your calendar. Or use <strong>Auto-Sync</strong> below for automatic updates.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Appointment Count */}
+                    {clients.length > 0 && (
+                      <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                        <span className="text-sm text-slate-500">
+                          {clients.reduce((acc, c) => acc + (c.appointments?.length || 0), 0)} total appointments across {clients.length} clients
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Auto-Sync Calendar Subscription */}
+                {isSupabaseConfigured && (
+                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-xl font-serif text-maroon">Auto-Sync Calendar</h2>
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-100 text-blue-700">Auto-Updates</span>
+                      </div>
+                    </div>
+                    <div className="p-6 space-y-4">
+                      <p className="text-sm text-slate-600">
+                        Subscribe to your calendar feed and new appointments will automatically appear in your calendar app. Most apps refresh every 15 minutes to 1 hour.
+                      </p>
+
+                      {!calendarFeedUrl ? (
+                        <button
+                          onClick={async () => {
+                            setCalendarFeedLoading(true);
+                            const { url, error } = await getCalendarFeedUrl();
+                            if (url) {
+                              setCalendarFeedUrl(url);
+                            } else {
+                              setSaveMessage(error || 'Failed to generate calendar URL');
+                              setTimeout(() => setSaveMessage(null), 3000);
+                            }
+                            setCalendarFeedLoading(false);
+                          }}
+                          disabled={calendarFeedLoading}
+                          className="w-full px-6 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                          </svg>
+                          {calendarFeedLoading ? 'Generating...' : 'Generate Subscription URL'}
+                        </button>
+                      ) : (
+                        <div className="space-y-4">
+                          {/* Subscribe Button */}
+                          <a
+                            href={calendarFeedUrl.replace('https://', 'webcal://')}
+                            className="w-full px-6 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" strokeWidth={2}/>
+                              <line x1="16" y1="2" x2="16" y2="6" strokeWidth={2}/>
+                              <line x1="8" y1="2" x2="8" y2="6" strokeWidth={2}/>
+                              <line x1="3" y1="10" x2="21" y2="10" strokeWidth={2}/>
+                            </svg>
+                            Subscribe to Calendar
+                          </a>
+
+                          <p className="text-sm text-slate-500 text-center">
+                            Click above to add your appointments to iPhone, Google Calendar, or Outlook. New appointments sync automatically.
+                          </p>
+
+                          {/* Advanced options - collapsed */}
+                          <div className="pt-2 border-t border-slate-100 flex items-center justify-center gap-4 text-xs">
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(calendarFeedUrl);
+                                setCalendarUrlCopied(true);
+                                setTimeout(() => setCalendarUrlCopied(false), 2000);
+                              }}
+                              className="text-slate-400 hover:text-slate-600 transition-colors"
+                            >
+                              {calendarUrlCopied ? '✓ Link copied' : 'Copy link'}
+                            </button>
+                            <span className="text-slate-300">•</span>
+                            <button
+                              onClick={async () => {
+                                if (confirm('This will invalidate your current subscription. You\'ll need to re-subscribe on your devices. Continue?')) {
+                                  setCalendarFeedLoading(true);
+                                  const { url, error } = await regenerateCalendarFeedToken();
+                                  if (url) {
+                                    setCalendarFeedUrl(url);
+                                    setSaveMessage('New link generated - please re-subscribe');
+                                    setTimeout(() => setSaveMessage(null), 3000);
+                                  } else {
+                                    setSaveMessage(error || 'Failed to regenerate');
+                                    setTimeout(() => setSaveMessage(null), 3000);
+                                  }
+                                  setCalendarFeedLoading(false);
+                                }
+                              }}
+                              disabled={calendarFeedLoading}
+                              className="text-slate-400 hover:text-slate-600 transition-colors"
+                            >
+                              Reset link
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
+                )}
 
-                  {/* Stripe Connect */}
-                  <StripeConnectSection />
+                {/* Stripe Connect */}
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                  <div className="px-6 py-4 border-b border-slate-100">
+                    <h2 className="text-xl font-serif text-maroon">Payments</h2>
+                  </div>
+                  <div className="p-6">
+                    <StripeConnectSection />
+                  </div>
                 </div>
               </div>
             )}
@@ -1127,7 +1522,7 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onBack, onUpdatePro
                           </div>
                           <Toggle
                             checked={preferences.emailNotifications}
-                            onChange={(checked) => setPreferences({ ...preferences, emailNotifications: checked })}
+                            onChange={(checked) => updatePreferences({ ...preferences, emailNotifications: checked })}
                           />
                         </div>
                         <div className="flex items-center justify-between">
@@ -1137,7 +1532,7 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onBack, onUpdatePro
                           </div>
                           <Toggle
                             checked={preferences.overdueAlerts}
-                            onChange={(checked) => setPreferences({ ...preferences, overdueAlerts: checked })}
+                            onChange={(checked) => updatePreferences({ ...preferences, overdueAlerts: checked })}
                           />
                         </div>
                         <div className="flex items-center justify-between">
@@ -1147,7 +1542,7 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onBack, onUpdatePro
                           </div>
                           <Toggle
                             checked={preferences.weeklySummary}
-                            onChange={(checked) => setPreferences({ ...preferences, weeklySummary: checked })}
+                            onChange={(checked) => updatePreferences({ ...preferences, weeklySummary: checked })}
                           />
                         </div>
                         <div className="flex items-center justify-between">
@@ -1157,7 +1552,7 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onBack, onUpdatePro
                           </div>
                           <Toggle
                             checked={preferences.paymentConfirmations}
-                            onChange={(checked) => setPreferences({ ...preferences, paymentConfirmations: checked })}
+                            onChange={(checked) => updatePreferences({ ...preferences, paymentConfirmations: checked })}
                           />
                         </div>
                       </div>
@@ -1170,7 +1565,7 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onBack, onUpdatePro
                           <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Currency</label>
                           <select
                             value={preferences.currency}
-                            onChange={(e) => setPreferences({ ...preferences, currency: e.target.value as UserPreferences['currency'] })}
+                            onChange={(e) => updatePreferences({ ...preferences, currency: e.target.value as UserPreferences['currency'] })}
                             className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-[#c17f59] focus:outline-none transition-colors bg-white"
                           >
                             <option value="USD">USD ($)</option>
@@ -1184,7 +1579,7 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onBack, onUpdatePro
                           <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Date Format</label>
                           <select
                             value={preferences.dateFormat}
-                            onChange={(e) => setPreferences({ ...preferences, dateFormat: e.target.value as UserPreferences['dateFormat'] })}
+                            onChange={(e) => updatePreferences({ ...preferences, dateFormat: e.target.value as UserPreferences['dateFormat'] })}
                             className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-[#c17f59] focus:outline-none transition-colors bg-white"
                           >
                             <option value="MM/DD/YYYY">MM/DD/YYYY</option>
@@ -1195,7 +1590,7 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onBack, onUpdatePro
                           <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Start of Week</label>
                           <select
                             value={preferences.startOfWeek}
-                            onChange={(e) => setPreferences({ ...preferences, startOfWeek: e.target.value as UserPreferences['startOfWeek'] })}
+                            onChange={(e) => updatePreferences({ ...preferences, startOfWeek: e.target.value as UserPreferences['startOfWeek'] })}
                             className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-[#c17f59] focus:outline-none transition-colors bg-white"
                           >
                             <option value="Sunday">Sunday</option>
@@ -1228,8 +1623,12 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onBack, onUpdatePro
                         <p className="font-medium text-maroon">Export Data</p>
                         <p className="text-sm text-slate-500">Download all your client data as CSV</p>
                       </div>
-                      <button className="px-4 py-2 bg-slate-100 text-maroon rounded-xl font-medium text-sm hover:bg-slate-200 transition-colors">
-                        Export Data
+                      <button
+                        onClick={handleExportData}
+                        disabled={exportLoading}
+                        className="px-4 py-2 bg-slate-100 text-maroon rounded-xl font-medium text-sm hover:bg-slate-200 transition-colors disabled:opacity-50"
+                      >
+                        {exportLoading ? 'Exporting...' : 'Export Data'}
                       </button>
                     </div>
                     {onLogout && (
@@ -1285,71 +1684,12 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onBack, onUpdatePro
         />
       )}
 
-      {/* Square Preview Modal */}
-      {showSquarePreview && (
-        <div
-          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-          onClick={() => setShowSquarePreview(false)}
-        >
-          <div
-            className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-6 py-5 bg-gradient-to-r from-black to-gray-800 text-white">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M3 3h18v18H3V3zm16 16V5H5v14h14z"/>
-                    <path d="M7 7h10v10H7V7zm8 8V9H9v6h6z"/>
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-bold text-lg">Square Integration</h3>
-                  <span className="text-xs text-white/60 uppercase tracking-wider">Preview</span>
-                </div>
-              </div>
-            </div>
-            <div className="p-6">
-              <p className="text-maroon/70 mb-6">When this feature launches, you'll be able to:</p>
-              <ul className="space-y-3 mb-6">
-                {['Connect your Square account securely', 'Send invoices to clients after appointments', 'Collect deposits when booking', 'Track payments in client profiles'].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <span className="text-maroon">{item}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowSquarePreview(false)}
-                  className="flex-1 py-3 border-2 border-slate-200 text-maroon font-bold rounded-xl hover:bg-slate-50 transition-colors"
-                >
-                  Close
-                </button>
-                <button
-                  onClick={() => {
-                    setShowSquarePreview(false);
-                    alert('Thanks for your interest! You\'ll be notified when Square integration launches.');
-                  }}
-                  className="flex-1 py-3 bg-maroon text-white font-bold rounded-xl hover:bg-maroon/90 transition-colors"
-                >
-                  Join Waitlist
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Delete Account Confirmation Modal */}
       {showDeleteConfirm && (
         <div
           className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-          onClick={() => setShowDeleteConfirm(false)}
+          onClick={() => !deleteLoading && setShowDeleteConfirm(false)}
         >
           <div
             className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden"
@@ -1366,18 +1706,17 @@ export const Settings: React.FC<SettingsProps> = ({ profile, onBack, onUpdatePro
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="flex-1 py-3 border-2 border-slate-200 text-maroon font-bold rounded-xl hover:bg-slate-50 transition-colors"
+                  disabled={deleteLoading}
+                  className="flex-1 py-3 border-2 border-slate-200 text-maroon font-bold rounded-xl hover:bg-slate-50 transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={() => {
-                    setShowDeleteConfirm(false);
-                    alert('Demo: Account deletion would be processed here.');
-                  }}
-                  className="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition-colors"
+                  onClick={handleDeleteAccount}
+                  disabled={deleteLoading}
+                  className="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition-colors disabled:opacity-50"
                 >
-                  Delete Account
+                  {deleteLoading ? 'Deleting...' : 'Delete Account'}
                 </button>
               </div>
             </div>
@@ -1452,7 +1791,7 @@ const ServiceModal: React.FC<{
   const handleSubmit = () => {
     if (!name || !price) return;
     onSave({
-      id: service?.id || `service-${Date.now()}`,
+      id: service?.id || crypto.randomUUID(),
       name,
       price: parseFloat(price),
       category: type,

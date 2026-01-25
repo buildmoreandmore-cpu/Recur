@@ -771,6 +771,82 @@ export async function exportClientsCSV(): Promise<{ data: string | null; error: 
   return { data: csvContent, error: null };
 }
 
+export async function exportTransactionsCSV(): Promise<{ data: string | null; error: string | null }> {
+  if (!isSupabaseConfigured) {
+    return { data: null, error: 'Supabase not configured' };
+  }
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: 'Not authenticated' };
+
+  const { data: profile } = await supabase
+    .from('professionals')
+    .select('id')
+    .eq('user_id', user.id)
+    .single();
+
+  if (!profile) return { data: null, error: 'Profile not found' };
+
+  // Get all clients
+  const { data: clients } = await supabase
+    .from('clients')
+    .select('id, name')
+    .eq('professional_id', profile.id);
+
+  if (!clients || clients.length === 0) return { data: null, error: 'No clients found' };
+
+  const clientIds = clients.map(c => c.id);
+  const clientMap = new Map(clients.map(c => [c.id, c.name]));
+
+  // Get all appointments with payment data
+  const { data: appointments, error } = await supabase
+    .from('appointments')
+    .select('*')
+    .in('client_id', clientIds)
+    .order('date', { ascending: false });
+
+  if (error) return { data: null, error: error.message };
+  if (!appointments || appointments.length === 0) return { data: null, error: 'No transactions to export' };
+
+  // CSV headers
+  const headers = [
+    'Date',
+    'Client Name',
+    'Service',
+    'Status',
+    'Service Price',
+    'Amount Paid',
+    'Payment Method',
+    'Payment Note',
+    'Arrived Late',
+    'Missed Reason',
+    'Completed At'
+  ];
+
+  // Build CSV rows
+  const rows = appointments.map(a => [
+    a.date || '',
+    clientMap.get(a.client_id) || 'Unknown',
+    a.service_name || '',
+    a.status || '',
+    a.price || '0',
+    a.payment_amount || '',
+    a.payment_method || '',
+    (a.payment_note || '').replace(/"/g, '""'),
+    a.arrived_late ? 'Yes' : 'No',
+    a.missed_reason || '',
+    a.completed_at ? new Date(a.completed_at).toLocaleString() : ''
+  ]);
+
+  // Build CSV string
+  const csvContent = [
+    headers.join(','),
+    ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+  ].join('\n');
+
+  return { data: csvContent, error: null };
+}
+
 // ============ CALENDAR FEED FUNCTIONS ============
 
 export async function getCalendarFeedUrl(): Promise<{ url: string | null; error: string | null }> {

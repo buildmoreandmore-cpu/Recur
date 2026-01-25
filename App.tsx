@@ -1685,7 +1685,7 @@ const App: React.FC = () => {
               <span className="hero-animate hero-animate-delay-1 inline-block">Know your </span>
               <span className="hero-animate hero-animate-delay-2 inline-block italic">income</span>
               <br />
-              <span className="hero-animate hero-animate-delay-3 inline-block">before the year starts.</span>
+              <span className="hero-animate hero-animate-delay-3 inline-block">before you earn it.</span>
             </h1>
 
             <p className="hero-animate hero-animate-delay-3 text-base sm:text-lg lg:text-xl text-maroon/70 mb-8 sm:mb-10 max-w-2xl mx-auto leading-relaxed px-2">
@@ -1855,7 +1855,7 @@ const App: React.FC = () => {
                   <ICONS.TrendingUp />
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3">Forecast Your Income</h3>
-                <p className="text-sm sm:text-base text-white/70 leading-relaxed">Every rotation has a value. Add them up and you know your year—before January ends.</p>
+                <p className="text-sm sm:text-base text-white/70 leading-relaxed">Every rotation has a value. Add them up and you'll always know what's coming.</p>
               </div>
               <div className="scroll-reveal delay-3 card-hover bg-white p-6 sm:p-10 rounded-2xl sm:rounded-[32px] border border-slate-100 shadow-sm flex flex-col items-center text-center">
                 <div className="card-icon w-12 sm:w-16 h-12 sm:h-16 bg-[#fff38a] rounded-xl sm:rounded-2xl flex items-center justify-center text-maroon mb-4 sm:mb-6">

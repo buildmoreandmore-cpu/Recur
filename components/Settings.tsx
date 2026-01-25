@@ -3,7 +3,7 @@ import { StylistProfile, Service, IndustryType, RotationType, UserPreferences, B
 import { LOGOS } from '../constants';
 import { StripeConnectSection } from './StripeConnectSection';
 import { createCheckoutSession, createCustomerPortalSession } from '../lib/stripe';
-import { uploadProfilePhoto, exportClientsCSV, deleteAccount, getCalendarFeedUrl, regenerateCalendarFeedToken } from '../lib/api';
+import { uploadProfilePhoto, exportClientsCSV, exportTransactionsCSV, deleteAccount, getCalendarFeedUrl, regenerateCalendarFeedToken } from '../lib/api';
 import { generateAllAppointmentsICS, downloadICS } from '../lib/calendar';
 import { isSupabaseConfigured } from '../lib/supabase';
 
@@ -304,6 +304,7 @@ export const Settings: React.FC<SettingsProps> = ({ profile, bookingSettings: bo
   const [copySuccess, setCopySuccess] = useState(false);
   const [photoUploading, setPhotoUploading] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
+  const [transactionsExportLoading, setTransactionsExportLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [calendarExporting, setCalendarExporting] = useState(false);
   const [showCalendarInstructions, setShowCalendarInstructions] = useState<'iphone' | 'android' | null>(null);
@@ -343,6 +344,35 @@ export const Settings: React.FC<SettingsProps> = ({ profile, bookingSettings: bo
       URL.revokeObjectURL(url);
 
       setSaveMessage('Data exported successfully!');
+      setTimeout(() => setSaveMessage(null), 3000);
+    }
+  };
+
+  // Export transactions handler
+  const handleExportTransactions = async () => {
+    setTransactionsExportLoading(true);
+    const { data, error } = await exportTransactionsCSV();
+    setTransactionsExportLoading(false);
+
+    if (error) {
+      setSaveMessage(error);
+      setTimeout(() => setSaveMessage(null), 3000);
+      return;
+    }
+
+    if (data) {
+      // Create and download CSV file
+      const blob = new Blob([data], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `recur-transactions-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      setSaveMessage('Transactions exported successfully!');
       setTimeout(() => setSaveMessage(null), 3000);
     }
   };
@@ -1662,7 +1692,7 @@ export const Settings: React.FC<SettingsProps> = ({ profile, bookingSettings: bo
                   <div className="p-6 space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-maroon">Export Data</p>
+                        <p className="font-medium text-maroon">Export Client Data</p>
                         <p className="text-sm text-slate-500">Download all your client data as CSV</p>
                       </div>
                       <button
@@ -1670,7 +1700,20 @@ export const Settings: React.FC<SettingsProps> = ({ profile, bookingSettings: bo
                         disabled={exportLoading}
                         className="px-4 py-2 bg-slate-100 text-maroon rounded-xl font-medium text-sm hover:bg-slate-200 transition-colors disabled:opacity-50"
                       >
-                        {exportLoading ? 'Exporting...' : 'Export Data'}
+                        {exportLoading ? 'Exporting...' : 'Export Clients'}
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                      <div>
+                        <p className="font-medium text-maroon">Export Financial Transactions</p>
+                        <p className="text-sm text-slate-500">Download all appointments with payment details</p>
+                      </div>
+                      <button
+                        onClick={handleExportTransactions}
+                        disabled={transactionsExportLoading}
+                        className="px-4 py-2 bg-emerald-100 text-emerald-700 rounded-xl font-medium text-sm hover:bg-emerald-200 transition-colors disabled:opacity-50"
+                      >
+                        {transactionsExportLoading ? 'Exporting...' : 'Export Transactions'}
                       </button>
                     </div>
                     {onLogout && (
